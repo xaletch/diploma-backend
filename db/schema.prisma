@@ -7,14 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+  pending
+  active
+}
+
 model User {
   id            String        @id               @default(uuid())
-  login         String        @unique
-  name          String
-  password      String        
+  phone         String        @unique
+  status        UserStatus    @default(pending)
 
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")
 
+  refreshTokens RefreshToken[]                  @relation("refresh_tokens")
+
   @@map("users")
+}
+
+model RefreshToken {
+  id            String        @id               @default(uuid())
+
+  token         String
+  expiresAt     DateTime      @map("expires_at")
+  ipAddress     String        @map("id_address")
+
+  user          User          @relation("refresh_tokens", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String        @map("user_id")
+
+  createdAt     DateTime      @default(now())   @map("created_ad")
+  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+
+  @@map("refresh_tokens")
 }
