@@ -6,6 +6,7 @@ import { RefreshRequestDto } from "./dto/refresh.dto";
 import { AuthVerifyDto } from "./dto/auth-verify.dto";
 import { Response } from "express";
 import { IS_DEV_ENV, SAME_SITE } from "src/shared/utils/is-dev";
+import { Authorization } from "./decorators/auth.decorator";
 
 @Controller("auth")
 export class AuthController {
@@ -21,6 +22,7 @@ export class AuthController {
     return this.authService.verifyCode(data, userIp);
   }
 
+  @Authorization()
   @Post("refresh")
   async refresh(
     @Body() dto: RefreshRequestDto,
