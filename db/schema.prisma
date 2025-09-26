@@ -12,10 +12,21 @@ enum UserStatus {
   active
 }
 
+enum UserRole {
+  admin
+  employee
+  client
+}
+
 model User {
   id            String        @id               @default(uuid())
-  phone         String        @unique
-  status        UserStatus    @default(pending)
+
+  name          String?
+  login         String?       @unique
+  password      String?
+
+  phone         String       @unique
+  status        UserStatus   @default(pending)
 
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")
