@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
@@ -17,7 +17,6 @@ export class TokenService {
     old_token: string,
     ipAddress: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
-    console.log(refresh_token)
     try {
       const token = await this.prismaService.refreshToken.findFirst({
         where: { token: refresh_token },
@@ -45,7 +44,8 @@ export class TokenService {
 
       return { access_token: accessToken, refresh_token: newRefreshToken };
     } catch (err) {
-      throw new Error(err);
+      console.error(`Не удалось обновить токен ${err}`);
+      throw new UnauthorizedException("Не удалось обновить токен");
     }
   }
 

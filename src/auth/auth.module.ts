@@ -12,10 +12,10 @@ import { TokenService } from "./token/token.service";
       secret: process.env.JWT_ACCESS_SECRET,
       signOptions: { expiresIn: "1h" },
     }),
-    UserModule, // импортируем UserModule, чтобы AuthService мог инжектировать UserService
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, TokenService],
-  exports: [AuthService, TokenService], // ✅ только свои провайдеры
+  exports: [AuthService, TokenService],
 })
 export class AuthModule {}

@@ -24,11 +24,11 @@ async function bootstrap() {
     origin: config.getOrThrow<string>("ALLOWED_ORIGINS").split(","),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    exposedHeaders: ["Content-Type", "Authorization", "set-cookie"],
-    allowedHeaders: ["Content-Type", "Authorization", "set-cookie"],
+    exposedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 8080);
 }
 
 void bootstrap();
