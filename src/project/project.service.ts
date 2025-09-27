@@ -47,4 +47,39 @@ export class ProjectService {
       throw new InternalServerErrorException("Ошибка сервера");
     }
   }
+
+  async findUserProject(userId: string) {
+    try {
+      const projects = await this.prismaService.project.findMany({
+        where: { user: { some: { userId } } },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          city: true,
+          street: true,
+          house: true,
+          location: true,
+          user: { where: { userId }, select: { role: true }, take: 1 },
+        },
+      });
+
+      const res = projects.map((proj) => ({
+        id: proj.id,
+        name: proj.name,
+        description: proj.description,
+        role: proj.user[0]?.role,
+        location: {
+          city: proj.city,
+          street: proj.street,
+          house: proj.house,
+        },
+      }));
+
+      return res;
+    } catch (err) {
+      console.log("Ошибка", err);
+      throw new InternalServerErrorException("Ошибка сервера");
+    }
+  }
 }

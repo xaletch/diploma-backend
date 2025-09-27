@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post } from "@nestjs/common";
 import { ProjectService } from "./project.service";
 import { Authorization } from "src/auth/decorators/auth.decorator";
 import { ProjectDto } from "./dto/project.dto";
@@ -12,5 +12,11 @@ export class ProjectController {
   @Post()
   create(@Body() dto: ProjectDto, @Authorized("id") userId: string) {
     return this.projectService.create(dto, userId);
+  }
+
+  @Authorization()
+  @Get()
+  findUserProject(@Authorized("id") userId: string) {
+    return this.projectService.findUserProject(userId);
   }
 }
