@@ -29,23 +29,39 @@ export class ProjectService {
   }
 
   async create(dto: ProjectDto, userId: string) {
-    try {
-      const { id: project_id, name } = await this.prismaService.project.create({
-        data: dto,
-        omit: { createdAt: true, updatedAt: true },
-      });
+    const { work_id, specialization_ids, phone, ...projData } = dto;
 
-      await this.createOwnerProject({
-        userId,
-        projectId: project_id,
-        role: "creator",
-      });
+    const work = await this.prismaService.work.findUnique({
+      where: { id: work_id },
+    });
 
-      return { status: 201, name, project_id, message: "Проект создан" };
-    } catch (err) {
-      console.log("Ошибка при создании проекта", err);
-      throw new InternalServerErrorException("Ошибка сервера");
+    if (!work) {
+      throw new NotFoundException(
+        "Сфера деятельности не найдена, попробуйте еще раз",
+      );
     }
+
+    const { id: project_id, name } = await this.prismaService.project.create({
+      data: {
+        ...projData,
+        work: { connect: { id: work_id } },
+        specializations: {
+          connect: specialization_ids.map((id) => ({ id })),
+        },
+        ...(phone && {
+          contacts: { create: { value: phone, name: "Телефон" } },
+        }),
+      },
+      omit: { createdAt: true, updatedAt: true },
+    });
+
+    await this.createOwnerProject({
+      userId,
+      projectId: project_id,
+      role: "creator",
+    });
+
+    return { status: 201, name, project_id, message: "Проект создан" };
   }
 
   async findUserProject(userId: string) {
@@ -83,13 +99,21 @@ export class ProjectService {
     }
   }
 
-  async findById(id: string) {
+  async findById(id: string, userId: string) {
     if (!id) {
       throw new NotFoundException("Не указан id проекта, попробуйте еще раз");
     }
 
     const project = await this.prismaService.project.findUnique({
-      where: { id },
+      where: { id, user: { some: { userId } } },
+      select: {
+        id: true,
+        name: true,
+        work: {
+          select: { id: true, name: true, description: true, icon: true },
+        },
+        specializations: { select: { id: true, name: true } },
+      },
     });
 
     if (!project) {

@@ -168,8 +168,8 @@ model Contact {
   project       Project       @relation("project_contacts", fields: [projectId], references: [id], onDelete: Cascade)
   projectId     String        @map("project_id")
 
-  client        Client        @relation("client_contacts", fields: [clientId], references: [id], onDelete: Cascade)
-  clientId      String        @map("client_id")
+  client        Client?       @relation("client_contacts", fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String?       @map("client_id")
 
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")

@@ -27,8 +27,11 @@ export class ProjectController {
 
   @Authorization()
   @Get("detail")
-  findById(@Headers("project_id") id: string) {
-    return this.projectService.findById(id);
+  findById(
+    @Headers("project_id") id: string,
+    @Authorized("id") userId: string,
+  ) {
+    return this.projectService.findById(id, userId);
   }
 
   @Authorization()

@@ -1,4 +1,10 @@
-import { ArrayNotEmpty, IsArray, IsOptional, IsString } from "class-validator";
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from "class-validator";
 
 export class ProjectDto {
   @IsString({ message: "Укажите название проекта" })
@@ -25,10 +31,14 @@ export class ProjectDto {
   location?: string;
 
   @IsString()
-  workId: string;
+  work_id: string;
 
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
-  specializationIds: string[];
+  specialization_ids: string[];
+
+  @IsPhoneNumber("RU")
+  @IsOptional()
+  phone: string;
 }
