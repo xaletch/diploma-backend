@@ -69,10 +69,46 @@ model Project {
   contacts      Contact[]     @relation("project_contacts")
   clients       Client[]      @relation("project_clients")
 
+  work          Work          @relation("project_work", fields: [workId], references: [id])
+  workId        String        @map("work_id")
+  specializations WorkSpecialization[]          @relation("project_specializations")
+
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")
 
   @@map("projects")
+}
+
+model Work {
+  id            String        @id               @default(uuid())
+
+  name          String
+  description   String
+  icon          String
+
+  project       Project[]     @relation("project_work")
+  specialization WorkSpecialization[]           @relation("work_specialization")
+
+  createdAt     DateTime      @default(now())   @map("created_ad")
+  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+
+  @@map("works")
+}
+
+model WorkSpecialization {
+  id            String        @id               @default(uuid())
+
+  name          String
+
+  work          Work          @relation("work_specialization", fields: [workId], references: [id], onDelete: Cascade)
+  workId        String        @map("work_id")
+
+  projects      Project[]           @relation("project_specializations")
+
+  createdAt     DateTime      @default(now())   @map("created_ad")
+  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+
+  @@map("work_specializations")
 }
 
 model UserProject {

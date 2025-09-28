@@ -82,4 +82,20 @@ export class ProjectService {
       throw new InternalServerErrorException("Ошибка сервера");
     }
   }
+
+  async findById(id: string) {
+    if (!id) {
+      throw new NotFoundException("Не указан id проекта, попробуйте еще раз");
+    }
+
+    const project = await this.prismaService.project.findUnique({
+      where: { id },
+    });
+
+    if (!project) {
+      throw new NotFoundException("Проект не найден, попробуйте еще раз");
+    }
+
+    return project;
+  }
 }

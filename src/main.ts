@@ -2,10 +2,15 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import * as express from "express";
+import { join } from "path";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
+
+  // ВРЕМЕННАЯ СТАТИКА //
+  app.use("/v1/assets", express.static(join(process.cwd(), "assets")));
 
   app.enableVersioning({
     type: VersioningType.URI,
