@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:generate": "prisma generate --schema=./db/schema.prisma",
     "db:push": "prisma db push --schema=./db/schema.prisma",
+    "db:push-force" : "prisma db push --schema=./db/schema.prisma --force-reset",
     "db:pull": "prisma db pull --schema=./db/schema.prisma",
     "db:studio": "prisma studio --schema=./db/schema.prisma"
   },
