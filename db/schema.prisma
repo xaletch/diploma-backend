@@ -20,20 +20,6 @@ enum ROLE {
   employee
 }
 
-model Company {
-  id            String        @id               @default(uuid())
-
-  name          String
-  currency      CURRENCY
-
-  address       Address       @relation("address_company")
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("companies")
-}
-
 model Address {
   id            String        @id               @default(uuid())
 
@@ -43,14 +29,53 @@ model Address {
   post_code     String?
   country       String
 
-  company       Company       @relation("address_company", fields: [companyId], references: [id], onDelete: Cascade)
+  company       Company       @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String        @map("company_id")
+
+  location      Location      @relation("location_address", fields: [locationId], references: [id], onDelete: Cascade)
+  locationId    String        @map("location_id")
   
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")
 
   @@map("address")
 }
+
+model Session {
+  id            String        @id               @default(uuid())
+
+  token         String
+  expiresAt     DateTime      @map("expires_at")
+  ipAddress     String        @map("ip_address")
+
+  user          User          @relation("user_session", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String        @map("user_id")
+
+  customer       Customer      @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
+  customerId     String        @map("customerId")
+
+  createdAt     DateTime      @default(now())   @map("created_ad")
+  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+
+  @@map("sessions")
+}
+
+model Company {
+  id            String        @id               @default(uuid())
+
+  name          String
+  currency      CURRENCY
+
+  address       Address       @relation("company_address")
+  user          Users         @relation("company_user")
+  customers     Customer      @relation("company_customers")
+
+  createdAt     DateTime      @default(now())   @map("created_ad")
+  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+
+  @@map("companies")
+}
+
 
 model Users {
   id            String        @id               @default(uuid())
@@ -64,8 +89,10 @@ model Users {
 
   role          ROLE
 
-  sessions      Session[]     @relation("user_session")
+  company       Company       @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String        @map("company_id")
 
+  sessions      Session[]     @relation("user_session")
 
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")
@@ -73,20 +100,41 @@ model Users {
   @@map("users")
 }
 
-model Session {
+model Customer {
   id            String        @id               @default(uuid())
 
-  token         String
-  expiresAt     DateTime      @map("expires_at")
-  ipAddress     String        @map("ip_address")
+  firstName     String        @map("first_name")
+  lastName      String?       @map("last_name")
+  email         String
+  phone         String
+  birthday      String?
 
-  user          User          @relation("user_session", fields: [userId], references: [id], onDelete: Cascade)
-  userId        String        @map("user_id")
+  sessions      Session[]     @relation("customer_session")
+
+  company       Company[]     @relation("company_customers", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String        @map("company_id")
 
   createdAt     DateTime      @default(now())   @map("created_ad")
   updatedAt     DateTime      @updatedAt        @map("updated_ad")
 
-  @@map("sessions")
+  @@map("customers")
+}
+
+model Location {
+  id            String        @id               @default(uuid())
+
+  name          String
+  description   String?
+  phone         String
+  comfort       String[]
+  category      String[]
+
+  address       Address       @relation("location_address")
+
+  createdAt     DateTime      @default(now())   @map("created_ad")
+  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+
+  @@map("locations")
 }
 
 // OLD MODELS //
