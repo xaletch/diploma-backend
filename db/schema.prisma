@@ -20,6 +20,27 @@ enum ROLE {
   employee
 }
 
+enum THEME {
+  custom
+  light
+  dark
+}
+
+enum DAYS {
+  mon
+  tue
+  wed
+  thu
+  fri
+  sat
+  sun
+}
+
+enum DATE_TYPE {
+  days
+  dates
+}
+
 model Address {
   id            String        @id               @default(uuid())
 
@@ -28,15 +49,20 @@ model Address {
   city          String
   post_code     String?
   country       String
+  region        String
+  timezone      String        @map("time_zone")
+  timezoneoffset String       @map("time_zone_offset")
+  positionLat   Decimal       @map("position_lat")
+  positionLng   Decimal       @map("position_lng")
 
-  company       Company       @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String        @map("company_id")
+  company       Company?      @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String?       @unique           @map("company_id")
 
-  location      Location      @relation("location_address", fields: [locationId], references: [id], onDelete: Cascade)
-  locationId    String        @map("location_id")
+  location      Location?     @relation("location_address", fields: [locationId], references: [id], onDelete: Cascade)
+  locationId    String?       @unique           @map("location_id")
   
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("address")
 }
@@ -52,10 +78,10 @@ model Session {
   userId        String        @map("user_id")
 
   customer       Customer      @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
-  customerId     String        @map("customerId")
+  customerId     String        @map("customer_id")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("sessions")
 }
@@ -66,18 +92,40 @@ model Company {
   name          String
   currency      CURRENCY
 
-  address       Address       @relation("company_address")
-  user          Users         @relation("company_user")
-  customers     Customer      @relation("company_customers")
+  address       Address?      @relation("company_address")
+  user          User?         @relation("company_user")
+  theme         Theme?        @relation("company_theme")
+  
+  locations     Location[]    @relation("company_locations")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  customers     Customer[]    @relation("company_customers")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("companies")
 }
 
+model Theme {
+  id            String        @id               @default(uuid())
 
-model Users {
+  backgroundColor  String     @map("background_color")
+  primaryColor     String     @map("primary_color")
+  secondaryColor   String     @map("secondary_color")
+  onSurface        String     @map("on_surface")
+  surface          String
+  theme            THEME
+
+  company       Company       @relation("company_theme", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String        @unique           @map("company_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("themes")
+}
+
+model User {
   id            String        @id               @default(uuid())
 
   email         String        @unique
@@ -90,12 +138,12 @@ model Users {
   role          ROLE
 
   company       Company       @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String        @map("company_id")
+  companyId     String        @unique           @map("company_id")
 
   sessions      Session[]     @relation("user_session")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("users")
 }
@@ -111,11 +159,13 @@ model Customer {
 
   sessions      Session[]     @relation("customer_session")
 
-  company       Company[]     @relation("company_customers", fields: [companyId], references: [id], onDelete: Cascade)
+  company       Company       @relation("company_customers", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String        @map("company_id")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  services      Service[]     @relation("customer_services")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("customers")
 }
@@ -129,183 +179,239 @@ model Location {
   comfort       String[]
   category      String[]
 
-  address       Address       @relation("location_address")
+  address       Address?      @relation("location_address")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  company       Company       @relation("company_locations", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String        @map("company_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("locations")
-}
-
-// OLD MODELS //
-enum UserStatus {
-  pending
-  active
-}
-
-enum UserRole {
-  creator
-  admin
-  employee
-}
-model User {
-  id            String        @id               @default(uuid())
-
-  name          String?
-  login         String?       @unique
-  password      String?
-
-  phone         String        @unique
-  status        UserStatus    @default(pending)
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  refreshTokens RefreshToken[]                  @relation("refresh_tokens")
-  projects      UserProject[]                   @relation("user_projects")
-
-  @@map("users")
-}
-
-model RefreshToken {
-  id            String        @id               @default(uuid())
-
-  token         String
-  expiresAt     DateTime      @map("expires_at")
-  ipAddress     String        @map("ip_address")
-
-  user          User          @relation("refresh_tokens", fields: [userId], references: [id], onDelete: Cascade)
-  userId        String        @map("user_id")
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("refresh_tokens")
-}
-
-model Project {
-  id            String        @id               @default(uuid())
-
-  name          String
-  description   String?
-
-  city          String?
-  street        String?
-  house         String?
-  location      String?
-
-  user          UserProject[] @relation("project_users")
-  services      Service[]     @relation("project_services")
-  contacts      Contact[]     @relation("project_contacts")
-  clients       Client[]      @relation("project_clients")
-
-  work          Work          @relation("project_work", fields: [workId], references: [id])
-  workId        String        @map("work_id")
-  specializations WorkSpecialization[]          @relation("project_specializations")
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("projects")
-}
-
-model Work {
-  id            String        @id               @default(uuid())
-
-  name          String
-  description   String
-  icon          String
-
-  project       Project[]     @relation("project_work")
-  specialization WorkSpecialization[]           @relation("work_specialization")
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("works")
-}
-
-model WorkSpecialization {
-  id            String        @id               @default(uuid())
-
-  name          String
-
-  work          Work          @relation("work_specialization", fields: [workId], references: [id], onDelete: Cascade)
-  workId        String        @map("work_id")
-
-  projects      Project[]           @relation("project_specializations")
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("work_specializations")
-}
-
-model UserProject {
-  id            String        @id               @default(uuid())
-  
-  user          User          @relation("user_projects", fields: [userId], references: [id], onDelete: Cascade)
-  userId        String        @map("user_id")
-
-  project       Project       @relation("project_users", fields: [projectId], references: [id], onDelete: Cascade)
-  projectId     String        @map("project_id")
-
-  role          UserRole
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("user_projects")
 }
 
 model Service {
   id            String        @id               @default(uuid())
 
   name          String
-  price         Float
-  description   String?
+  publicName    String        @map("public_name")
+  mark          String        // цвет
+  duration      Int
 
-  project       Project       @relation("project_services", fields: [projectId], references: [id], onDelete: Cascade)
-  projectId     String        @map("project_id")
+  price         ServicePrice? @relation("service_prices")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  users         Customer[]    @relation("customer_services")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("services")
 }
 
-model Client {
+model ServicePrice {
   id            String        @id               @default(uuid())
 
-  name          String
-  contacts      Contact[]     @relation("client_contacts")
+  price         Int
+  costPrice     Int?          @map("cost_price") // себестоимость
 
-  project       Project       @relation("project_clients", fields: [projectId], references: [id], onDelete: Cascade)
-  projectId     String        @map("project_id")
+  service       Service       @relation("service_prices", fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String        @unique           @map("service_id")
 
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
+  discount      DiscountPrice?  @relation("service_price_discount", fields: [discountId], references: [id])
+  discountId    Int?          @unique
 
-  @@map("clients")
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("service_prices")
 }
 
-model Contact {
-  id            String        @id               @default(uuid())
+model DiscountPrice {
+  id            Int           @id               @default(autoincrement())
+  
+  dateType      DATE_TYPE     @map("date_type")
+  days          String[]
+  price         Int
+  timeStart     String        @map("time_start")
+  timeEnd       String        @map("time_end")
 
-  name          String
-  value         String
+  servicePrice  ServicePrice? @relation("service_price_discount")
+  
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
-  project       Project       @relation("project_contacts", fields: [projectId], references: [id], onDelete: Cascade)
-  projectId     String        @map("project_id")
-
-  client        Client?       @relation("client_contacts", fields: [clientId], references: [id], onDelete: Cascade)
-  clientId      String?       @map("client_id")
-
-  createdAt     DateTime      @default(now())   @map("created_ad")
-  updatedAt     DateTime      @updatedAt        @map("updated_ad")
-
-  @@map("contacts")
+  @@map("discount_price")
 }
+
+// OLD MODELS //
+// enum UserStatus {
+//   pending
+//   active
+// }
+
+// enum UserRole {
+//   creator
+//   admin
+//   employee
+// }
+// model User {
+//   id            String        @id               @default(uuid())
+
+//   name          String?
+//   login         String?       @unique
+//   password      String?
+
+//   phone         String        @unique
+//   status        UserStatus    @default(pending)
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   refreshTokens RefreshToken[]                  @relation("refresh_tokens")
+//   projects      UserProject[]                   @relation("user_projects")
+
+//   @@map("users")
+// }
+
+// model RefreshToken {
+//   id            String        @id               @default(uuid())
+
+//   token         String
+//   expiresAt     DateTime      @map("expires_at")
+//   ipAddress     String        @map("ip_address")
+
+//   user          User          @relation("refresh_tokens", fields: [userId], references: [id], onDelete: Cascade)
+//   userId        String        @map("user_id")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("refresh_tokens")
+// }
+
+// model Project {
+//   id            String        @id               @default(uuid())
+
+//   name          String
+//   description   String?
+
+//   city          String?
+//   street        String?
+//   house         String?
+//   location      String?
+
+//   user          UserProject[] @relation("project_users")
+//   services      Service[]     @relation("project_services")
+//   contacts      Contact[]     @relation("project_contacts")
+//   clients       Client[]      @relation("project_clients")
+
+//   work          Work          @relation("project_work", fields: [workId], references: [id])
+//   workId        String        @map("work_id")
+//   specializations WorkSpecialization[]          @relation("project_specializations")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("projects")
+// }
+
+// model Work {
+//   id            String        @id               @default(uuid())
+
+//   name          String
+//   description   String
+//   icon          String
+
+//   project       Project[]     @relation("project_work")
+//   specialization WorkSpecialization[]           @relation("work_specialization")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("works")
+// }
+
+// model WorkSpecialization {
+//   id            String        @id               @default(uuid())
+
+//   name          String
+
+//   work          Work          @relation("work_specialization", fields: [workId], references: [id], onDelete: Cascade)
+//   workId        String        @map("work_id")
+
+//   projects      Project[]           @relation("project_specializations")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("work_specializations")
+// }
+
+// model UserProject {
+//   id            String        @id               @default(uuid())
+  
+//   user          User          @relation("user_projects", fields: [userId], references: [id], onDelete: Cascade)
+//   userId        String        @map("user_id")
+
+//   project       Project       @relation("project_users", fields: [projectId], references: [id], onDelete: Cascade)
+//   projectId     String        @map("project_id")
+
+//   role          UserRole
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("user_projects")
+// }
+
+// model Service {
+//   id            String        @id               @default(uuid())
+
+//   name          String
+//   price         Float
+//   description   String?
+
+//   project       Project       @relation("project_services", fields: [projectId], references: [id], onDelete: Cascade)
+//   projectId     String        @map("project_id")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("services")
+// }
+
+// model Client {
+//   id            String        @id               @default(uuid())
+
+//   name          String
+//   contacts      Contact[]     @relation("client_contacts")
+
+//   project       Project       @relation("project_clients", fields: [projectId], references: [id], onDelete: Cascade)
+//   projectId     String        @map("project_id")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("clients")
+// }
+
+// model Contact {
+//   id            String        @id               @default(uuid())
+
+//   name          String
+//   value         String
+
+//   project       Project       @relation("project_contacts", fields: [projectId], references: [id], onDelete: Cascade)
+//   projectId     String        @map("project_id")
+
+//   client        Client?       @relation("client_contacts", fields: [clientId], references: [id], onDelete: Cascade)
+//   clientId      String?       @map("client_id")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("contacts")
+// }
 
 //    ДАЛЕЕ   //
 // ЗАКАЗЫ             /// ПРИВЯЗАТЬ PROJECT, ORDER_SERVICE, CLIENT И USER     //// ORDER
