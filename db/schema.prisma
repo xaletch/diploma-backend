@@ -48,11 +48,11 @@ model Session {
   expiresAt     DateTime      @map("expires_at")
   ipAddress     String        @map("ip_address")
 
-  user          User          @relation("user_session", fields: [userId], references: [id], onDelete: Cascade)
-  userId        String        @map("user_id")
+  user          User?         @relation("user_session", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?       @map("user_id")
 
-  customer       Customer      @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
-  customerId     String        @map("customer_id")
+  customer       Customer?     @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
+  customerId     String?       @map("customer_id")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
@@ -72,8 +72,8 @@ model User {
 
   role          ROLE
 
-  company       Company       @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String        @unique           @map("company_id")
+  company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String?       @unique           @map("company_id")
 
   sessions      Session[]     @relation("user_session")
 

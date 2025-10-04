@@ -18,7 +18,7 @@ export class TokenService {
     ipAddress: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     try {
-      const token = await this.prismaService.refreshToken.findFirst({
+      const token = await this.prismaService.session.findFirst({
         where: { token: refresh_token },
       });
       const currentDate = new Date();
@@ -32,11 +32,11 @@ export class TokenService {
       const oldPayload = await this.validateToken(old_token, true);
       const payload: JwtPayload = {
         sub: oldPayload.sub,
-        phone: oldPayload.phone,
+        email: oldPayload.email,
       };
 
       const accessToken = await this.createAccessToken(payload);
-      await this.prismaService.refreshToken.delete({ where: { id: token.id } });
+      await this.prismaService.session.delete({ where: { id: token.id } });
       const newRefreshToken = await this.createRefreshToken({
         userId: oldPayload.sub,
         ipAddress,
@@ -57,7 +57,7 @@ export class TokenService {
 
     const refreshToken = randomBytes(64).toString("hex");
 
-    await this.prismaService.refreshToken.create({
+    await this.prismaService.session.create({
       data: {
         token: refreshToken,
         userId: userId,
@@ -89,13 +89,13 @@ export class TokenService {
 
   async validatePayload(
     payload: JwtPayload,
-  ): Promise<{ id: string; phone: string } | null> {
+  ): Promise<{ id: string; email: string } | null> {
     const user = await this.prismaService.user.findUnique({
       where: { id: payload.sub },
     });
 
     if (!user) return null;
 
-    return { id: user.id, phone: user.phone };
+    return { id: user.id, email: user.phone };
   }
 }
