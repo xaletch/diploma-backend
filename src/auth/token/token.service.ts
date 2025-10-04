@@ -96,6 +96,6 @@ export class TokenService {
 
     if (!user) return null;
 
-    return { id: user.id, email: user.phone };
+    return { id: user.id, email: user.email };
   }
 }

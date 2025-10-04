@@ -72,8 +72,9 @@ model User {
 
   role          ROLE
 
-  company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String?       @unique           @map("company_id")
+  // company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
+  // companyId     String?       @unique           @map("company_id")
+  company       Company?         @relation("company_user")
 
   sessions      Session[]     @relation("user_session")
 
@@ -116,7 +117,10 @@ model Company {
   currency      CURRENCY
 
   address       Address?      @relation("company_address")
-  user          User?         @relation("company_user")
+
+  user          User?         @relation("company_user", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?          @unique         @map("user_id")
+  // user          User?         @relation("company_user")
   theme         Theme?        @relation("company_theme")
   
   locations     Location[]    @relation("company_locations")

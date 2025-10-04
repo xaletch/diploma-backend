@@ -8,6 +8,8 @@ import { UserModule } from "./user/user.module";
 import { ConfigurationService } from "./shared/configuration/configuration.service";
 import { ConfigurationModule } from "./shared/configuration/configuration.module";
 import { ConfigModule } from "@nestjs/config";
+import { CompanyModule } from "./company/company.module";
+import { LocationModule } from "./location/location.module";
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { ConfigModule } from "@nestjs/config";
     AuthModule,
     UserModule,
     ConfigurationModule,
+    CompanyModule,
+    LocationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
