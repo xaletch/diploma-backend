@@ -6,7 +6,7 @@ import {
   MinLength,
 } from "class-validator";
 
-export class UserCreateDto {
+export class RegisterDto {
   @IsString()
   @IsEmail()
   @IsNotEmpty({ message: "Обязательное поле" })
@@ -19,6 +19,9 @@ export class UserCreateDto {
   @IsString()
   @IsNotEmpty({ message: "Обязательное поле" })
   first_name: string;
+
+  @IsString()
+  @IsNotEmpty({ message: "Обязательное поле" })
   last_name: string;
 
   @IsString()

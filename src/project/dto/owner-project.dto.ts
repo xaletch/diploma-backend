@@ -1,13 +1,13 @@
-import { UserRole } from "@prisma/client";
-import { IsString } from "class-validator";
+// import { UserRole } from "@prisma/client";
+// import { IsString } from "class-validator";
 
-export class OwnerProjectDto {
-  @IsString()
-  userId: string;
+// export class OwnerProjectDto {
+//   @IsString()
+//   userId: string;
 
-  @IsString()
-  projectId: string;
+//   @IsString()
+//   projectId: string;
 
-  @IsString()
-  role: UserRole;
-}
+//   @IsString()
+//   role: UserRole;
+// }

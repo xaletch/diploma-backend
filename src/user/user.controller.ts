@@ -9,7 +9,7 @@ export class UserController {
 
   @Authorization()
   @HttpCode(HttpStatus.OK)
-  @Get("profile")
+  @Get("me")
   getUser(@Authorized("id") userId: string) {
     return this.userService.findById(userId);
   }

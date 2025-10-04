@@ -1,25 +1,36 @@
 import { Body, Controller, Post, Res } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { AuthPhoneDto } from "./dto/auth-phone.dto";
 import { Ip } from "src/shared/decorators/ip.decorator";
 import { RefreshRequestDto } from "./dto/refresh.dto";
-import { AuthVerifyDto } from "./dto/auth-verify.dto";
 import { Response } from "express";
 import { IS_DEV_ENV, SAME_SITE } from "src/shared/utils/is-dev";
+import { RegisterDto } from "./dto/register.dto";
+import { LoginDto } from "./dto/login.dto";
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("send-code")
-  sendCode(@Body() dto: AuthPhoneDto) {
-    return this.authService.sendCode(dto);
+  @Post("register")
+  register(@Body() dto: RegisterDto, @Ip() userIp) {
+    return this.authService.register(dto, userIp);
   }
 
-  @Post("verify-code")
-  verifyCode(@Body() data: AuthVerifyDto, @Ip() userIp) {
-    return this.authService.verifyCode(data, userIp);
+  @Post("login")
+  login(@Body() dto: LoginDto, @Ip() userIp) {
+    return this.authService.login(dto, userIp);
   }
+
+  // old auth
+  // @Post("send-code")
+  // sendCode(@Body() dto: AuthPhoneDto) {
+  //   return this.authService.sendCode(dto);
+  // }
+
+  // @Post("verify-code")
+  // verifyCode(@Body() data: AuthVerifyDto, @Ip() userIp) {
+  //   return this.authService.verifyCode(data, userIp);
+  // }
 
   @Post("refresh")
   async refresh(
