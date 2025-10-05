@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Res } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Res,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Ip } from "src/shared/decorators/ip.decorator";
 import { RefreshRequestDto } from "./dto/refresh.dto";
@@ -12,11 +19,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("register")
+  @HttpCode(HttpStatus.CREATED)
   register(@Body() dto: RegisterDto, @Ip() userIp) {
     return this.authService.register(dto, userIp);
   }
 
   @Post("login")
+  @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto, @Ip() userIp) {
     return this.authService.login(dto, userIp);
   }
@@ -33,6 +42,7 @@ export class AuthController {
   // }
 
   @Post("refresh")
+  @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() dto: RefreshRequestDto,
     @Ip() userIp: string,

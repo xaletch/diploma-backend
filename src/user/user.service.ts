@@ -26,6 +26,17 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            currency: true,
+            locations: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                address: { select: { country: true } },
+              },
+            },
+            industry: { select: { id: true, name: true } },
+            specialization: { select: { id: true, name: true } },
           },
         },
       },
@@ -35,6 +46,16 @@ export class UserService {
 
     const company = user.company?.id ? user.company : null;
 
+    const locations =
+      company?.locations?.map((location) => ({
+        id: location.id,
+        name: location.name,
+        phone: location.phone,
+        company_name: company.name,
+        currency: company.currency,
+        country: location.address?.country,
+      })) ?? [];
+
     return {
       id: user.id,
       email: user.email,
@@ -42,8 +63,15 @@ export class UserService {
       role: user.role,
       first_name: user.firstName,
       last_name: user.lastName,
-      full_name: `${user.lastName} ${user.firstName}`,
-      company: company,
+      name: `${user.firstName} ${user.lastName}`,
+      locations: locations,
+      company: {
+        id: company?.id,
+        name: company?.name,
+        currency: company?.currency,
+        industry: company?.industry,
+        specialization: company?.specialization.name,
+      },
     };
   }
 

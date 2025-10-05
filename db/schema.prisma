@@ -72,8 +72,9 @@ model User {
 
   role          ROLE
 
-  company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String?       @unique           @map("company_id")
+  // company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
+  // companyId     String?       @unique           @map("company_id")
+  company       Company?         @relation("company_user")
 
   sessions      Session[]     @relation("user_session")
 
@@ -97,8 +98,8 @@ model Address {
   positionLat   Decimal       @map("position_lat")
   positionLng   Decimal       @map("position_lng")
 
-  company       Company?      @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String?       @unique           @map("company_id")
+  // company       Company?      @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
+  // companyId     String?       @unique           @map("company_id")
 
   location      Location?     @relation("location_address", fields: [locationId], references: [id], onDelete: Cascade)
   locationId    String?       @unique           @map("location_id")
@@ -109,15 +110,54 @@ model Address {
   @@map("address")
 }
 
+model Specialization {
+  id            Int           @id               @default(autoincrement())
+
+  name          String
+  description   String
+  icon          String
+
+  companies     Company[]     @relation("company_specialization")
+  industry      Industry[]           @relation("specialization_industry")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("specializations")
+}
+
+model Industry {
+  id            Int           @id               @default(autoincrement())
+
+  name          String
+
+  specialization   Specialization @relation("specialization_industry", fields: [specializationId], references: [id], onDelete: Cascade)
+  specializationId Int        @map("specialization_id")
+
+  companies     Company[]     @relation("company_industry")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("Industry")
+}
+
 model Company {
   id            String        @id               @default(uuid())
 
   name          String
   currency      CURRENCY
 
-  address       Address?      @relation("company_address")
-  user          User?         @relation("company_user")
+  // address       Address?      @relation("company_address")
+
+  user          User?         @relation("company_user", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?          @unique         @map("user_id")
   theme         Theme?        @relation("company_theme")
+
+  specialization Specialization @relation("company_specialization", fields: [specializationId], references: [id])
+  specializationId Int        @map("specialization_id")
+  industry      Industry      @relation("company_industry", fields: [industryId], references: [id])
+  industryId    Int           @map("industry_id")
   
   locations     Location[]    @relation("company_locations")
 
@@ -242,177 +282,3 @@ model DiscountPrice {
 
   @@map("discount_price")
 }
-
-// OLD MODELS //
-// enum UserStatus {
-//   pending
-//   active
-// }
-
-// enum UserRole {
-//   creator
-//   admin
-//   employee
-// }
-// model User {
-//   id            String        @id               @default(uuid())
-
-//   name          String?
-//   login         String?       @unique
-//   password      String?
-
-//   phone         String        @unique
-//   status        UserStatus    @default(pending)
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   refreshTokens RefreshToken[]                  @relation("refresh_tokens")
-//   projects      UserProject[]                   @relation("user_projects")
-
-//   @@map("users")
-// }
-
-// model RefreshToken {
-//   id            String        @id               @default(uuid())
-
-//   token         String
-//   expiresAt     DateTime      @map("expires_at")
-//   ipAddress     String        @map("ip_address")
-
-//   user          User          @relation("refresh_tokens", fields: [userId], references: [id], onDelete: Cascade)
-//   userId        String        @map("user_id")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("refresh_tokens")
-// }
-
-// model Project {
-//   id            String        @id               @default(uuid())
-
-//   name          String
-//   description   String?
-
-//   city          String?
-//   street        String?
-//   house         String?
-//   location      String?
-
-//   user          UserProject[] @relation("project_users")
-//   services      Service[]     @relation("project_services")
-//   contacts      Contact[]     @relation("project_contacts")
-//   clients       Client[]      @relation("project_clients")
-
-//   work          Work          @relation("project_work", fields: [workId], references: [id])
-//   workId        String        @map("work_id")
-//   specializations WorkSpecialization[]          @relation("project_specializations")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("projects")
-// }
-
-// model Work {
-//   id            String        @id               @default(uuid())
-
-//   name          String
-//   description   String
-//   icon          String
-
-//   project       Project[]     @relation("project_work")
-//   specialization WorkSpecialization[]           @relation("work_specialization")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("works")
-// }
-
-// model WorkSpecialization {
-//   id            String        @id               @default(uuid())
-
-//   name          String
-
-//   work          Work          @relation("work_specialization", fields: [workId], references: [id], onDelete: Cascade)
-//   workId        String        @map("work_id")
-
-//   projects      Project[]           @relation("project_specializations")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("work_specializations")
-// }
-
-// model UserProject {
-//   id            String        @id               @default(uuid())
-  
-//   user          User          @relation("user_projects", fields: [userId], references: [id], onDelete: Cascade)
-//   userId        String        @map("user_id")
-
-//   project       Project       @relation("project_users", fields: [projectId], references: [id], onDelete: Cascade)
-//   projectId     String        @map("project_id")
-
-//   role          UserRole
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("user_projects")
-// }
-
-// model Service {
-//   id            String        @id               @default(uuid())
-
-//   name          String
-//   price         Float
-//   description   String?
-
-//   project       Project       @relation("project_services", fields: [projectId], references: [id], onDelete: Cascade)
-//   projectId     String        @map("project_id")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("services")
-// }
-
-// model Client {
-//   id            String        @id               @default(uuid())
-
-//   name          String
-//   contacts      Contact[]     @relation("client_contacts")
-
-//   project       Project       @relation("project_clients", fields: [projectId], references: [id], onDelete: Cascade)
-//   projectId     String        @map("project_id")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("clients")
-// }
-
-// model Contact {
-//   id            String        @id               @default(uuid())
-
-//   name          String
-//   value         String
-
-//   project       Project       @relation("project_contacts", fields: [projectId], references: [id], onDelete: Cascade)
-//   projectId     String        @map("project_id")
-
-//   client        Client?       @relation("client_contacts", fields: [clientId], references: [id], onDelete: Cascade)
-//   clientId      String?       @map("client_id")
-
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
-
-//   @@map("contacts")
-// }
-
-//    ДАЛЕЕ   //
-// ЗАКАЗЫ             /// ПРИВЯЗАТЬ PROJECT, ORDER_SERVICE, CLIENT И USER     //// ORDER
-// УСЛУГИ В ЗАКАЗЕ    /// ПРИВЯЗАТЬ SERVICE И ORDER                          //// ORDER_SERVICE
