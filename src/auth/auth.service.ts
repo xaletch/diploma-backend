@@ -27,7 +27,7 @@ export class AuthService {
     if (isExist)
       throw new ConflictException("Пользователь уже зарегистрирован");
 
-    const user = await this.userService.create({ ...dto });
+    const user = await this.userService.create({ ...dto }, "active");
     const payload = { sub: user.id, email: user.email } satisfies JwtPayload;
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
@@ -43,6 +43,8 @@ export class AuthService {
     const { passwordHash, id, email } = await this.userService.findByEmail(
       dto.email,
     );
+
+    if (!passwordHash) throw new NotFoundException("Не зарегистрирован");
 
     const isValidate = await this.userService.comparePassword(
       dto.password,

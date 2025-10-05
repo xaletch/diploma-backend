@@ -16,7 +16,6 @@ enum CURRENCY {
 enum ROLE {
   owner
   admin
-  customer
   employee
 }
 
@@ -39,6 +38,18 @@ enum DAYS {
 enum DATE_TYPE {
   days
   dates
+}
+
+enum SEX {
+  man
+  woman
+  none
+}
+
+enum UserStatus {
+  invited
+  active
+  disable
 }
 
 model Session {
@@ -64,17 +75,21 @@ model User {
   id            String        @id               @default(uuid())
 
   email         String        @unique
-  passwordHash  String        @map("password_hash")
+  passwordHash  String?        @map("password_hash")
   phone         String        // @unique
 
   firstName     String        @map("first_name")
   lastName      String?       @map("last_name")
 
+  status        UserStatus    @default(invited)
   role          ROLE
+  position      String?
 
   // company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
   // companyId     String?       @unique           @map("company_id")
-  company       Company?         @relation("company_user")
+  company       Company?      @relation("company_user")
+
+  locations     UserLocation[] @relation("user_location")
 
   sessions      Session[]     @relation("user_session")
 
@@ -82,6 +97,22 @@ model User {
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("users")
+}
+
+model UserLocation {
+  id            String        @id               @default(uuid())
+  
+  user          User          @relation("user_location", fields: [userId], references: [id])
+  userId        String        @map("user_id")
+  location      Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId    String        @map("location_id")
+
+  role          ROLE
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("users_location")
 }
 
 model Address {
@@ -224,10 +255,30 @@ model Location {
   company       Company       @relation("company_locations", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String        @map("company_id")
 
+  users         UserLocation[]
+
+  invites       Invite[]      @relation("location_invite")
+
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("locations")
+}
+
+model Invite {
+  id            String        @id               @default(cuid())
+
+  token         String        @unique
+  email         String
+  expiresAt     DateTime      @map("expires_at")
+  location      Location      @relation("location_invite", fields: [locationId], references: [id], onDelete: Cascade)
+  role          ROLE
+  locationId    String        @map("location_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("invites")
 }
 
 model Service {

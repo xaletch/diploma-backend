@@ -1,13 +1,14 @@
-import { CURRENCY, ROLE } from "@prisma/client";
+import { CURRENCY, ROLE, UserStatus } from "@prisma/client";
 
 export type IUser = {
   id: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
   phone: string;
   firstName: string;
   lastName: string | null;
   role: ROLE;
+  status: UserStatus;
 };
 
 export type IUserPrivate = {

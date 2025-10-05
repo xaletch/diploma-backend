@@ -34,4 +34,14 @@ export class LocationService {
 
     return { location, address };
   }
+
+  async findById(id: string) {
+    const location = await this.prismaService.location.findUnique({
+      where: { id },
+    });
+
+    if (!location) throw new NotFoundException("Локация не найдена");
+
+    return location;
+  }
 }
