@@ -10,6 +10,7 @@ import { ConfigurationModule } from "./shared/configuration/configuration.module
 import { ConfigModule } from "@nestjs/config";
 import { CompanyModule } from "./company/company.module";
 import { LocationModule } from "./location/location.module";
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { LocationModule } from "./location/location.module";
     ConfigurationModule,
     CompanyModule,
     LocationModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,7 @@
 import { IsArray, IsOptional, IsPhoneNumber, IsString } from "class-validator";
+import { CreateAddressDto } from "src/address/dto/create.dto";
 
-export class LocationDto {
+export class LocationDto extends CreateAddressDto {
   @IsString()
   name: string;
 

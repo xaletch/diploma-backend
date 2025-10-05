@@ -10,7 +10,7 @@ import { TokenService } from "./token/token.service";
   imports: [
     JwtModule.register({
       secret: process.env.JWT_ACCESS_SECRET,
-      signOptions: { expiresIn: "1h" },
+      signOptions: { expiresIn: "7d" },
     }),
     UserModule,
   ],

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UserService } from "src/user/user.service";
 import { CreateCompanyDto } from "./dto/create.dto";
@@ -12,8 +17,20 @@ export class CompanyService {
     private readonly locationService: LocationService,
   ) {}
 
+  // улучшить переписав на prisma.$transaction
   async create(dto: CreateCompanyDto, userId: string) {
     const user = await this.userService.findById(userId);
+
+    const isExists = await this.prismaService.company.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (isExists)
+      throw new HttpException(
+        { status: HttpStatus.CONFLICT, error: "Компания уже существует" },
+        HttpStatus.CONFLICT,
+        { cause: new Error() },
+      );
 
     const company = await this.prismaService.company.create({
       data: {
@@ -21,19 +38,25 @@ export class CompanyService {
         name: dto.name,
         currency: dto.currency,
       },
+      select: {
+        id: true,
+        name: true,
+        currency: true,
+        user: {
+          select: { id: true, phone: true, email: true },
+        },
+      },
     });
 
     const locationData = {
+      ...dto,
       name: company.name,
       phone: user.phone,
     };
 
-    const location = await this.locationService.create(
-      locationData,
-      company.id,
-    );
+    await this.locationService.create(locationData, company.id);
 
-    return { company, location };
+    return company;
   }
 
   async findById(id: string) {

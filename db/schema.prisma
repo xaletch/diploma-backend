@@ -98,8 +98,8 @@ model Address {
   positionLat   Decimal       @map("position_lat")
   positionLng   Decimal       @map("position_lng")
 
-  company       Company?      @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String?       @unique           @map("company_id")
+  // company       Company?      @relation("company_address", fields: [companyId], references: [id], onDelete: Cascade)
+  // companyId     String?       @unique           @map("company_id")
 
   location      Location?     @relation("location_address", fields: [locationId], references: [id], onDelete: Cascade)
   locationId    String?       @unique           @map("location_id")
@@ -116,7 +116,7 @@ model Company {
   name          String
   currency      CURRENCY
 
-  address       Address?      @relation("company_address")
+  // address       Address?      @relation("company_address")
 
   user          User?         @relation("company_user", fields: [userId], references: [id], onDelete: Cascade)
   userId        String?          @unique         @map("user_id")

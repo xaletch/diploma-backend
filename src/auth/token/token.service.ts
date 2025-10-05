@@ -74,7 +74,7 @@ export class TokenService {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   private async createAccessToken(payload: JwtPayload): Promise<string> {
-    return this.jwtService.sign(payload, { expiresIn: "1h" });
+    return this.jwtService.sign(payload, { expiresIn: "7d" });
   }
 
   private async validateToken(

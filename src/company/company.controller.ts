@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
 import { CompanyService } from "./company.service";
 import { CreateCompanyDto } from "./dto/create.dto";
 import { Authorization } from "src/auth/decorators/auth.decorator";
@@ -10,6 +10,7 @@ export class CompanyController {
 
   @Authorization()
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateCompanyDto,
     @Authorized("id") userId: string,
