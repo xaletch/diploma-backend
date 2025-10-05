@@ -37,6 +37,8 @@ export class CompanyService {
         user: { connect: { id: user.id } },
         name: dto.name,
         currency: dto.currency,
+        specialization: { connect: { id: dto.specialization } },
+        industry: { connect: { id: dto.industry } },
       },
       select: {
         id: true,

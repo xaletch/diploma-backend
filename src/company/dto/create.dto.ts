@@ -40,4 +40,10 @@ export class CreateCompanyDto {
 
   @IsNumber({ maxDecimalPlaces: 6 })
   lng: string;
+
+  @IsNumber()
+  specialization: number;
+
+  @IsNumber()
+  industry: number;
 }
