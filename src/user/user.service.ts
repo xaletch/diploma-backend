@@ -33,6 +33,21 @@ export class UserService {
                 id: true,
                 name: true,
                 phone: true,
+                // users: {
+                //   select: {
+                //     id: true,
+                //     role: true,
+                //     user: {
+                //       select: {
+                //         id: true,
+                //         email: true,
+                //         status: true,
+                //         firstName: true,
+                //         lastName: true,
+                //       },
+                //     },
+                //   },
+                // },
                 address: { select: { country: true } },
               },
             },
@@ -74,6 +89,7 @@ export class UserService {
         specialization: company?.specialization.name,
       },
     };
+    // return user;
   }
 
   public async findByEmail(email: string): Promise<IUser> {
