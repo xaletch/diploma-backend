@@ -6,13 +6,14 @@ import {
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UserCreateDto } from "./dto/user.dto";
-import { IUser, IUserPrivate } from "./types/user.type";
+import { IUser } from "./types/user.type";
+import { UserStatus } from "@prisma/client";
 
 @Injectable()
 export class UserService {
   public constructor(private readonly prismaService: PrismaService) {}
 
-  public async findById(id: string): Promise<IUserPrivate> {
+  public async findById(id: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: {
@@ -32,6 +33,21 @@ export class UserService {
                 id: true,
                 name: true,
                 phone: true,
+                // users: {
+                //   select: {
+                //     id: true,
+                //     role: true,
+                //     user: {
+                //       select: {
+                //         id: true,
+                //         email: true,
+                //         status: true,
+                //         firstName: true,
+                //         lastName: true,
+                //       },
+                //     },
+                //   },
+                // },
                 address: { select: { country: true } },
               },
             },
@@ -54,7 +70,7 @@ export class UserService {
         company_name: company.name,
         currency: company.currency,
         country: location.address?.country,
-      })) ?? [];
+      })) ?? null;
 
     return {
       id: user.id,
@@ -73,6 +89,7 @@ export class UserService {
         specialization: company?.specialization.name,
       },
     };
+    // return user;
   }
 
   public async findByEmail(email: string): Promise<IUser> {
@@ -87,7 +104,7 @@ export class UserService {
     return this.prismaService.user.findUnique({ where: { email } });
   }
 
-  public async create(dto: UserCreateDto): Promise<IUser> {
+  public async create(dto: UserCreateDto, status: UserStatus): Promise<IUser> {
     if (!dto.password) {
       throw new BadRequestException("Password is required");
     }
@@ -100,6 +117,7 @@ export class UserService {
         firstName: dto.first_name,
         lastName: dto.last_name,
         passwordHash: pass,
+        status: status,
         role: "owner",
       },
     });
@@ -133,3 +151,5 @@ export class UserService {
   //   });
   // }
 }
+
+// /invite/x3MwHiXvG3hCd8n1JHukEWXVR2IaKKDmqYLHhfpnEnmY9jehlIWA6FCWbX7ZIVnAZ8cvx1aXvYuiTht3lcnfcBtK63iYjKjKlbxQ7BOh2GVIHZQXBnVVueI2t2toQG6bxaPLNG9PBZGK2W5naDbUejBqyGy0wgQ17LsVMO260PLzmmqXIzWtqugp0btKSBX8z1NPHC0CBTmMWHFWw0FvoDcrKzcM8JXzbxILaQWTMq6pkIUrMGSx2lGrQKqNVZ4?email=kiril.kolesnikov5%40gmail.com
