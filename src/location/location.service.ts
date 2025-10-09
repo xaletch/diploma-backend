@@ -6,6 +6,7 @@ import {
 import { PrismaService } from "src/prisma/prisma.service";
 import { LocationDto } from "./dto/location.dto";
 import { AddressService } from "src/address/address.service";
+import { LocationUpdateDto } from "./dto/location-update.dto";
 
 @Injectable()
 export class LocationService {
@@ -49,6 +50,17 @@ export class LocationService {
     return location;
   }
 
+  async update(dto: LocationUpdateDto, location_id: string) {
+    await this.findById(location_id);
+
+    const updated = await this.prismaService.location.update({
+      where: { id: location_id },
+      data: { ...dto },
+    });
+
+    return updated;
+  }
+
   async getOne(location_id: string) {
     if (!location_id) throw new BadRequestException("Выберите локацию");
 
@@ -60,6 +72,8 @@ export class LocationService {
         description: true,
         phone: true,
         users: true,
+        category: true,
+        comfort: true,
         address: {
           select: {
             street: true,
@@ -86,6 +100,8 @@ export class LocationService {
       phone: location.phone,
       timezone: `${location.address?.timezone} (${location.address?.timezoneoffset})`,
       user_count: location.users.length,
+      category: location.category,
+      comfort: location.comfort,
       address: {
         full_address: [
           location.address?.street,
@@ -119,6 +135,9 @@ export class LocationService {
         id: true,
         name: true,
         description: true,
+        phone: true,
+        category: true,
+        comfort: true,
         address: {
           select: {
             street: true,
@@ -129,6 +148,7 @@ export class LocationService {
           },
         },
       },
+      orderBy: { createdAt: "asc" },
     });
 
     if (!locations.length) throw new NotFoundException("Локации не найдены");
@@ -137,6 +157,9 @@ export class LocationService {
       id: location.id,
       name: location.name,
       description: location.description,
+      phone: location.phone,
+      category: location.category,
+      comfort: location.comfort,
       address: {
         full_address: [
           location.address?.street,
@@ -171,6 +194,7 @@ export class LocationService {
           select: {
             id: true,
             role: true,
+            createdAt: true,
             user: {
               select: {
                 id: true,

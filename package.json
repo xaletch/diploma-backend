@@ -22,7 +22,9 @@
     "db:push": "prisma db push --schema=./db/schema.prisma",
     "db:push-force": "prisma db push --schema=./db/schema.prisma --force-reset",
     "db:pull": "prisma db pull --schema=./db/schema.prisma",
-    "db:studio": "prisma studio --schema=./db/schema.prisma"
+    "db:studio": "prisma studio --schema=./db/schema.prisma",
+    "docker:up": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:down": "docker compose -f docker-compose.dev.yml down"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",
