@@ -2,14 +2,16 @@ import { IsArray, IsOptional, IsPhoneNumber, IsString } from "class-validator";
 
 export class LocationUpdateDto {
   @IsString()
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @IsString()
   @IsOptional()
   description?: string;
 
   @IsPhoneNumber("RU")
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
   @IsArray()
   @IsString({ each: true })

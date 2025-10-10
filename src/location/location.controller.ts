@@ -8,18 +8,21 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 import { LocationService } from "./location.service";
-import { Authorization } from "src/auth/decorators/auth.decorator";
 import { LocationDto } from "./dto/location.dto";
 import { LocationUpdateDto } from "./dto/location-update.dto";
+import { LocationGuard } from "src/access/guard/location.guard";
+import { AuthGuard } from "src/auth/guard/auth.guard";
+import { CompanyGuard } from "src/access/guard/company.guard";
 
 @Controller()
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
-  @Authorization()
   @Post("location/:company_id")
+  @UseGuards(AuthGuard, CompanyGuard)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: LocationDto,
@@ -28,22 +31,22 @@ export class LocationController {
     return this.locationService.create(dto, companyId);
   }
 
-  @Authorization()
   @Get("locations/:company_id")
+  @UseGuards(AuthGuard, CompanyGuard)
   @HttpCode(HttpStatus.OK)
   async getLocations(@Param("company_id") companyId: string) {
     return this.locationService.getAll(companyId);
   }
 
-  @Authorization()
   @Get("location/:location_id")
+  @UseGuards(AuthGuard, LocationGuard)
   @HttpCode(HttpStatus.OK)
   async getOne(@Param("location_id") location_id: string) {
     return this.locationService.getOne(location_id);
   }
 
-  @Authorization()
   @Patch("location/:location_id")
+  @UseGuards(AuthGuard, LocationGuard)
   @HttpCode(HttpStatus.OK)
   async update(
     @Body() dto: LocationUpdateDto,
@@ -52,8 +55,8 @@ export class LocationController {
     return this.locationService.update(dto, location_id);
   }
 
-  @Authorization()
   @Get("location/users/:location_id")
+  @UseGuards(AuthGuard, LocationGuard)
   @HttpCode(HttpStatus.OK)
   async getUsers(@Param("location_id") location_id: string) {
     return this.locationService.findUsers(location_id);

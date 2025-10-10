@@ -16,6 +16,7 @@ import { RegisterEmployeeDto } from "./dto/register.dto";
 import { JwtService } from "@nestjs/jwt";
 import { TokenService } from "src/auth/token/token.service";
 import { JwtPayload } from "src/auth/jwt.payload";
+import { RoleService } from "src/role/role.service";
 
 @Injectable()
 export class EmployeeService {
@@ -24,6 +25,7 @@ export class EmployeeService {
     private readonly locationService: LocationService,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
+    private readonly roleService: RoleService,
   ) {}
 
   async invite(dto: InviteDto) {
@@ -47,6 +49,8 @@ export class EmployeeService {
     const isExist = await this.prismaService.user.findUnique({
       where: { email: dto.email },
     });
+    await this.roleService.findById(dto.role);
+
     if (isExist) {
       throw new HttpException(
         {
@@ -70,7 +74,6 @@ export class EmployeeService {
           lastName: dto.last_name,
           firstName: dto.first_name,
           phone: dto.phone,
-          role: dto.role,
           status: "invited",
         },
       });
@@ -79,7 +82,7 @@ export class EmployeeService {
         data: {
           userId: user.id,
           locationId: dto.location_id,
-          role: dto.role,
+          roleId: dto.role,
         },
       });
     });

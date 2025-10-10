@@ -6,7 +6,7 @@ import {
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UserCreateDto } from "./dto/user.dto";
-import { IUser } from "./types/user.type";
+import { IUser, UserPrivate } from "./types/user.type";
 import { UserStatus } from "@prisma/client";
 
 @Injectable()
@@ -22,7 +22,8 @@ export class UserService {
         phone: true,
         lastName: true,
         firstName: true,
-        role: true,
+        role: { select: { id: true, name: true } },
+        locations: true,
         company: {
           select: {
             id: true,
@@ -30,6 +31,7 @@ export class UserService {
             currency: true,
             locations: {
               select: {
+                users: true,
                 id: true,
                 name: true,
                 phone: true,
@@ -76,11 +78,13 @@ export class UserService {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      role: user.role,
+      role: user.role?.name,
+      role_id: { id: user.role?.id },
       first_name: user.firstName,
       last_name: user.lastName,
       name: `${user.firstName} ${user.lastName}`,
       locations: locations,
+      my_locations: user.locations,
       company: {
         id: company?.id,
         name: company?.name,
@@ -110,6 +114,9 @@ export class UserService {
     }
     const pass = dto.password ? await bcrypt.hash(dto.password, 8) : "";
 
+    const role = await this.prismaService.role.findUnique({ where: { id: 1 } });
+    if (!role || role.name !== "owner") throw new Error("Роль не найдена");
+
     const user = await this.prismaService.user.create({
       data: {
         email: dto.email,
@@ -118,7 +125,7 @@ export class UserService {
         lastName: dto.last_name,
         passwordHash: pass,
         status: status,
-        role: "owner",
+        role: { connect: { id: 1, name: "owner" } },
       },
     });
 
@@ -132,24 +139,19 @@ export class UserService {
     return bcrypt.compare(password, hash);
   }
 
-  // public async findByPhone(phone: string) {
-  //   const user = await this.prismaService.user.findUnique({ where: { phone } });
+  public async currentUser(user_id: string): Promise<UserPrivate> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: user_id },
+      select: {
+        id: true,
+        email: true,
+        role: { select: { id: true, name: true } },
+        company: { select: { id: true, userId: true } },
+      },
+    });
 
-  //   return user;
-  // }
+    if (!user) throw new NotFoundException("Пользователь не найден");
 
-  // public async createUser(phone: string) {
-  //   return this.prismaService.user.create({
-  //     data: { phone },
-  //   });
-  // }
-
-  // async updateUserStatus(userId: string, status: "pending" | "active") {
-  //   return this.prismaService.user.update({
-  //     where: { id: userId },
-  //     data: { status },
-  //   });
-  // }
+    return user;
+  }
 }
-
-// /invite/x3MwHiXvG3hCd8n1JHukEWXVR2IaKKDmqYLHhfpnEnmY9jehlIWA6FCWbX7ZIVnAZ8cvx1aXvYuiTht3lcnfcBtK63iYjKjKlbxQ7BOh2GVIHZQXBnVVueI2t2toQG6bxaPLNG9PBZGK2W5naDbUejBqyGy0wgQ17LsVMO260PLzmmqXIzWtqugp0btKSBX8z1NPHC0CBTmMWHFWw0FvoDcrKzcM8JXzbxILaQWTMq6pkIUrMGSx2lGrQKqNVZ4?email=kiril.kolesnikov5%40gmail.com

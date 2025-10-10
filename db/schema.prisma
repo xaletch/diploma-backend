@@ -46,6 +46,19 @@ enum SEX {
   none
 }
 
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+enum OrderStatus {
+  open
+  closed
+  paid
+}
+
 enum UserStatus {
   invited
   active
@@ -72,10 +85,13 @@ model Session {
 }
 
 model Role {
-  id            String        @id               @default(uuid())
+  id            Int             @id              @default(autoincrement())
 
   name          String
-  permissions   Permission[]  @relation("role_permission")
+  
+  permissions   Permission[]   @relation("role_permissions")
+  users         User[]         @relation("user_role")
+  userLocations UserLocation[] @relation("user_location_role")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
@@ -83,9 +99,11 @@ model Role {
   @@map("roles")
 }
 model Permission {
-  id            String        @id               @default(uuid())
+  id            Int             @id              @default(autoincrement())
+
   name          String        @unique
-  roles         Role[]        @relation("role_permission")
+  
+  roles         Role[]        @relation("role_permissions")
 
   @@map("permissions")
 }
@@ -101,8 +119,10 @@ model User {
   lastName      String?       @map("last_name")
 
   status        UserStatus    @default(invited)
-  role          ROLE
   position      String?
+  
+  role          Role?          @relation("user_role", fields: [roleId], references: [id])
+  roleId        Int?           @map("role_id")
 
   // company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
   // companyId     String?       @unique           @map("company_id")
@@ -126,7 +146,8 @@ model UserLocation {
   location      Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
   locationId    String        @map("location_id")
 
-  role          ROLE
+  role          Role?         @relation("user_location_role", fields: [roleId], references: [id])
+  roleId        Int?          @map("role_id")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
@@ -208,6 +229,8 @@ model Company {
   specializationId Int        @map("specialization_id")
   industry      Industry      @relation("company_industry", fields: [industryId], references: [id])
   industryId    Int           @map("industry_id")
+
+  services      Service[]     @relation("company_service")
   
   locations     Location[]    @relation("company_locations")
 
@@ -252,6 +275,8 @@ model Customer {
   company       Company       @relation("company_customers", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String        @map("company_id")
 
+  bookings      Booking[]      @relation("booking_customer")
+
   services      Service[]     @relation("customer_services")
 
   createdAt     DateTime      @default(now())   @map("created_at")
@@ -274,6 +299,8 @@ model Location {
   company       Company       @relation("company_locations", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String        @map("company_id")
 
+  bookings      Booking[]     @relation("booking_locations")
+
   users         UserLocation[]
 
   invites       Invite[]      @relation("location_invite")
@@ -291,7 +318,7 @@ model Invite {
   email         String
   expiresAt     DateTime      @map("expires_at")
   location      Location      @relation("location_invite", fields: [locationId], references: [id], onDelete: Cascade)
-  role          ROLE
+  role          Int?           
   locationId    String        @map("location_id")
 
   createdAt     DateTime      @default(now())   @map("created_at")
@@ -308,7 +335,11 @@ model Service {
   mark          String        // цвет
   duration      Int
 
+  company       Company       @relation("company_service", fields: [companyId], references: [id])
+  companyId     String
+
   price         ServicePrice? @relation("service_prices")
+  bookings      Booking[]     @relation("booking_service")
 
   users         Customer[]    @relation("customer_services")
 
@@ -351,4 +382,46 @@ model DiscountPrice {
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("discount_price")
+}
+
+model Booking {
+  id            String        @id               @default(uuid())
+
+  name          String
+  startTime     String        @map("start_time")
+  endTime       String        @map("end_time")
+  comment       String?
+  status        BookingStatus
+
+  location      Location      @relation("booking_locations", fields: [locationId], references: [id])
+  locationId    String
+
+  customer      Customer      @relation("booking_customer", fields: [customerId], references: [id])
+  customerId    String
+
+  service       Service       @relation("booking_service", fields: [serviceId], references: [id])
+  serviceId     String
+
+  order         Order?        @relation("booking_order", fields: [orderId], references: [id])
+  orderId       String?
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("bookings")
+}
+
+model Order {
+  id            String        @id               @default(uuid())
+
+  status        OrderStatus
+  subtotal      Int
+  comment       String?
+
+  bookings      Booking[]     @relation("booking_order")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("orders")
 }
