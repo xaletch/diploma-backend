@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   HttpCode,
@@ -27,7 +28,7 @@ export class LocationController {
 
   @Post("location/:company_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("location:create")
+  // @Scopes("location:create")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: LocationDto,
@@ -62,6 +63,14 @@ export class LocationController {
     @Param("location_id") location_id: string,
   ) {
     return this.locationService.update(dto, location_id);
+  }
+
+  @Delete("location/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  // @Scopes("location:update")
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param("location_id") location_id: string) {
+    return this.locationService.delete(location_id);
   }
 
   @Get("location/users/:location_id")

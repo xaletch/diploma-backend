@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -105,6 +107,28 @@ export class LocationService {
     });
 
     return updated;
+  }
+
+  async delete(location_id: string) {
+    const deleted = await this.prismaService.location.delete({
+      where: { id: location_id },
+    });
+
+    if (!deleted)
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          title: "Ошибка",
+          description: `Не удалось удалить локацию`,
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: new Error() },
+      );
+
+    return {
+      message: "Локация удалена",
+      location: { id: deleted.id, name: deleted.name },
+    };
   }
 
   async getOne(location_id: string) {

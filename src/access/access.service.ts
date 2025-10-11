@@ -10,10 +10,13 @@ export class AccessService {
     user: UserPrivate,
     location_id: string,
   ): Promise<boolean> {
-    const userLocation = await this.prismaService.userLocation.findFirst({
+    const location = await this.prismaService.userLocation.findFirst({
       where: { userId: user.id, locationId: location_id },
     });
-    return !!userLocation;
+
+    if (!location) throw new NotFoundException("Локация не найдена");
+
+    return !!location;
   }
 
   async accessCompany(user: UserPrivate, company_id): Promise<boolean> {
