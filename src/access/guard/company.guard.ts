@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { AccessService } from "../access.service";
 import { UserService } from "src/user/user.service";
+import { UserPrivate } from "src/user/types/user.type";
 
 @Injectable()
 export class CompanyGuard implements CanActivate {
@@ -17,10 +18,9 @@ export class CompanyGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    const userId = req.user.id;
+    const user: UserPrivate = req.user;
     const companyId = req.params.company_id;
 
-    const user = await this.userService.currentUser(userId);
     const access = await this.accessService.accessCompany(user, companyId);
 
     if (!access)
@@ -43,8 +43,6 @@ export class CompanyGuard implements CanActivate {
         HttpStatus.FORBIDDEN,
         { cause: new Error() },
       );
-
-    req.user = user;
 
     return true;
   }

@@ -41,5 +41,6 @@ export type UserPrivate = {
   id: string;
   email: string;
   role: IRole | null;
-  company: { id: string; userId: string | null } | null;
+  company: { id: string; userId: string | null | undefined } | null;
+  permissions: { name: string }[] | null;
 };
