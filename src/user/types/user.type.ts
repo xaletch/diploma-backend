@@ -1,4 +1,5 @@
-import { CURRENCY, ROLE, UserStatus } from "@prisma/client";
+import { CURRENCY, UserStatus } from "@prisma/client";
+import { IRole } from "src/role/types/role.type";
 
 export type IUser = {
   id: string;
@@ -7,7 +8,7 @@ export type IUser = {
   phone: string;
   firstName: string;
   lastName: string | null;
-  role: ROLE;
+  roleId: number | null;
   status: UserStatus;
 };
 
@@ -18,7 +19,7 @@ export type IUserPrivate = {
   first_name: string;
   last_name: string | null;
   name: string;
-  role: ROLE;
+  roleId: number | null;
   company: {
     id?: string;
     name?: string;
@@ -34,4 +35,11 @@ export type IUserPrivate = {
     currency: CURRENCY;
     country?: string;
   }[];
+};
+
+export type UserPrivate = {
+  id: string;
+  email: string;
+  role: IRole | null;
+  company: { id: string; userId: string | null } | null;
 };

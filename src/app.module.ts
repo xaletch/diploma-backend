@@ -12,6 +12,8 @@ import { CompanyModule } from "./company/company.module";
 import { LocationModule } from "./location/location.module";
 import { AddressModule } from "./address/address.module";
 import { EmployeeModule } from "./employee/employee.module";
+import { RoleModule } from "./role/role.module";
+import { AccessModule } from "./access/access.module";
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { EmployeeModule } from "./employee/employee.module";
     LocationModule,
     AddressModule,
     EmployeeModule,
+    RoleModule,
+    AccessModule,
   ],
   controllers: [AppController],
   providers: [AppService],

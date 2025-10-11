@@ -1,11 +1,12 @@
-import { ROLE } from "@prisma/client";
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
 } from "class-validator";
+import { RoleIds } from "src/role/types/role.type";
 
 export class EmployeeDto {
   @IsString()
@@ -25,8 +26,8 @@ export class EmployeeDto {
   @IsOptional()
   last_name: string;
 
-  @IsString()
-  role: ROLE;
+  @IsNumber()
+  role: RoleIds;
 
   @IsString()
   position: string;

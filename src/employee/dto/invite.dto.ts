@@ -1,5 +1,4 @@
-import { ROLE } from "@prisma/client";
-import { IsString } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
 
 export class InviteDto {
   @IsString()
@@ -8,6 +7,6 @@ export class InviteDto {
   @IsString()
   location_id: string;
 
-  @IsString()
-  role: ROLE;
+  @IsNumber()
+  role: number;
 }

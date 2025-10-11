@@ -23,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(req: any, payload: JwtPayload) {
     const result = await this.tokenService.validatePayload(payload);
+    req.user = result;
     if (!result) {
       throw new UnauthorizedException();
     }

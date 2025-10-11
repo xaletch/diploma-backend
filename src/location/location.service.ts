@@ -193,7 +193,7 @@ export class LocationService {
         users: {
           select: {
             id: true,
-            role: true,
+            role: { select: { id: true, name: true } },
             createdAt: true,
             user: {
               select: {
@@ -216,7 +216,7 @@ export class LocationService {
 
     const users = location?.users.map((user) => ({
       _id: user.id,
-      role: user.role,
+      role: user.role?.name,
       profile: {
         id: user.user.id,
         email: user.user.email,
