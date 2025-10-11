@@ -16,6 +16,7 @@ import { LocationUpdateDto } from "./dto/location-update.dto";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { CompanyGuard } from "src/access/guard/company.guard";
+import { Authorized } from "src/auth/decorators/authorized.decorator";
 
 @Controller()
 export class LocationController {
@@ -26,9 +27,10 @@ export class LocationController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: LocationDto,
+    @Authorized("id") userId,
     @Param("company_id") companyId: string,
   ) {
-    return this.locationService.create(dto, companyId);
+    return this.locationService.create(dto, userId, companyId);
   }
 
   @Get("locations/:company_id")
