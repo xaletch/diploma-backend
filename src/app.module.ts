@@ -14,6 +14,7 @@ import { AddressModule } from "./address/address.module";
 import { EmployeeModule } from "./employee/employee.module";
 import { RoleModule } from "./role/role.module";
 import { AccessModule } from "./access/access.module";
+import { ServicesModule } from "./services/services.module";
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AccessModule } from "./access/access.module";
     EmployeeModule,
     RoleModule,
     AccessModule,
+    ServicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

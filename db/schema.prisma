@@ -331,7 +331,7 @@ model Service {
   id            String        @id               @default(uuid())
 
   name          String
-  publicName    String        @map("public_name")
+  publicName    String?       @map("public_name")
   mark          String        // цвет
   duration      Int
 
