@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { AccessService } from "../access.service";
 import { UserService } from "src/user/user.service";
+import { UserPrivate } from "src/user/types/user.type";
 
 @Injectable()
 export class LocationGuard implements CanActivate {
@@ -17,11 +18,8 @@ export class LocationGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    const userId: string = req.user.id;
+    const user: UserPrivate = req.user;
     const locationId = req.params.location_id;
-
-    const user = await this.userService.currentUser(userId);
-
     const access = await this.accessService.accessLocation(user, locationId);
 
     if (!access)
@@ -44,8 +42,6 @@ export class LocationGuard implements CanActivate {
         HttpStatus.FORBIDDEN,
         { cause: new Error() },
       );
-
-    req.user = user;
 
     return true;
   }

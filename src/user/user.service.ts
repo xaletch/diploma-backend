@@ -145,13 +145,29 @@ export class UserService {
       select: {
         id: true,
         email: true,
-        role: { select: { id: true, name: true } },
+        role: {
+          select: {
+            id: true,
+            name: true,
+            permissions: { select: { name: true } },
+          },
+        },
         company: { select: { id: true, userId: true } },
       },
     });
 
     if (!user) throw new NotFoundException("Пользователь не найден");
 
-    return user;
+    const data: UserPrivate = {
+      id: user.id,
+      email: user.email,
+      role: user.role ? { id: user.role.id, name: user.role.name } : null,
+      company: user.company
+        ? { id: user.company.id, userId: user.company.userId }
+        : null,
+      permissions: user.role?.permissions ?? null,
+    };
+
+    return data;
   }
 }

@@ -12,6 +12,9 @@ import { ServicesService } from "./services.service";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { CompanyGuard } from "src/access/guard/company.guard";
 import { ServiceCreateDto } from "./dto/service.dto";
+import { Scopes } from "src/access/decorator/scopes.decorator";
+import { LoadUserGuard } from "src/user/guard/user.guard";
+import { ScopeGuard } from "src/access/guard/scope.guard";
 
 @Controller("services")
 export class ServicesController {
@@ -25,7 +28,8 @@ export class ServicesController {
   }
 
   @Post(":company_id")
-  @UseGuards(AuthGuard, CompanyGuard)
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service:create")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: ServiceCreateDto,

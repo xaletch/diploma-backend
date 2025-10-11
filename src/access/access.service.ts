@@ -10,19 +10,10 @@ export class AccessService {
     user: UserPrivate,
     location_id: string,
   ): Promise<boolean> {
-    if (user.role?.name === "owner") {
-      const location = await this.prismaService.location.findUnique({
-        where: { id: location_id },
-        select: { companyId: true },
-      });
-
-      return location?.companyId === user.company?.id;
-    } else {
-      const userLocation = await this.prismaService.userLocation.findFirst({
-        where: { userId: user.id, locationId: location_id },
-      });
-      return !!userLocation;
-    }
+    const userLocation = await this.prismaService.userLocation.findFirst({
+      where: { userId: user.id, locationId: location_id },
+    });
+    return !!userLocation;
   }
 
   async accessCompany(user: UserPrivate, company_id): Promise<boolean> {
