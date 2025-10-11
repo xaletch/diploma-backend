@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { IRole } from "./types/role.type";
+import { RoleDto } from "./dto/role.dto";
 
 @Injectable()
 export class RoleService {
@@ -15,5 +20,33 @@ export class RoleService {
     if (!role) throw new NotFoundException("Роль не найдена");
 
     return role;
+  }
+
+  async createPermission(dto: RoleDto) {
+    const existing = await this.prismaService.permission.findUnique({
+      where: { name: dto.name },
+    });
+
+    if (existing) throw new BadRequestException("permission уже существует");
+
+    const role = await this.prismaService.role.findUnique({
+      where: { id: dto.role_id },
+    });
+
+    if (!role) {
+      throw new NotFoundException("Роль не найдена");
+    }
+
+    const permission = await this.prismaService.permission.create({
+      data: {
+        name: dto.name,
+        roles: {
+          connect: { id: dto.role_id },
+        },
+      },
+      include: { roles: true },
+    });
+
+    return permission;
   }
 }
