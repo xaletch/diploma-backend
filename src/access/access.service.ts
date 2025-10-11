@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UserPrivate } from "src/user/types/user.type";
 
@@ -31,6 +31,8 @@ export class AccessService {
         where: { id: company_id },
         select: { userId: true },
       });
+
+      if (!company) throw new NotFoundException("Компания не найдена");
 
       return company?.userId === user.id;
     }
