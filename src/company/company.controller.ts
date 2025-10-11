@@ -26,8 +26,9 @@ export class CompanyController {
     private readonly specializationService: SpecializationService,
   ) {}
 
-  @Authorization()
   @Post()
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("company:create")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateCompanyDto,

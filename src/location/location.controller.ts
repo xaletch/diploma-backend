@@ -28,7 +28,7 @@ export class LocationController {
 
   @Post("location/:company_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  // @Scopes("location:create")
+  @Scopes("location:create")
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: LocationDto,
@@ -67,7 +67,7 @@ export class LocationController {
 
   @Delete("location/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
-  // @Scopes("location:update")
+  @Scopes("location:delete")
   @HttpCode(HttpStatus.OK)
   async delete(@Param("location_id") location_id: string) {
     return this.locationService.delete(location_id);
