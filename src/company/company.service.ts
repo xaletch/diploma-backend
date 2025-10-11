@@ -27,38 +27,59 @@ export class CompanyService {
 
     if (isExists)
       throw new HttpException(
-        { status: HttpStatus.CONFLICT, error: "Компания уже существует" },
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Повторная попытка создания компании",
+          description: "Вы уже создали компанию!",
+          details: [
+            "Одна компания может существовать только единожды в вашем профиле.",
+            "Изменить данные существующей компании можно в соответствующем разделе",
+          ],
+          recommendations: [
+            "Если возникли трудности, обратитесь в службу поддержки.",
+          ],
+        },
         HttpStatus.CONFLICT,
         { cause: new Error() },
       );
 
-    const company = await this.prismaService.company.create({
-      data: {
-        user: { connect: { id: user.id } },
-        name: dto.name,
-        currency: dto.currency,
-        specialization: { connect: { id: dto.specialization } },
-        industry: { connect: { id: dto.industry } },
-      },
-      select: {
-        id: true,
-        name: true,
-        currency: true,
-        user: {
-          select: { id: true, phone: true, email: true },
+    const company = await this.prismaService.$transaction(async (t) => {
+      const company = await t.company.create({
+        data: {
+          user: { connect: { id: user.id } },
+          name: dto.name,
+          currency: dto.currency,
+          specialization: { connect: { id: dto.specialization } },
+          industry: { connect: { id: dto.industry } },
         },
-      },
+        select: {
+          id: true,
+          name: true,
+          currency: true,
+          user: {
+            select: { id: true, phone: true, email: true },
+          },
+        },
+      });
+
+      const locationData = {
+        ...dto,
+        name: company.name,
+        phone: user.phone,
+      };
+
+      await this.locationService.createFirst(
+        t,
+        locationData,
+        userId,
+        user.role_id.id,
+        company.id,
+      );
+
+      return company;
     });
 
-    const locationData = {
-      ...dto,
-      name: company.name,
-      phone: user.phone,
-    };
-
-    await this.locationService.create(locationData, company.id);
-
-    return company;
+    return { company };
   }
 
   async findById(id: string) {

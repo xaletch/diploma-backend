@@ -7,6 +7,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { LocationDto } from "./dto/location.dto";
 import { AddressService } from "src/address/address.service";
 import { LocationUpdateDto } from "./dto/location-update.dto";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class LocationService {
@@ -15,12 +16,17 @@ export class LocationService {
     private readonly addressService: AddressService,
   ) {}
 
-  async create(dto: LocationDto, companyId: string) {
-    const company = await this.prismaService.company.findUnique({
-      where: { id: companyId },
+  async create(dto: LocationDto, userId: string, companyId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { roleId: true },
+    });
+    const isExists = await this.prismaService.location.findFirst({
+      where: { companyId: companyId, name: dto.name },
     });
 
-    if (!company) throw new NotFoundException("Компания не найдена");
+    if (isExists)
+      throw new BadRequestException("Локация с таким именем уже существует");
 
     const locationDTO = {
       name: dto.name,
@@ -28,16 +34,56 @@ export class LocationService {
       comfort: dto.comfort,
     };
 
-    const location = await this.prismaService.location.create({
+    const location = await this.prismaService.$transaction(async (t) => {
+      const location = await t.location.create({
+        data: {
+          company: { connect: { id: companyId } },
+          ...locationDTO,
+        },
+      });
+
+      const address = await this.addressService.create(t, dto, location.id);
+
+      await t.userLocation.create({
+        data: {
+          userId,
+          locationId: location.id,
+          roleId: user?.roleId,
+        },
+      });
+
+      return { location, address };
+    });
+
+    return location;
+  }
+
+  async createFirst(
+    t: Prisma.TransactionClient,
+    dto: LocationDto,
+    userId: string,
+    roleId: number | undefined,
+    companyId: string,
+  ) {
+    const { name, phone, comfort } = dto;
+    const locationDto = { name, phone, comfort };
+
+    const location = await t.location.create({
       data: {
-        company: { connect: { id: company.id } },
-        ...locationDTO,
+        company: { connect: { id: companyId } },
+        ...locationDto,
       },
     });
 
-    const address = await this.addressService.create(dto, location.id);
+    await this.addressService.create(t, dto, location.id);
 
-    return { location, address };
+    await t.userLocation.create({
+      data: {
+        userId,
+        locationId: location.id,
+        roleId,
+      },
+    });
   }
 
   async findById(id: string) {

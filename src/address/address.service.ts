@@ -1,21 +1,20 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateAddressDto } from "./dto/create.dto";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class AddressService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(dto: CreateAddressDto, locationId: string) {
-    const location = await this.prismaService.location.findUnique({
-      where: { id: locationId },
-    });
-
-    if (!location) throw new NotFoundException("Локация не найдена");
-
-    const address = await this.prismaService.address.create({
+  async create(
+    t: Prisma.TransactionClient,
+    dto: CreateAddressDto,
+    locationId: string,
+  ) {
+    const address = await t.address.create({
       data: {
-        location: { connect: { id: locationId } },
+        locationId,
         street: dto.street,
         house: dto.house,
         city: dto.city,
