@@ -21,7 +21,9 @@ import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Authorized } from "src/auth/decorators/authorized.decorator";
 import { Scopes } from "src/access/decorator/scopes.decorator";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Location")
 @Controller()
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}

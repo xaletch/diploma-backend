@@ -15,7 +15,9 @@ import { ServiceCreateDto } from "./dto/service.dto";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Услуги")
 @Controller("services")
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}

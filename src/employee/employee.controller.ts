@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from "@nestjs/common";
@@ -15,7 +17,10 @@ import { AuthGuard } from "src/auth/guard/auth.guard";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
+import { ApiTags } from "@nestjs/swagger";
+import { LocationGuard } from "src/access/guard/location.guard";
 
+@ApiTags("Сотрудники")
 @Controller()
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
@@ -33,5 +38,13 @@ export class EmployeeController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterEmployeeDto, @Ip() userIp) {
     return this.employeeService.register(dto, userIp);
+  }
+
+  @Delete("employee/:user_id/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("employee:delete")
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param("user_id") userId: string) {
+    return this.employeeService.delete(userId);
   }
 }
