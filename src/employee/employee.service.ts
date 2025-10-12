@@ -28,6 +28,7 @@ export class EmployeeService {
     private readonly roleService: RoleService,
   ) {}
 
+  // TODO - ДОБАВИТЬ ПРОВЕРКУ СУЩЕСТВОВАНИЯ ТОКЕНА ПЕРЕД РЕГИСТРАЦИЕЙ
   async invite(dto: InviteDto) {
     const token = generateInviteToken();
     const hash = crypto.createHash("sha256").update(token).digest("hex");
@@ -45,7 +46,7 @@ export class EmployeeService {
     return { url: `http://localhost:8080/invite/${token}?email=${dto.email}` };
   }
 
-  async create(dto: EmployeeDto) {
+  async create(dto: EmployeeDto, companyId: string) {
     const isExist = await this.prismaService.user.findUnique({
       where: { email: dto.email },
     });
@@ -75,6 +76,9 @@ export class EmployeeService {
           firstName: dto.first_name,
           phone: dto.phone,
           status: "invited",
+          companyId: companyId,
+          roleId: dto.role,
+          position: dto.position,
         },
       });
 
@@ -114,6 +118,7 @@ export class EmployeeService {
           phone: dto.phone,
           passwordHash: pass,
           status: "active",
+          position: dto.position,
         },
       });
 

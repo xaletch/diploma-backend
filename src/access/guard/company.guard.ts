@@ -16,13 +16,13 @@ export class CompanyGuard implements CanActivate {
     private readonly userService: UserService,
   ) {}
 
+  // НЕМНОГО НЕ СХОДИТСЯ - СНЕСТИ ГВАРД ДЛЯ КОМПАНИИ И ЛОКАЦИИ И ОБЪЕДИНИТЬ
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
     const user: UserPrivate = req.user;
-    const companyId = req.params.company_id;
+    const companyId = user.companyId;
 
     const access = await this.accessService.accessCompany(user, companyId);
-
     if (!access)
       throw new HttpException(
         {

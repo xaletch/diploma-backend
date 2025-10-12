@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { EmployeeService } from "./employee.service";
@@ -29,8 +30,9 @@ export class EmployeeController {
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
   @Scopes("employee:invite")
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: EmployeeDto) {
-    return this.employeeService.create(dto);
+  async create(@Body() dto: EmployeeDto, @Req() req) {
+    const companyId = req.user.company.id;
+    return this.employeeService.create(dto, companyId);
   }
 
   @Authorization()
