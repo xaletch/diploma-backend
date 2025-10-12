@@ -141,7 +141,7 @@ model User {
 model UserLocation {
   id            String        @id               @default(uuid())
   
-  user          User          @relation("user_location", fields: [userId], references: [id])
+  user          User          @relation("user_location", fields: [userId], references: [id], onDelete: Cascade)
   userId        String        @map("user_id")
   location      Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
   locationId    String        @map("location_id")

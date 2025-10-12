@@ -4,6 +4,7 @@ import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as express from "express";
 import { join } from "path";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,6 +25,15 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // СВАГА //
+  const confSwagger = new DocumentBuilder()
+    .setTitle("API")
+    .setDescription("")
+    .setVersion("1.0")
+    .build();
+  const document = SwaggerModule.createDocument(app, confSwagger);
+  SwaggerModule.setup("docs", app, document);
 
   app.enableCors({
     origin: config.getOrThrow<string>("ALLOWED_ORIGINS").split(","),

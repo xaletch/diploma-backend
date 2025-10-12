@@ -132,4 +132,31 @@ export class EmployeeService {
 
     return { access_token: accessToken, refresh_token: refreshToken };
   }
+
+  // СЕЙЧАС РАБОТАЕТ ТАК, ЧТО МОЖНО УДАЛИТЬ ЛЮБОГО ПОЛЬЗОВАТЕЛЯ ДАЖЕ ТОГО КОГО НЕТ В ЛОКАЦИИ
+  async delete(userId: string) {
+    const isExist = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!isExist)
+      throw new HttpException(
+        {
+          title: "Ошибка",
+          description: "Пользователь не найден",
+          detail: [`ID ${userId}`],
+          status: HttpStatus.NOT_FOUND,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const user = await this.prismaService.user.delete({
+      where: { id: userId },
+    });
+
+    return {
+      message: "Сотрудник удален",
+      location: { id: user.id, email: user.email },
+    };
+  }
 }

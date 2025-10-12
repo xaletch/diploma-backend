@@ -13,7 +13,9 @@ import { Response } from "express";
 import { IS_DEV_ENV, SAME_SITE } from "src/shared/utils/is-dev";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Authorization")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
