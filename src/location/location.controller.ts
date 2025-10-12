@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { LocationService } from "./location.service";
@@ -28,23 +29,21 @@ import { ApiTags } from "@nestjs/swagger";
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
-  @Post("location/:company_id")
+  @Post("location")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("location:create")
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() dto: LocationDto,
-    @Authorized("id") userId,
-    @Param("company_id") companyId: string,
-  ) {
+  async create(@Body() dto: LocationDto, @Authorized("id") userId, @Req() req) {
+    const companyId = req.user.companyId;
     return this.locationService.create(dto, userId, companyId);
   }
 
-  @Get("locations/:company_id")
+  @Get("locations")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("locations:read")
   @HttpCode(HttpStatus.OK)
-  async getLocations(@Param("company_id") companyId: string) {
+  async getLocations(@Req() req) {
+    const companyId = req.user.companyId;
     return this.locationService.getAll(companyId);
   }
 

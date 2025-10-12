@@ -19,17 +19,22 @@ export class AccessService {
     return !!location;
   }
 
+  // ПЕРЕПИСАТЬ ЭТУ ЕРУНДУ
+  // eslint-disable-next-line @typescript-eslint/require-await
   async accessCompany(user: UserPrivate, company_id): Promise<boolean> {
-    if (user.role?.name === "owner") {
-      const company = await this.prismaService.company.findUnique({
-        where: { id: company_id },
-        select: { userId: true },
-      });
-
-      if (!company) throw new NotFoundException("Компания не найдена");
-
-      return company?.userId === user.id;
+    if (user) {
+      return user.companyId === company_id;
     }
+    // if (user.role?.name === "owner") {
+    //   const company = await this.prismaService.company.findUnique({
+    //     where: { id: company_id },
+    //     select: { userId: true },
+    //   });
+
+    //   if (!company) throw new NotFoundException("Компания не найдена");
+
+    //   return company?.userId === user.id;
+    // }
 
     return false;
   }

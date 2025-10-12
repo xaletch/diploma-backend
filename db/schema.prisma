@@ -124,9 +124,8 @@ model User {
   role          Role?          @relation("user_role", fields: [roleId], references: [id])
   roleId        Int?           @map("role_id")
 
-  // company       Company?      @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
-  // companyId     String?       @unique           @map("company_id")
-  company       Company?      @relation("company_user")
+  company       Company?       @relation("company_user", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String?        @map("company_id")
 
   locations     UserLocation[] @relation("user_location")
 
@@ -221,8 +220,8 @@ model Company {
 
   // address       Address?      @relation("company_address")
 
-  user          User?         @relation("company_user", fields: [userId], references: [id], onDelete: Cascade)
-  userId        String?          @unique         @map("user_id")
+  users         User[]        @relation("company_user")
+
   theme         Theme?        @relation("company_theme")
 
   specialization Specialization @relation("company_specialization", fields: [specializationId], references: [id])

@@ -21,8 +21,8 @@ export class CompanyService {
   async create(dto: CreateCompanyDto, userId: string) {
     const user = await this.userService.findById(userId);
 
-    const isExists = await this.prismaService.company.findUnique({
-      where: { userId: user.id },
+    const isExists = await this.prismaService.company.findFirst({
+      where: { users: { some: { id: userId } } },
     });
 
     if (isExists)
@@ -46,17 +46,17 @@ export class CompanyService {
     const company = await this.prismaService.$transaction(async (t) => {
       const company = await t.company.create({
         data: {
-          user: { connect: { id: user.id } },
           name: dto.name,
           currency: dto.currency,
           specialization: { connect: { id: dto.specialization } },
           industry: { connect: { id: dto.industry } },
+          users: { connect: { id: user.id } },
         },
         select: {
           id: true,
           name: true,
           currency: true,
-          user: {
+          users: {
             select: { id: true, phone: true, email: true },
           },
         },

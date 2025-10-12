@@ -152,7 +152,7 @@ export class UserService {
             permissions: { select: { name: true } },
           },
         },
-        company: { select: { id: true, userId: true } },
+        company: { select: { id: true } },
       },
     });
 
@@ -162,9 +162,8 @@ export class UserService {
       id: user.id,
       email: user.email,
       role: user.role ? { id: user.role.id, name: user.role.name } : null,
-      company: user.company
-        ? { id: user.company.id, userId: user.company.userId }
-        : null,
+      company: user.company ? { id: user.company.id } : null,
+      companyId: user.company?.id ?? null,
       permissions: user.role?.permissions ?? null,
     };
 
