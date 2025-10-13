@@ -10,7 +10,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { EmployeeService } from "./employee.service";
-import { Authorization } from "src/auth/decorators/auth.decorator";
 import { EmployeeDto } from "./dto/employee.dto";
 import { Ip } from "src/shared/decorators/ip.decorator";
 import { RegisterEmployeeDto } from "./dto/register.dto";
@@ -20,6 +19,7 @@ import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { LocationGuard } from "src/access/guard/location.guard";
+import { CheckInviteDto } from "./dto/check-invite.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -35,7 +35,12 @@ export class EmployeeController {
     return this.employeeService.create(dto, companyId);
   }
 
-  @Authorization()
+  @Post("check-invite")
+  @HttpCode(HttpStatus.OK)
+  async checkInvite(@Body() dto: CheckInviteDto) {
+    return this.employeeService.checkInvite(dto);
+  }
+
   @Post("employee/register")
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterEmployeeDto, @Ip() userIp) {

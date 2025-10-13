@@ -5,7 +5,6 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import * as crypto from "crypto";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "src/prisma/prisma.service";
 import { InviteDto } from "./dto/invite.dto";
@@ -17,6 +16,7 @@ import { JwtService } from "@nestjs/jwt";
 import { TokenService } from "src/auth/token/token.service";
 import { JwtPayload } from "src/auth/jwt.payload";
 import { RoleService } from "src/role/role.service";
+import { CheckInviteDto } from "./dto/check-invite.dto";
 
 @Injectable()
 export class EmployeeService {
@@ -28,14 +28,12 @@ export class EmployeeService {
     private readonly roleService: RoleService,
   ) {}
 
-  // TODO - ДОБАВИТЬ ПРОВЕРКУ СУЩЕСТВОВАНИЯ ТОКЕНА ПЕРЕД РЕГИСТРАЦИЕЙ
   async invite(dto: InviteDto) {
     const token = generateInviteToken();
-    const hash = crypto.createHash("sha256").update(token).digest("hex");
 
     await this.prismaService.invite.create({
       data: {
-        token: hash,
+        token: token,
         email: dto.email,
         locationId: dto.location_id,
         role: dto.role,
@@ -44,6 +42,26 @@ export class EmployeeService {
     });
 
     return { url: `http://localhost:8080/invite/${token}?email=${dto.email}` };
+  }
+
+  async checkInvite(dto: CheckInviteDto) {
+    const { token } = dto;
+    const isExist = await this.prismaService.invite.findFirst({
+      where: { token: token },
+    });
+
+    if (!isExist)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ссылка истекла",
+          message:
+            "Срок действия вашей ссылки истек. Пожалуйста, проверьте правильность введенного текста или запросите новую ссылку.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return { valid: true };
   }
 
   async create(dto: EmployeeDto, companyId: string) {
