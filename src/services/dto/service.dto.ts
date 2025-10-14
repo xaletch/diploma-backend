@@ -1,11 +1,10 @@
-import { DATE_TYPE, DAYS } from "@prisma/client";
+import { DATE_TYPE, DAYS, MarkEnum, ServiceType } from "@prisma/client";
 import {
   IsArray,
   IsEnum,
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
 } from "class-validator";
 
 export class ServiceCreateDto {
@@ -16,24 +15,14 @@ export class ServiceCreateDto {
   @IsOptional({ each: true })
   public_name?: string;
 
-  @IsString()
-  mark: string;
+  @IsEnum(MarkEnum)
+  mark: MarkEnum;
 
   @IsNumber()
   duration: number;
 
-  @IsUUID("all")
-  customer_id: string;
-
-  @IsNumber()
-  price: number;
-
-  @IsNumber()
-  @IsOptional()
-  cost_price?: number;
-
-  @IsEnum(DATE_TYPE)
-  date_type: DATE_TYPE;
+  @IsEnum(ServiceType)
+  type: ServiceType;
 
   @IsArray()
   @IsEnum(DAYS, { each: true })
@@ -44,4 +33,31 @@ export class ServiceCreateDto {
 
   @IsString()
   time_end: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsNumber()
+  @IsOptional()
+  cost_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  discount_price?: number;
+
+  @IsEnum(DATE_TYPE)
+  date_type?: DATE_TYPE;
+
+  @IsArray()
+  @IsEnum(DAYS, { each: true })
+  @IsOptional()
+  discount_days?: DAYS[];
+
+  @IsString()
+  @IsOptional()
+  discount_time_start?: string;
+
+  @IsString()
+  @IsOptional()
+  discount_time_end?: string;
 }

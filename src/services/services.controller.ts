@@ -4,8 +4,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ServicesService } from "./services.service";
@@ -16,27 +16,27 @@ import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { ApiTags } from "@nestjs/swagger";
+import { Request } from "express";
 
 @ApiTags("Услуги")
-@Controller("services")
+@Controller()
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
-  @Get(":company_id")
+  @Get("services")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  getAllServices(@Param("company_id") companyId: string) {
+  getAllServices(@Req() req) {
+    const companyId = req.user.companyId;
     return this.servicesService.getAll(companyId);
   }
 
-  @Post(":company_id")
+  @Post("service")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:create")
   @HttpCode(HttpStatus.CREATED)
-  async create(
-    @Body() dto: ServiceCreateDto,
-    @Param("company_id") companyId: string,
-  ) {
+  async create(@Body() dto: ServiceCreateDto, @Req() req) {
+    const companyId = req.user.companyId;
     return this.servicesService.create(dto, companyId);
   }
 }

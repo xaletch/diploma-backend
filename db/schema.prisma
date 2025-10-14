@@ -65,6 +65,21 @@ enum UserStatus {
   disable
 }
 
+enum ServiceType {
+  online
+  offline
+}
+
+enum MarkEnum {
+  red
+  orange
+  green
+  blue
+  purple
+  teal
+  pink
+}
+
 model Session {
   id            String        @id               @default(uuid())
 
@@ -128,6 +143,7 @@ model User {
   companyId     String?        @map("company_id")
 
   locations     UserLocation[] @relation("user_location")
+  services      UserService[]  @relation("user_service")
 
   sessions      Session[]     @relation("user_session")
 
@@ -301,6 +317,7 @@ model Location {
   bookings      Booking[]     @relation("booking_locations")
 
   users         UserLocation[]
+  services      LocationService[]               @relation("location_service")
 
   invites       Invite[]      @relation("location_invite")
 
@@ -326,13 +343,56 @@ model Invite {
   @@map("invites")
 }
 
+model UserService {
+  id            String        @id               @default(uuid())
+
+  user          User          @relation("user_service", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String        @map("user_id")
+
+  service       Service       @relation("service_user", fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String        @map("service_id")
+
+
+  @@unique([userId, serviceId])
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("user_services")
+}
+
+model LocationService {
+  id            String        @id               @default(uuid())
+
+  location      Location      @relation("location_service", fields: [locationId], references: [id], onDelete: Cascade)
+  locationId    String        @map("location_id")
+
+  service       Service       @relation("service_location", fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String        @map("service_id")
+
+  @@unique([locationId, serviceId])
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("location_services")
+}
+
 model Service {
   id            String        @id               @default(uuid())
 
   name          String
   publicName    String?       @map("public_name")
-  mark          String        // цвет
+  mark          MarkEnum      // цвет
+  // mark          String      // цвет
+
   duration      Int
+
+  type          ServiceType
+
+  days          String[]
+  timeStart     String        @map("time_start")
+  timeEnd       String        @map("time_end")
 
   company       Company       @relation("company_service", fields: [companyId], references: [id])
   companyId     String
@@ -340,7 +400,10 @@ model Service {
   price         ServicePrice? @relation("service_prices")
   bookings      Booking[]     @relation("booking_service")
 
-  users         Customer[]    @relation("customer_services")
+  customers     Customer[]    @relation("customer_services")
+
+  users         UserService[]                   @relation("service_user")
+  locations     LocationService[]               @relation("service_location")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
@@ -357,7 +420,7 @@ model ServicePrice {
   service       Service       @relation("service_prices", fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId     String        @unique           @map("service_id")
 
-  discount      DiscountPrice?  @relation("service_price_discount", fields: [discountId], references: [id])
+  discount      DiscountPrice?  @relation("service_price_discount", fields: [discountId], references: [id], onDelete: Cascade)
   discountId    Int?          @unique
 
   createdAt     DateTime      @default(now())   @map("created_at")
@@ -369,11 +432,11 @@ model ServicePrice {
 model DiscountPrice {
   id            Int           @id               @default(autoincrement())
   
-  dateType      DATE_TYPE     @map("date_type")
+  dateType      DATE_TYPE?    @map("date_type")
   days          String[]
-  price         Int
-  timeStart     String        @map("time_start")
-  timeEnd       String        @map("time_end")
+  price         Int?
+  timeStart     String?       @map("time_start")
+  timeEnd       String?       @map("time_end")
 
   servicePrice  ServicePrice? @relation("service_price_discount")
   

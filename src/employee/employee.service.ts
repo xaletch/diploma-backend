@@ -50,11 +50,11 @@ export class EmployeeService {
       where: { token: token },
     });
 
-    if (!isExist)
+    if (!isExist || isExist.expiresAt < new Date())
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
-          title: "Ссылка истекла",
+          title: "Ссылка устарела",
           message:
             "Срок действия вашей ссылки истек. Пожалуйста, проверьте правильность введенного текста или запросите новую ссылку.",
         },
