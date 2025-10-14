@@ -65,6 +65,11 @@ enum UserStatus {
   disable
 }
 
+enum ServiceType {
+  online
+  offline
+}
+
 model Session {
   id            String        @id               @default(uuid())
 
@@ -128,6 +133,7 @@ model User {
   companyId     String?        @map("company_id")
 
   locations     UserLocation[] @relation("user_location")
+  services      UserService[]  @relation("user_service")
 
   sessions      Session[]     @relation("user_session")
 
@@ -301,6 +307,7 @@ model Location {
   bookings      Booking[]     @relation("booking_locations")
 
   users         UserLocation[]
+  services      LocationService[]               @relation("location_service")
 
   invites       Invite[]      @relation("location_invite")
 
@@ -326,6 +333,41 @@ model Invite {
   @@map("invites")
 }
 
+model UserService {
+  id            String        @id               @default(uuid())
+
+  user          User          @relation("user_service", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String        @map("user_id")
+
+  service       Service       @relation("service_user", fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String        @map("service_id")
+
+
+  @@unique([userId, serviceId])
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("user_services")
+}
+
+model LocationService {
+  id            String        @id               @default(uuid())
+
+  location      Location      @relation("location_service", fields: [locationId], references: [id], onDelete: Cascade)
+  locationId    String        @map("location_id")
+
+  service       Service       @relation("service_location", fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String        @map("service_id")
+
+  @@unique([locationId, serviceId])
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("location_services")
+}
+
 model Service {
   id            String        @id               @default(uuid())
 
@@ -334,13 +376,18 @@ model Service {
   mark          String        // цвет
   duration      Int
 
+  type          ServiceType
+
   company       Company       @relation("company_service", fields: [companyId], references: [id])
   companyId     String
 
   price         ServicePrice? @relation("service_prices")
   bookings      Booking[]     @relation("booking_service")
 
-  users         Customer[]    @relation("customer_services")
+  customers     Customer[]    @relation("customer_services")
+
+  users         UserService[]                   @relation("service_user")
+  locations     LocationService[]               @relation("service_location")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
