@@ -70,6 +70,16 @@ enum ServiceType {
   offline
 }
 
+enum MarkEnum {
+  red
+  orange
+  green
+  blue
+  purple
+  teal
+  pink
+}
+
 model Session {
   id            String        @id               @default(uuid())
 
@@ -373,10 +383,16 @@ model Service {
 
   name          String
   publicName    String?       @map("public_name")
-  mark          String        // цвет
+  mark          MarkEnum      // цвет
+  // mark          String      // цвет
+
   duration      Int
 
   type          ServiceType
+
+  days          String[]
+  timeStart     String        @map("time_start")
+  timeEnd       String        @map("time_end")
 
   company       Company       @relation("company_service", fields: [companyId], references: [id])
   companyId     String
@@ -404,7 +420,7 @@ model ServicePrice {
   service       Service       @relation("service_prices", fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId     String        @unique           @map("service_id")
 
-  discount      DiscountPrice?  @relation("service_price_discount", fields: [discountId], references: [id])
+  discount      DiscountPrice?  @relation("service_price_discount", fields: [discountId], references: [id], onDelete: Cascade)
   discountId    Int?          @unique
 
   createdAt     DateTime      @default(now())   @map("created_at")
@@ -416,11 +432,11 @@ model ServicePrice {
 model DiscountPrice {
   id            Int           @id               @default(autoincrement())
   
-  dateType      DATE_TYPE     @map("date_type")
+  dateType      DATE_TYPE?    @map("date_type")
   days          String[]
-  price         Int
-  timeStart     String        @map("time_start")
-  timeEnd       String        @map("time_end")
+  price         Int?
+  timeStart     String?       @map("time_start")
+  timeEnd       String?       @map("time_end")
 
   servicePrice  ServicePrice? @relation("service_price_discount")
   
