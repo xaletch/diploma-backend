@@ -39,3 +39,16 @@ export interface IService {
   users: ServiceUsers[];
   locations: ServiceLocations[];
 }
+
+export interface IServices {
+  id: string;
+  name: string;
+  duration: number;
+  public_name: string | null;
+  price: number | null;
+  prices: ServicePrices;
+  // date: ServiceDate;
+  // discount: ServiceDiscount | null;
+  users_length: number;
+  locations_length: number;
+}
