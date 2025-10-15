@@ -413,6 +413,20 @@ model Service {
   @@map("services")
 }
 
+// model ServiceCategory {
+//   id            Int           @id               @default(autoincrement())
+
+//   name          String
+
+//   service       Service       @relation("category_service", fields: [serviceId], references: [id], onDelete: Cascade)
+//   serviceId     String        @map("service_id")
+
+//   createdAt     DateTime      @default(now())   @map("created_at")
+//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+//   @@map("service_category")
+// }
+
 model ServicePrice {
   id            String        @id               @default(uuid())
 
