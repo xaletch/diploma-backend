@@ -1,20 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ServiceCreateDto } from "./dto/service.dto";
-import { IService } from "./types/service.type";
+import { IService, IServices } from "./types/service.type";
 
 @Injectable()
 export class ServicesService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getAll(company_id: string): Promise<IService[]> {
+  async getAll(company_id: string): Promise<IServices[]> {
     const services = await this.prismaService.service.findMany({
       where: { companyId: company_id },
       select: {
         id: true,
         name: true,
         duration: true,
-        days: true,
         timeStart: true,
         timeEnd: true,
         price: {
@@ -22,16 +21,6 @@ export class ServicesService {
             id: true,
             price: true,
             costPrice: true,
-            discount: {
-              select: {
-                id: true,
-                dateType: true,
-                days: true,
-                price: true,
-                timeStart: true,
-                timeEnd: true,
-              },
-            },
           },
         },
         publicName: true,
@@ -59,38 +48,106 @@ export class ServicesService {
         HttpStatus.NOT_FOUND,
       );
 
-    // TODO: refactor types
-    const response: IService[] = services.map((s) => {
+    const response: IServices[] = services.map((s) => {
       return {
         id: s.id,
         name: s.name,
         duration: s.duration,
         public_name: s.publicName,
-        price: s.price?.price,
-        date: { days: s.days, time_start: s.timeStart, time_end: s.timeEnd },
+        price: s.price!.price ?? null,
         prices: {
-          price: s.price?.price,
-          cost_price: s.price?.costPrice,
+          price: s.price?.price ?? null,
+          cost_price: s.price?.costPrice ?? null,
         },
-        discount: s.price?.discount
-          ? {
-              date_type: s.price.discount.dateType,
-              days: s.price.discount.days,
-              price: s.price.discount.price ?? null,
-              time_start: s.price.discount.timeStart ?? null,
-              time_end: s.price.discount.timeEnd ?? null,
-            }
-          : null,
-        users: s.users.map((u) => ({
-          id: u.user.id,
-          name: `${u.user.firstName} ${u.user.lastName}`,
-        })),
-        locations: s.locations.map((l) => ({
-          id: l.location.id,
-          name: l.location.name,
-        })),
+        users_length: s.users.length,
+        locations_length: s.locations.length,
       };
     });
+
+    return response;
+  }
+
+  async getFirst(service_id: string, company_id: string): Promise<IService> {
+    const s = await this.prismaService.service.findFirst({
+      where: { id: service_id, companyId: company_id },
+      select: {
+        id: true,
+        name: true,
+        duration: true,
+        days: true,
+        timeStart: true,
+        timeEnd: true,
+        price: {
+          select: {
+            id: true,
+            price: true,
+            costPrice: true,
+          },
+        },
+        discount: {
+          select: {
+            id: true,
+            dateType: true,
+            days: true,
+            price: true,
+            timeStart: true,
+            timeEnd: true,
+          },
+        },
+        publicName: true,
+        users: {
+          select: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        locations: {
+          select: {
+            location: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    if (!s)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          message:
+            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const response: IService = {
+      id: s.id,
+      name: s.name,
+      duration: s.duration,
+      public_name: s.publicName,
+      price: s.price!.price ?? null,
+      date: { days: s.days, time_start: s.timeStart, time_end: s.timeEnd },
+      prices: {
+        price: s.price?.price ?? null,
+        cost_price: s.price?.costPrice ?? null,
+      },
+      discount: s.discount
+        ? {
+            date_type: s.discount.dateType,
+            days: s.discount.days,
+            price: s.discount.price ?? null,
+            time_start: s.discount.timeStart ?? null,
+            time_end: s.discount.timeEnd ?? null,
+          }
+        : null,
+      users: s.users.map((u) => ({
+        id: u.user.id,
+        name: `${u.user.firstName} ${u.user.lastName}`,
+      })),
+      locations: s.locations.map((l) => ({
+        id: l.location.id,
+        name: l.location.name,
+      })),
+    };
 
     return response;
   }
@@ -144,15 +201,15 @@ export class ServicesService {
             create: {
               price: dto.price,
               costPrice: dto.cost_price,
-              discount: {
-                create: {
-                  dateType: dto.date_type,
-                  days: dto.discount_days,
-                  price: dto.discount_price,
-                  timeStart: dto.discount_time_start,
-                  timeEnd: dto.discount_time_end,
-                },
-              },
+            },
+          },
+          discount: {
+            create: {
+              dateType: dto.date_type,
+              days: dto.discount_days,
+              price: dto.discount_price,
+              timeStart: dto.discount_time_start,
+              timeEnd: dto.discount_time_end,
             },
           },
         },
@@ -179,5 +236,30 @@ export class ServicesService {
     });
 
     return service;
+  }
+
+  async delete(service_id: string) {
+    const service = await this.prismaService.service.findFirst({
+      where: { id: service_id },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          message:
+            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    await this.prismaService.service.delete({
+      where: { id: service.id },
+      select: { id: true, name: true, mark: true, duration: true, type: true },
+    });
+
+    return { status: "deleted" };
   }
 }

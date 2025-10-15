@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Req,
   UseGuards,
@@ -31,6 +33,14 @@ export class ServicesController {
     return this.servicesService.getAll(companyId);
   }
 
+  @Get("service/:service_id")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  getFirstService(@Param("service_id") serviceId: string, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.servicesService.getFirst(serviceId, companyId);
+  }
+
   @Post("service")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:create")
@@ -38,5 +48,13 @@ export class ServicesController {
   async create(@Body() dto: ServiceCreateDto, @Req() req) {
     const companyId = req.user.companyId;
     return this.servicesService.create(dto, companyId);
+  }
+
+  @Delete("service/:service_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service:delete")
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param("service_id") serviceId: string) {
+    return this.servicesService.delete(serviceId);
   }
 }

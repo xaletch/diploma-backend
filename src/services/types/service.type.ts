@@ -5,12 +5,12 @@ export type ServiceDate = {
 };
 
 export type ServicePrices = {
-  price: number;
-  cost_price: number;
+  price: number | null;
+  cost_price: number | null;
 };
 
 export type ServiceDiscount = {
-  date_type: string;
+  date_type: string | null;
   days: string[] | null;
   price: number | null;
   time_start: string | null;
@@ -32,9 +32,23 @@ export interface IService {
   name: string;
   duration: number;
   public_name: string | null;
+  price: number | null;
   prices: ServicePrices;
   date: ServiceDate;
   discount: ServiceDiscount | null;
   users: ServiceUsers[];
   locations: ServiceLocations[];
+}
+
+export interface IServices {
+  id: string;
+  name: string;
+  duration: number;
+  public_name: string | null;
+  price: number | null;
+  prices: ServicePrices;
+  // date: ServiceDate;
+  // discount: ServiceDiscount | null;
+  users_length: number;
+  locations_length: number;
 }
