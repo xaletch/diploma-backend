@@ -398,6 +398,8 @@ model Service {
   companyId     String
 
   price         ServicePrice? @relation("service_prices")
+  discount      DiscountPrice?  @relation("service_discount")
+  discountId    Int?          @unique
   bookings      Booking[]     @relation("booking_service")
 
   customers     Customer[]    @relation("customer_services")
@@ -420,9 +422,6 @@ model ServicePrice {
   service       Service       @relation("service_prices", fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId     String        @unique           @map("service_id")
 
-  discount      DiscountPrice?  @relation("service_price_discount", fields: [discountId], references: [id], onDelete: Cascade)
-  discountId    Int?          @unique
-
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
@@ -438,7 +437,8 @@ model DiscountPrice {
   timeStart     String?       @map("time_start")
   timeEnd       String?       @map("time_end")
 
-  servicePrice  ServicePrice? @relation("service_price_discount")
+  service       Service       @relation("service_discount", fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId     String        @unique @map("service_id")
   
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")

@@ -22,16 +22,16 @@ export class ServicesService {
             id: true,
             price: true,
             costPrice: true,
-            discount: {
-              select: {
-                id: true,
-                dateType: true,
-                days: true,
-                price: true,
-                timeStart: true,
-                timeEnd: true,
-              },
-            },
+          },
+        },
+        discount: {
+          select: {
+            id: true,
+            dateType: true,
+            days: true,
+            price: true,
+            timeStart: true,
+            timeEnd: true,
           },
         },
         publicName: true,
@@ -59,26 +59,25 @@ export class ServicesService {
         HttpStatus.NOT_FOUND,
       );
 
-    // TODO: refactor types
     const response: IService[] = services.map((s) => {
       return {
         id: s.id,
         name: s.name,
         duration: s.duration,
         public_name: s.publicName,
-        price: s.price?.price,
+        price: s.price!.price ?? null,
         date: { days: s.days, time_start: s.timeStart, time_end: s.timeEnd },
         prices: {
-          price: s.price?.price,
-          cost_price: s.price?.costPrice,
+          price: s.price?.price ?? null,
+          cost_price: s.price?.costPrice ?? null,
         },
-        discount: s.price?.discount
+        discount: s.discount
           ? {
-              date_type: s.price.discount.dateType,
-              days: s.price.discount.days,
-              price: s.price.discount.price ?? null,
-              time_start: s.price.discount.timeStart ?? null,
-              time_end: s.price.discount.timeEnd ?? null,
+              date_type: s.discount.dateType,
+              days: s.discount.days,
+              price: s.discount.price ?? null,
+              time_start: s.discount.timeStart ?? null,
+              time_end: s.discount.timeEnd ?? null,
             }
           : null,
         users: s.users.map((u) => ({
@@ -144,15 +143,15 @@ export class ServicesService {
             create: {
               price: dto.price,
               costPrice: dto.cost_price,
-              discount: {
-                create: {
-                  dateType: dto.date_type,
-                  days: dto.discount_days,
-                  price: dto.discount_price,
-                  timeStart: dto.discount_time_start,
-                  timeEnd: dto.discount_time_end,
-                },
-              },
+            },
+          },
+          discount: {
+            create: {
+              dateType: dto.date_type,
+              days: dto.discount_days,
+              price: dto.discount_price,
+              timeStart: dto.discount_time_start,
+              timeEnd: dto.discount_time_end,
             },
           },
         },
