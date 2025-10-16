@@ -90,7 +90,7 @@ model Session {
   user          User?         @relation("user_session", fields: [userId], references: [id], onDelete: Cascade)
   userId        String?       @map("user_id")
 
-  customer       Customer?     @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
+  customer       CustomerAccount?     @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
   customerId     String?       @map("customer_id")
 
   createdAt     DateTime      @default(now())   @map("created_at")
@@ -119,7 +119,7 @@ model Permission {
   name          String        @unique
   
   roles         Role[]        @relation("role_permissions")
-
+  
   @@map("permissions")
 }
 
@@ -249,7 +249,7 @@ model Company {
   
   locations     Location[]    @relation("company_locations")
 
-  customers     Customer[]    @relation("company_customers")
+  customers     CustomerCompany[]    @relation("company_customers")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
@@ -281,23 +281,53 @@ model Customer {
 
   firstName     String        @map("first_name")
   lastName      String?       @map("last_name")
-  email         String
+  email         String?
   phone         String
   birthday      String?
 
-  sessions      Session[]     @relation("customer_session")
-
-  company       Company       @relation("company_customers", fields: [companyId], references: [id], onDelete: Cascade)
-  companyId     String        @map("company_id")
-
+  account       CustomerAccount?  @relation("account_customer")
+  companies     CustomerCompany[] @relation("customer_company_customer")
   bookings      Booking[]      @relation("booking_customer")
-
-  services      Service[]     @relation("customer_services")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("customers")
+}
+
+model CustomerAccount {
+  id            String        @id               @default(uuid())
+
+  phone         String
+  verified      Boolean       @default(false)
+  lastLoginAt   DateTime?     @map("last_login_at")
+
+  customer      Customer      @relation("account_customer", fields: [customerId], references: [id], onDelete: Cascade)
+  customerId    String        @unique           @map("customer_id")
+  sessions      Session[]     @relation("customer_session")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("customer_accounts")
+}
+
+model CustomerCompany {
+  id            String        @id               @default(uuid())
+
+  customer      Customer      @relation("customer_company_customer", fields: [customerId], references: [id], onDelete: Cascade)
+  customerId    String        @map("customer_id")
+
+  note          String?
+  isBanned      Boolean?      @default(false)   @map("is_banned")
+
+  company       Company       @relation("company_customers", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String        @map("company_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("customer_companies")
 }
 
 model Location {
@@ -352,12 +382,10 @@ model UserService {
   service       Service       @relation("service_user", fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId     String        @map("service_id")
 
-
-  @@unique([userId, serviceId])
-
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
+  @@unique([userId, serviceId])
   @@map("user_services")
 }
 
@@ -370,11 +398,10 @@ model LocationService {
   service       Service       @relation("service_location", fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId     String        @map("service_id")
 
-  @@unique([locationId, serviceId])
-
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
+  @@unique([locationId, serviceId])
   @@map("location_services")
 }
 
@@ -401,8 +428,6 @@ model Service {
   discount      DiscountPrice?  @relation("service_discount")
   discountId    Int?          @unique
   bookings      Booking[]     @relation("booking_service")
-
-  customers     Customer[]    @relation("customer_services")
 
   users         UserService[]                   @relation("service_user")
   locations     LocationService[]               @relation("service_location")
