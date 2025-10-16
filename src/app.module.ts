@@ -15,6 +15,7 @@ import { EmployeeModule } from "./employee/employee.module";
 import { RoleModule } from "./role/role.module";
 import { AccessModule } from "./access/access.module";
 import { ServicesModule } from "./services/services.module";
+import { RedisModule } from "./redis/redis.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ServicesModule } from "./services/services.module";
     RoleModule,
     AccessModule,
     ServicesModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
