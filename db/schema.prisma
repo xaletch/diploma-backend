@@ -279,10 +279,10 @@ model Theme {
 model Customer {
   id            String        @id               @default(uuid())
 
-  firstName     String        @map("first_name")
+  firstName     String?       @map("first_name")
   lastName      String?       @map("last_name")
-  email         String?
-  phone         String
+  email         String?       @unique
+  phone         String        @unique
   birthday      String?
 
   account       CustomerAccount?  @relation("account_customer")
@@ -298,7 +298,7 @@ model Customer {
 model CustomerAccount {
   id            String        @id               @default(uuid())
 
-  phone         String
+  phone         String        @unique
   verified      Boolean       @default(false)
   lastLoginAt   DateTime?     @map("last_login_at")
 

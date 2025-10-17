@@ -26,8 +26,6 @@ async function bootstrap() {
     }),
   );
 
-  // REDIS
-
   // СВАГА //
   const confSwagger = new DocumentBuilder()
     .setTitle("API")
