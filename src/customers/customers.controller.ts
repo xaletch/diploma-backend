@@ -1,8 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Ip,
+  Post,
+} from "@nestjs/common";
 import { CustomersService } from "./customers.service";
 import { SendCodeDto } from "./dto/send-code.dto";
 import { VerifyCodeDto } from "./dto/verify.dto";
 
+// отправить на микросервис
 @Controller()
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
@@ -15,7 +23,7 @@ export class CustomersController {
 
   @Post("customer/auth/verify")
   @HttpCode(HttpStatus.OK)
-  async verify(@Body() dto: VerifyCodeDto) {
-    return await this.customersService.verifyCode(dto);
+  async verify(@Body() dto: VerifyCodeDto, @Ip() customerIp) {
+    return await this.customersService.verifyCode(dto, customerIp);
   }
 }
