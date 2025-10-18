@@ -61,12 +61,13 @@ export class CustomersService {
     return { success: true, code };
   }
 
-  async verifyCode(dto: VerifyCodeDto) {
+  async verifyCode(dto: VerifyCodeDto, ipAddress: string) {
     const { phone, code } = dto;
 
     const storeCode = await this.redisService.get(`auth:code:${phone}`);
 
-    const { id: customerId } = await this.firstByAccount(phone);
+    const { id: customerId, phone: customerPhone } =
+      await this.firstByAccount(phone);
 
     if (!storeCode)
       throw new HttpException(
@@ -94,6 +95,18 @@ export class CustomersService {
     });
     await this.redisService.del(`auth:code:${phone}`);
 
-    return storeCode;
+    // const payload = {
+    //   sub: customerId,
+    //   phone: customerPhone,
+    // } satisfies JwtPayload;
+
+    // const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
+    // const refreshToken = await this.tokenService.createRefreshToken({
+    //   customerId,
+    //   ipAddress,
+    // });
+
+    // return { access_token: accessToken, refresh_token: refreshToken };
+    return { success: true, ipAddress, customerPhone };
   }
 }

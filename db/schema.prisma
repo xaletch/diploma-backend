@@ -90,13 +90,26 @@ model Session {
   user          User?         @relation("user_session", fields: [userId], references: [id], onDelete: Cascade)
   userId        String?       @map("user_id")
 
-  customer       CustomerAccount?     @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
-  customerId     String?       @map("customer_id")
-
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("sessions")
+}
+
+model CustomerSession {
+  id            String        @id               @default(uuid())
+
+  token         String
+  expiresAt     DateTime      @map("expires_at")
+  ipAddress     String        @map("ip_address")
+
+  customer       CustomerAccount     @relation("customer_session", fields: [customerId], references: [id], onDelete: Cascade)
+  customerId     String       @map("customer_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("customer_sessions")
 }
 
 model Role {
@@ -304,7 +317,7 @@ model CustomerAccount {
 
   customer      Customer      @relation("account_customer", fields: [customerId], references: [id], onDelete: Cascade)
   customerId    String        @unique           @map("customer_id")
-  sessions      Session[]     @relation("customer_session")
+  sessions      CustomerSession[]               @relation("customer_session")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
