@@ -10,7 +10,7 @@ export class CustomersService {
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
   ) {}
-
+  // ВСЕ ЧТО НАХОДИТСЯ СНИЗУ БУДЕТ УДАЛЕНО И НАПИСАНО В ОТДЕЛЬНОМ СЕРВИСЕ
   async firstByAccount(phone: string) {
     const customer = await this.prismaService.customerAccount.findUnique({
       where: { phone },
