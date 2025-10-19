@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -20,6 +21,8 @@ import { Scopes } from "src/access/decorator/scopes.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { CheckInviteDto } from "./dto/check-invite.dto";
+import { CompanyGuard } from "src/access/guard/company.guard";
+import { EmployeeUpdateDto } from "./dto/employee-update.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -45,6 +48,17 @@ export class EmployeeController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterEmployeeDto, @Ip() userIp) {
     return this.employeeService.register(dto, userIp);
+  }
+
+  @Patch("employee/:user_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("employee:update")
+  @HttpCode(HttpStatus.OK)
+  async update(
+    @Body() dto: EmployeeUpdateDto,
+    @Param("user_id") userId: string,
+  ) {
+    return this.employeeService.update(dto, userId);
   }
 
   @Delete("employee/:user_id/:location_id")

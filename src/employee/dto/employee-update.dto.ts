@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsNumber,
@@ -8,7 +9,7 @@ import {
 } from "class-validator";
 import { RoleIds } from "src/role/types/role.type";
 
-export class EmployeeDto {
+export class EmployeeUpdateDto {
   @IsString()
   @IsEmail()
   @IsNotEmpty({ message: "Обязательное поле" })
@@ -33,13 +34,14 @@ export class EmployeeDto {
   position: string;
 
   @IsString()
-  location_id: string;
-
-  @IsString()
   @IsOptional()
   birthdate?: string;
 
   @IsString()
   @IsOptional()
   note?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  is_banned?: boolean;
 }
