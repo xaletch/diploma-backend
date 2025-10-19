@@ -81,4 +81,15 @@ export class LocationController {
   async getUsers(@Param("location_id") location_id: string) {
     return this.locationService.findUsers(location_id);
   }
+
+  @Get("/location/:location_id/user/:user_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("employee:delete")
+  @HttpCode(HttpStatus.OK)
+  async firstUser(
+    @Param("user_id") userId: string,
+    @Param("location_id") locationId: string,
+  ) {
+    return this.locationService.getFirstUser(userId, locationId);
+  }
 }
