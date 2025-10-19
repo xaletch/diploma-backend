@@ -10,7 +10,7 @@ export type ILocationUserProfile = {
 };
 
 export type ILocationUser = {
-  _id: string;
+  user_id: string;
   role: string | undefined;
   is_banned: boolean | null;
   profile: ILocationUserProfile;

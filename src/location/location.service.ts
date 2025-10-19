@@ -288,7 +288,7 @@ export class LocationService {
     if (!location) throw new NotFoundException("Локация не найдена");
 
     const users = location?.users.map((user) => ({
-      _id: user.id,
+      user_id: user.id,
       role: user.role?.name,
       is_banned: user.isBanned,
       profile: {
@@ -302,5 +302,59 @@ export class LocationService {
     }));
 
     return users;
+  }
+
+  async getFirstUser(
+    userId: string,
+    locationId: string,
+  ): Promise<ILocationUser> {
+    const user = await this.prismaService.userLocation.findUnique({
+      where: { userId_locationId: { userId, locationId } },
+      select: {
+        id: true,
+        role: { select: { id: true, name: true } },
+        isBanned: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+            phone: true,
+            status: true,
+            position: true,
+          },
+        },
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          title: "Ошибка",
+          description: "Пользователь не найден",
+          detail: [`ID ${userId}`],
+          status: HttpStatus.NOT_FOUND,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const res = {
+      user_id: user.id,
+      role: user.role?.name,
+      is_banned: user.isBanned,
+      profile: {
+        id: user.user.id,
+        email: user.user.email,
+        name: `${user.user.firstName} ${user.user.lastName}`,
+        phone: user.user.phone,
+        status: user.user.status,
+        position: user.user.position,
+      },
+    };
+
+    return res;
   }
 }
