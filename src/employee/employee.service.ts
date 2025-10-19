@@ -24,6 +24,8 @@ import { EmployeeAuthResponse } from "./types/employee-auth.type";
 import { InviteResponse } from "./types/invite.type";
 import { CheckInviteResponse } from "./types/check-invite.type";
 import { EmployeeFirst } from "./types/employee.type";
+import { EmployeeBlockedDto } from "./dto/blocked.dto";
+import { SuccessResponse } from "./types/success.type";
 
 @Injectable()
 export class EmployeeService {
@@ -249,9 +251,42 @@ export class EmployeeService {
     };
   }
 
-  async delete(userId: string): Promise<EmployeeDeleteResponse> {
+  async blocked(
+    dto: EmployeeBlockedDto,
+    userId: string,
+    locationId: string,
+  ): Promise<SuccessResponse> {
     const isExist = await this.prismaService.userLocation.findUnique({
-      where: { id: userId },
+      where: { userId_locationId: { userId, locationId } },
+    });
+
+    if (!isExist)
+      throw new HttpException(
+        {
+          title: "Ошибка",
+          description: "Пользователь не найден",
+          detail: [`ID ${userId}`],
+          status: HttpStatus.NOT_FOUND,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const { is_banned } = dto;
+
+    await this.prismaService.userLocation.update({
+      where: { userId_locationId: { userId, locationId } },
+      data: { isBanned: is_banned },
+    });
+
+    return { success: true };
+  }
+
+  async delete(
+    userId: string,
+    locationId: string,
+  ): Promise<EmployeeDeleteResponse> {
+    const isExist = await this.prismaService.userLocation.findUnique({
+      where: { userId_locationId: { userId, locationId } },
     });
 
     if (!isExist)
@@ -266,7 +301,7 @@ export class EmployeeService {
       );
 
     const user = await this.prismaService.userLocation.delete({
-      where: { id: userId },
+      where: { userId_locationId: { userId, locationId } },
     });
 
     return {

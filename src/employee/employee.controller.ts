@@ -23,6 +23,7 @@ import { LocationGuard } from "src/access/guard/location.guard";
 import { CheckInviteDto } from "./dto/check-invite.dto";
 import { CompanyGuard } from "src/access/guard/company.guard";
 import { EmployeeUpdateDto } from "./dto/employee-update.dto";
+import { EmployeeBlockedDto } from "./dto/blocked.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -61,11 +62,26 @@ export class EmployeeController {
     return this.employeeService.update(dto, userId);
   }
 
+  @Post("employee/blocked/:user_id/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("employee:update")
+  @HttpCode(HttpStatus.OK)
+  async block(
+    @Body() dto: EmployeeBlockedDto,
+    @Param("user_id") userId: string,
+    @Param("location_id") locationId: string,
+  ) {
+    return this.employeeService.blocked(dto, userId, locationId);
+  }
+
   @Delete("employee/:user_id/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employee:delete")
   @HttpCode(HttpStatus.OK)
-  async delete(@Param("user_id") userId: string) {
-    return this.employeeService.delete(userId);
+  async delete(
+    @Param("user_id") userId: string,
+    @Param("location_id") locationId: string,
+  ) {
+    return this.employeeService.delete(userId, locationId);
   }
 }

@@ -10,6 +10,7 @@ import { LocationDto } from "./dto/location.dto";
 import { AddressService } from "src/address/address.service";
 import { LocationUpdateDto } from "./dto/location-update.dto";
 import { Prisma } from "@prisma/client";
+import { ILocationUser } from "./types/location-user.type";
 
 @Injectable()
 export class LocationService {
@@ -251,7 +252,7 @@ export class LocationService {
     return data;
   }
 
-  async findUsers(location_id: string) {
+  async findUsers(location_id: string): Promise<ILocationUser[]> {
     if (!location_id) throw new BadRequestException("Выберите локацию");
 
     const location = await this.prismaService.location.findUnique({
@@ -264,6 +265,7 @@ export class LocationService {
           select: {
             id: true,
             role: { select: { id: true, name: true } },
+            isBanned: true,
             createdAt: true,
             user: {
               select: {
@@ -278,6 +280,7 @@ export class LocationService {
               },
             },
           },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
@@ -287,6 +290,7 @@ export class LocationService {
     const users = location?.users.map((user) => ({
       _id: user.id,
       role: user.role?.name,
+      is_banned: user.isBanned,
       profile: {
         id: user.user.id,
         email: user.user.email,
