@@ -177,6 +177,10 @@ model UserLocation {
   role          Role?         @relation("user_location_role", fields: [roleId], references: [id])
   roleId        Int?          @map("role_id")
 
+  note          String?
+  isBanned      Boolean?      @default(false)   @map("is_banned")
+  birthday      String?
+
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 

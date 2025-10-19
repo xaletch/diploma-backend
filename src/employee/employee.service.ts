@@ -17,6 +17,13 @@ import { TokenService } from "src/auth/token/token.service";
 import { JwtPayload } from "src/auth/jwt.payload";
 import { RoleService } from "src/role/role.service";
 import { CheckInviteDto } from "./dto/check-invite.dto";
+import { EmployeeUpdateDto } from "./dto/employee-update.dto";
+import { EmployeeUpdateResponse } from "./types/update.type";
+import { EmployeeDeleteResponse } from "./types/delete.type";
+import { EmployeeAuthResponse } from "./types/employee-auth.type";
+import { InviteResponse } from "./types/invite.type";
+import { CheckInviteResponse } from "./types/check-invite.type";
+import { EmployeeFirst } from "./types/employee.type";
 
 @Injectable()
 export class EmployeeService {
@@ -28,7 +35,32 @@ export class EmployeeService {
     private readonly roleService: RoleService,
   ) {}
 
-  async invite(dto: InviteDto) {
+  async findById(id: string): Promise<EmployeeFirst> {
+    const employee = await this.prismaService.userLocation.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        locationId: true,
+        roleId: true,
+        birthday: true,
+        note: true,
+        isBanned: true,
+      },
+    });
+
+    if (!employee)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Сотрудник не найден",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return employee;
+  }
+
+  async invite(dto: InviteDto): Promise<InviteResponse> {
     const token = generateInviteToken();
 
     await this.prismaService.invite.create({
@@ -44,7 +76,7 @@ export class EmployeeService {
     return { url: `http://localhost:8080/invite/${token}?email=${dto.email}` };
   }
 
-  async checkInvite(dto: CheckInviteDto) {
+  async checkInvite(dto: CheckInviteDto): Promise<CheckInviteResponse> {
     const { token } = dto;
     const isExist = await this.prismaService.invite.findFirst({
       where: { token: token },
@@ -64,7 +96,7 @@ export class EmployeeService {
     return { valid: true };
   }
 
-  async create(dto: EmployeeDto, companyId: string) {
+  async create(dto: EmployeeDto, companyId: string): Promise<InviteResponse> {
     const isExist = await this.prismaService.user.findUnique({
       where: { email: dto.email },
     });
@@ -105,6 +137,8 @@ export class EmployeeService {
           userId: user.id,
           locationId: dto.location_id,
           roleId: dto.role,
+          birthday: dto.birthdate,
+          note: dto.note,
         },
       });
     });
@@ -118,7 +152,10 @@ export class EmployeeService {
     return await this.invite(data);
   }
 
-  async register(dto: RegisterEmployeeDto, ipAddress: string) {
+  async register(
+    dto: RegisterEmployeeDto,
+    ipAddress: string,
+  ): Promise<EmployeeAuthResponse> {
     const invite = await this.prismaService.invite.findUnique({
       where: { token: dto.token },
     });
@@ -156,7 +193,63 @@ export class EmployeeService {
     return { access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async delete(userId: string) {
+  async update(
+    dto: EmployeeUpdateDto,
+    userId: string,
+  ): Promise<EmployeeUpdateResponse> {
+    const employee = await this.findById(userId);
+    const user = await this.prismaService.user.findFirst({
+      where: { locations: { some: { id: employee.id } } },
+      select: { id: true },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Сотрудник не найден",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const userUpdate = await this.prismaService.$transaction(async (t) => {
+      const update = await t.user.update({
+        where: { id: user.id },
+        data: {
+          email: dto.email,
+          firstName: dto.first_name,
+          lastName: dto.last_name,
+          phone: dto.phone,
+          position: dto.position,
+          roleId: dto.role,
+        },
+        select: { id: true, email: true, phone: true },
+      });
+
+      await t.userLocation.update({
+        where: { id: employee.id },
+        data: {
+          note: dto.note,
+          isBanned: dto.is_banned ?? false,
+          birthday: dto.birthdate,
+          roleId: dto.role,
+        },
+      });
+
+      return update;
+    });
+
+    return {
+      user: {
+        id: userUpdate.id,
+        email: userUpdate.email,
+        phone: userUpdate.phone,
+      },
+      success: true,
+    };
+  }
+
+  async delete(userId: string): Promise<EmployeeDeleteResponse> {
     const isExist = await this.prismaService.userLocation.findUnique({
       where: { id: userId },
     });
@@ -177,7 +270,7 @@ export class EmployeeService {
     });
 
     return {
-      message: "Сотрудник удален",
+      success: true,
       user: { id: user.id, location_id: user.locationId },
     };
   }
