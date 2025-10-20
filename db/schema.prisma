@@ -181,6 +181,8 @@ model UserLocation {
   isBanned      Boolean?      @default(false)   @map("is_banned")
   birthday      String?
 
+  schedules     Schedule[]    @relation("user_location_schedule")
+
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
@@ -543,4 +545,35 @@ model Order {
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("orders")
+}
+
+model Schedule {
+  id            String        @id               @default(uuid())
+
+  date          DateTime
+
+  intervals     ScheduleInterval[]              @relation("schedule_intervals_model")
+
+  userLocation  UserLocation  @relation("user_location_schedule", fields: [userLocationId], references: [id], onDelete: Cascade)
+  userLocationId String       @map("user_location_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("schedules")
+}
+
+model ScheduleInterval {
+  id            String        @id               @default(uuid())
+
+  start         String
+  end           String
+
+  schedule      Schedule      @relation("schedule_intervals_model", fields: [scheduleId], references: [id], onDelete: Cascade)
+  scheduleId    String        @map("schedule_id")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("schedule_intervals")
 }
