@@ -33,7 +33,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("location:create")
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: LocationDto, @Authorized("id") userId, @Req() req) {
+  create(@Body() dto: LocationDto, @Authorized("id") userId, @Req() req) {
     const companyId = req.user.companyId;
     return this.locationService.create(dto, userId, companyId);
   }
@@ -42,7 +42,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("locations:read")
   @HttpCode(HttpStatus.OK)
-  async getLocations(@Req() req) {
+  getLocations(@Req() req) {
     const companyId = req.user.companyId;
     return this.locationService.getAll(companyId);
   }
@@ -51,7 +51,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:read")
   @HttpCode(HttpStatus.OK)
-  async getOne(@Param("location_id") location_id: string) {
+  getOne(@Param("location_id") location_id: string) {
     return this.locationService.getOne(location_id);
   }
 
@@ -59,7 +59,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:update")
   @HttpCode(HttpStatus.OK)
-  async update(
+  update(
     @Body() dto: LocationUpdateDto,
     @Param("location_id") location_id: string,
   ) {
@@ -70,7 +70,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:delete")
   @HttpCode(HttpStatus.OK)
-  async delete(@Param("location_id") location_id: string) {
+  delete(@Param("location_id") location_id: string) {
     return this.locationService.delete(location_id);
   }
 
@@ -78,7 +78,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:users")
   @HttpCode(HttpStatus.OK)
-  async getUsers(@Param("location_id") location_id: string) {
+  getUsers(@Param("location_id") location_id: string) {
     return this.locationService.findUsers(location_id);
   }
 
@@ -86,7 +86,7 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employee:delete")
   @HttpCode(HttpStatus.OK)
-  async firstUser(
+  firstUser(
     @Param("user_id") userId: string,
     @Param("location_id") locationId: string,
   ) {

@@ -8,7 +8,7 @@ export class RoleController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: RoleDto) {
+  create(@Body() dto: RoleDto) {
     return this.roleService.createPermission(dto);
   }
 }

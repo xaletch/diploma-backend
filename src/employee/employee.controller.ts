@@ -34,20 +34,20 @@ export class EmployeeController {
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
   @Scopes("employee:invite")
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: EmployeeDto, @Req() req) {
+  create(@Body() dto: EmployeeDto, @Req() req) {
     const companyId = req.user.company.id;
     return this.employeeService.create(dto, companyId);
   }
 
   @Post("check-invite")
   @HttpCode(HttpStatus.OK)
-  async checkInvite(@Body() dto: CheckInviteDto) {
+  checkInvite(@Body() dto: CheckInviteDto) {
     return this.employeeService.checkInvite(dto);
   }
 
   @Post("employee/register")
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() dto: RegisterEmployeeDto, @Ip() userIp) {
+  register(@Body() dto: RegisterEmployeeDto, @Ip() userIp) {
     return this.employeeService.register(dto, userIp);
   }
 
@@ -55,10 +55,7 @@ export class EmployeeController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("employee:update")
   @HttpCode(HttpStatus.OK)
-  async update(
-    @Body() dto: EmployeeUpdateDto,
-    @Param("user_id") userId: string,
-  ) {
+  update(@Body() dto: EmployeeUpdateDto, @Param("user_id") userId: string) {
     return this.employeeService.update(dto, userId);
   }
 
@@ -66,7 +63,7 @@ export class EmployeeController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employee:update")
   @HttpCode(HttpStatus.OK)
-  async block(
+  block(
     @Body() dto: EmployeeBlockedDto,
     @Param("user_id") userId: string,
     @Param("location_id") locationId: string,
@@ -78,7 +75,7 @@ export class EmployeeController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employee:delete")
   @HttpCode(HttpStatus.OK)
-  async delete(
+  delete(
     @Param("user_id") userId: string,
     @Param("location_id") locationId: string,
   ) {

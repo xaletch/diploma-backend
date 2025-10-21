@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
   Res,
+  UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Ip } from "src/shared/decorators/ip.decorator";
@@ -14,19 +16,20 @@ import { IS_DEV_ENV, SAME_SITE } from "src/shared/utils/is-dev";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ApiTags } from "@nestjs/swagger";
+import { AuthGuard } from "./guard/auth.guard";
 
 @ApiTags("Authorization")
-@Controller("auth")
+@Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("register")
+  @Post("auth/register")
   @HttpCode(HttpStatus.CREATED)
   register(@Body() dto: RegisterDto, @Ip() userIp) {
     return this.authService.register(dto, userIp);
   }
 
-  @Post("login")
+  @Post("auth/login")
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto, @Ip() userIp) {
     return this.authService.login(dto, userIp);
@@ -43,7 +46,7 @@ export class AuthController {
   //   return this.authService.verifyCode(data, userIp);
   // }
 
-  @Post("refresh")
+  @Post("auth/refresh")
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() dto: RefreshRequestDto,
@@ -65,5 +68,12 @@ export class AuthController {
     });
 
     return { access_token };
+  }
+
+  @Get("check/auth")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  checkAuth() {
+    return { success: true };
   }
 }
