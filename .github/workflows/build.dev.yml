@@ -1,0 +1,42 @@
+name: Dev
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to deploy"
+        required: true
+        type: string
+
+env:
+  REP_OWNER: ${{ secrets.REP_OWNER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  IMAGE_VERSION: ${{ github.event.release.tag_name || github.event.inputs.version }}
+
+jobs:
+  build-and-push-images:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.REP_OWNER }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Build
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          build-args: |
+            NODE_ENV=${{ vars.NODE_ENV }}
+          tags: |
+            ${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
