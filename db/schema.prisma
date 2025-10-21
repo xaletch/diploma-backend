@@ -548,9 +548,11 @@ model Order {
 }
 
 model Schedule {
-  id            String        @id               @default(uuid())
+  id            Int           @id               @default(autoincrement())
 
-  date          DateTime
+  // date          DateTime
+  date          String
+
 
   intervals     ScheduleInterval[]              @relation("schedule_intervals_model")
 
@@ -564,13 +566,13 @@ model Schedule {
 }
 
 model ScheduleInterval {
-  id            String        @id               @default(uuid())
+  id            Int           @id               @default(autoincrement())
 
   start         String
   end           String
 
   schedule      Schedule      @relation("schedule_intervals_model", fields: [scheduleId], references: [id], onDelete: Cascade)
-  scheduleId    String        @map("schedule_id")
+  scheduleId    Int           @map("schedule_id")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")

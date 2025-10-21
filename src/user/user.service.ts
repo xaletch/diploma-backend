@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -102,6 +104,24 @@ export class UserService {
     if (!user) throw new NotFoundException("Аккаунт не найден");
 
     return user;
+  }
+
+  public async findByIdOptional(userId: string) {
+    const isExist = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!isExist)
+      throw new HttpException(
+        {
+          title: "Ошибка",
+          description: "Пользователь не найден",
+          detail: [`ID ${userId}`],
+          status: HttpStatus.NOT_FOUND,
+        },
+        HttpStatus.NOT_FOUND,
+      );
   }
 
   public async findByEmailOptional(email: string): Promise<IUser | null> {
