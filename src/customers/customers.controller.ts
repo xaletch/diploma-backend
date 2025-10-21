@@ -17,13 +17,13 @@ export class CustomersController {
 
   @Post("customer/auth/send-code")
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body() dto: SendCodeDto) {
-    return await this.customersService.sendCode(dto);
+  refresh(@Body() dto: SendCodeDto) {
+    return this.customersService.sendCode(dto);
   }
 
   @Post("customer/auth/verify")
   @HttpCode(HttpStatus.OK)
-  async verify(@Body() dto: VerifyCodeDto, @Ip() customerIp) {
-    return await this.customersService.verifyCode(dto, customerIp);
+  verify(@Body() dto: VerifyCodeDto, @Ip() customerIp) {
+    return this.customersService.verifyCode(dto, customerIp);
   }
 }

@@ -45,7 +45,7 @@ export class ServicesController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:create")
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: ServiceCreateDto, @Req() req) {
+  create(@Body() dto: ServiceCreateDto, @Req() req) {
     const companyId = req.user.companyId;
     return this.servicesService.create(dto, companyId);
   }
@@ -54,7 +54,7 @@ export class ServicesController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:delete")
   @HttpCode(HttpStatus.OK)
-  async delete(@Param("service_id") serviceId: string) {
+  delete(@Param("service_id") serviceId: string) {
     return this.servicesService.delete(serviceId);
   }
 }

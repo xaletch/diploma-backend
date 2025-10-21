@@ -26,21 +26,21 @@ export class ScheduleController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:create")
   @HttpCode(HttpStatus.CREATED)
-  async create(
+  create(
     @Body() dto: ScheduleCreateDto,
     @Param("location_id") locationId: string,
   ) {
-    return await this.scheduleService.create(dto, locationId);
+    return this.scheduleService.create(dto, locationId);
   }
 
   @Get("/:user_id/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:all")
   @HttpCode(HttpStatus.OK)
-  async findAll(
+  findAll(
     @Param("user_id") userId: string,
     @Param("location_id") locationId: string,
   ) {
-    return await this.scheduleService.findAll(userId, locationId);
+    return this.scheduleService.findAll(userId, locationId);
   }
 }

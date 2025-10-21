@@ -19,8 +19,6 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly jwtService: JwtService,
   ) {}
-
-  // new auth
   async register(dto: RegisterDto, ipAddress: string): Promise<AuthPromise> {
     const isExist = await this.userService.findByEmailOptional(dto.email);
 
@@ -62,41 +60,6 @@ export class AuthService {
 
     return { access_token: accessToken, refresh_token: refreshToken };
   }
-
-  // old auth
-  // async sendCode(dto: AuthPhoneDto) {
-  //   const { phone } = dto;
-
-  //   let user = await this.userService.findByPhone(phone);
-  //   if (!user) {
-  //     user = await this.userService.createUser(phone);
-  //   }
-
-  //   return { phone };
-  // }
-
-  // async verifyCode(dto: AuthVerifyDto, ipAddress: string) {
-  //   const { code, phone } = dto;
-  //   if (code !== "1234") throw new UnauthorizedException("Неверный код");
-
-  //   let user = await this.userService.findByPhone(phone);
-  //   if (!user) {
-  //     user = await this.userService.createUser(phone);
-  //   }
-  //   if (user.status !== "active") {
-  //     user = await this.userService.updateUserStatus(user.id, "active");
-  //   }
-
-  //   const payload = { sub: user.id, phone: user.phone };
-  //   const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
-
-  //   const refreshToken = await this.tokenService.createRefreshToken({
-  //     userId: user.id,
-  //     ipAddress,
-  //   });
-
-  //   return { access_token: accessToken, refresh_token: refreshToken };
-  // }
 
   async refreshTokens(
     refresh_token: string,
