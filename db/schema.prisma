@@ -266,6 +266,7 @@ model Company {
   industryId    Int           @map("industry_id")
 
   services      Service[]     @relation("company_service")
+  serviceCategory ServiceCategory[]             @relation("company_service_category")
   
   locations     Location[]    @relation("company_locations")
 
@@ -458,19 +459,19 @@ model Service {
   @@map("services")
 }
 
-// model ServiceCategory {
-//   id            Int           @id               @default(autoincrement())
+model ServiceCategory {
+  id            Int           @id               @default(autoincrement())
 
-//   name          String
+  name          String
 
-//   service       Service       @relation("category_service", fields: [serviceId], references: [id], onDelete: Cascade)
-//   serviceId     String        @map("service_id")
+  company       Company       @relation("company_service_category", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String        @map("company_id")
 
-//   createdAt     DateTime      @default(now())   @map("created_at")
-//   updatedAt     DateTime      @updatedAt        @map("updated_at")
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
 
-//   @@map("service_category")
-// }
+  @@map("service_category")
+}
 
 model ServicePrice {
   id            String        @id               @default(uuid())
