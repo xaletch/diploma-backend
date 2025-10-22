@@ -19,6 +19,7 @@ import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
+import { ServiceCategoryDto } from "./dto/service-category.dto";
 
 @ApiTags("Услуги")
 @Controller()
@@ -56,5 +57,22 @@ export class ServicesController {
   @HttpCode(HttpStatus.OK)
   delete(@Param("service_id") serviceId: string) {
     return this.servicesService.delete(serviceId);
+  }
+
+  @Post("service/category")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-category:create")
+  @HttpCode(HttpStatus.CREATED)
+  createCategory(@Body() dto: ServiceCategoryDto, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.servicesService.createCategory(dto, companyId);
+  }
+
+  @Delete("service/category/:category_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-category:delete")
+  @HttpCode(HttpStatus.OK)
+  deleteCategory(@Param("category_id") categoryId: number) {
+    return this.servicesService.deleteCategory(categoryId);
   }
 }

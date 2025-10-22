@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ServiceCreateDto } from "./dto/service.dto";
 import { IService, IServices } from "./types/service.type";
+import { ServiceCategoryDto } from "./dto/service-category.dto";
 
 @Injectable()
 export class ServicesService {
@@ -261,5 +262,47 @@ export class ServicesService {
     });
 
     return { status: "deleted" };
+  }
+
+  async createCategory(dto: ServiceCategoryDto, companyId: string) {
+    const isExists = await this.prismaService.serviceCategory.findFirst({
+      where: { name: dto.name },
+    });
+
+    if (isExists)
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Категория уже существует",
+        },
+        HttpStatus.CONFLICT,
+      );
+
+    const category = await this.prismaService.serviceCategory.create({
+      data: { name: dto.name, companyId },
+    });
+
+    return category;
+  }
+
+  async deleteCategory(categoryId: number) {
+    const isExists = await this.prismaService.serviceCategory.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!isExists)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Категория не найдена",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const category = await this.prismaService.serviceCategory.delete({
+      where: { id: categoryId },
+    });
+
+    return category;
   }
 }
