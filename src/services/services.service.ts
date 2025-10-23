@@ -285,6 +285,16 @@ export class ServicesService {
 
     const category = await this.prismaService.serviceCategory.create({
       data: { name: dto.name, companyId },
+      select: { id: true, name: true },
+    });
+
+    return category;
+  }
+
+  async getAllCategory(companyId: string) {
+    const category = await this.prismaService.serviceCategory.findMany({
+      where: { companyId },
+      select: { id: true, name: true },
     });
 
     return category;
@@ -306,6 +316,7 @@ export class ServicesService {
 
     const category = await this.prismaService.serviceCategory.delete({
       where: { id: categoryId },
+      select: { id: true, name: true },
     });
 
     return category;
