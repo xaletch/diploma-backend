@@ -17,6 +17,7 @@ export class ServicesService {
         duration: true,
         timeStart: true,
         timeEnd: true,
+        category: true,
         price: {
           select: {
             id: true,
@@ -54,6 +55,7 @@ export class ServicesService {
         id: s.id,
         name: s.name,
         duration: s.duration,
+        category: s.category,
         public_name: s.publicName,
         price: s.price!.price ?? null,
         prices: {
@@ -78,6 +80,7 @@ export class ServicesService {
         days: true,
         timeStart: true,
         timeEnd: true,
+        category: true,
         price: {
           select: {
             id: true,
@@ -125,6 +128,7 @@ export class ServicesService {
       name: s.name,
       duration: s.duration,
       public_name: s.publicName,
+      category: s.category,
       price: s.price!.price ?? null,
       date: { days: s.days, time_start: s.timeStart, time_end: s.timeEnd },
       prices: {
@@ -188,6 +192,7 @@ export class ServicesService {
       mark: dto.mark,
       duration: dto.duration,
       type: dto.type,
+      category: "",
       companyId,
     };
 

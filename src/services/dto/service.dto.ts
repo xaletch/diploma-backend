@@ -29,6 +29,10 @@ export class ServiceCreateDto {
   days: DAYS[];
 
   @IsString()
+  @IsOptional()
+  category?: string;
+
+  @IsString()
   time_start: string;
 
   @IsString()

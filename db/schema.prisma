@@ -442,6 +442,8 @@ model Service {
   timeStart     String        @map("time_start")
   timeEnd       String        @map("time_end")
 
+  category      String?
+
   company       Company       @relation("company_service", fields: [companyId], references: [id])
   companyId     String
 

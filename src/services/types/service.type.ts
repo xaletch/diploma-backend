@@ -31,6 +31,7 @@ export interface IService {
   id: string;
   name: string;
   duration: number;
+  category: string | null;
   public_name: string | null;
   price: number | null;
   prices: ServicePrices;
