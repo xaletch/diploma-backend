@@ -59,6 +59,14 @@ export class ServicesController {
     return this.servicesService.delete(serviceId);
   }
 
+  @Get("categories/service")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @HttpCode(HttpStatus.OK)
+  getAllCategory(@Req() req) {
+    const companyId = req.user.companyId;
+    return this.servicesService.getAllCategory(companyId);
+  }
+
   @Post("service/category")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-category:create")
