@@ -7,10 +7,9 @@ COPY db ./db
 
 RUN yarn install
 
-RUN yarn prisma generate --schema=./db/schema.prisma
-
 COPY . .
 
+RUN yarn prisma generate --schema=./db/schema.prisma
 RUN yarn build
 
 FROM node:24-alpine AS production
