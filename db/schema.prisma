@@ -572,7 +572,6 @@ model Schedule {
   // date          DateTime
   date          String
 
-
   intervals     ScheduleInterval[]              @relation("schedule_intervals_model")
 
   userLocation  UserLocation  @relation("user_location_schedule", fields: [userLocationId], references: [id], onDelete: Cascade)

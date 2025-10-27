@@ -66,6 +66,7 @@ export class BookingsService {
   private async validateEmployee(id: string, companyId: string) {
     const customer = await this.prismaService.customerCompany.findUnique({
       where: { id, companyId },
+      select: { id: true, customerId: true },
     });
 
     if (!customer)
@@ -79,7 +80,7 @@ export class BookingsService {
         HttpStatus.NOT_FOUND,
       );
 
-    return true;
+    return customer.customerId;
   }
 
   private async validateCustomerWorked(
@@ -150,7 +151,7 @@ export class BookingsService {
       dto.location_id,
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
-    await this.validateEmployee(dto.customer_id, company_id);
+    const customerId = await this.validateEmployee(dto.customer_id, company_id);
     await this.validateCustomerWorked(
       dto.date,
       locationId,
@@ -164,6 +165,22 @@ export class BookingsService {
       dto.start_time,
     );
 
-    return "OK";
+    const booking = await this.prismaService.booking.create({
+      data: {
+        name: dto.name,
+        date: dto.date,
+        startTime: dto.start_time,
+        endTime: dto.end_time,
+        comment: dto.comment,
+        status: dto.status,
+        employeeId: dto.employee_id,
+        customerId: customerId,
+        serviceId: dto.service_id,
+        locationId: dto.location_id,
+      },
+      select: { id: true, name: true, status: true },
+    });
+
+    return booking;
   }
 }

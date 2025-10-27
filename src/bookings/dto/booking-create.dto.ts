@@ -1,4 +1,5 @@
-import { IsOptional, IsString, Matches } from "class-validator";
+import { BookingStatus } from "@prisma/client";
+import { IsEnum, IsOptional, IsString, Matches } from "class-validator";
 
 export class BookingCreateDto {
   @IsString()
@@ -34,4 +35,8 @@ export class BookingCreateDto {
 
   @IsString()
   customer_id: string;
+
+  @IsEnum(BookingStatus)
+  @IsOptional()
+  status?: BookingStatus;
 }
