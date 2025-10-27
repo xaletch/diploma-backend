@@ -18,6 +18,7 @@ import { ServicesModule } from "./services/services.module";
 import { RedisModule } from "./redis/redis.module";
 import { CustomersModule } from './customers/customers.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ScheduleModule } from './schedule/schedule.module';
     RedisModule,
     CustomersModule,
     ScheduleModule,
+    BookingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
