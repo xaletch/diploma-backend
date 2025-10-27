@@ -1,12 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { BookingCreateDto } from "./dto/booking-create.dto";
+import { IBookings } from "./type/bookings.type";
+import { BookingCreate } from "./type/booking-create.type";
 
 @Injectable()
 export class BookingsService {
   public constructor(private readonly prismaService: PrismaService) {}
 
-  private async validateLocation(locationId: string, serviceId: string) {
+  private async validateLocation(
+    locationId: string,
+    serviceId: string,
+  ): Promise<boolean> {
     const location = await this.prismaService.locationService.findFirst({
       where: { locationId, serviceId },
     });
@@ -25,7 +30,10 @@ export class BookingsService {
     return true;
   }
 
-  private async validateEmployeeLocation(userId: string, locationId) {
+  private async validateEmployeeLocation(
+    userId: string,
+    locationId,
+  ): Promise<string> {
     const employeeLocation = await this.prismaService.userLocation.findFirst({
       where: { userId, locationId },
     });
@@ -44,7 +52,10 @@ export class BookingsService {
     return employeeLocation.id;
   }
 
-  private async validateEmployeeService(userId: string, serviceId: string) {
+  private async validateEmployeeService(
+    userId: string,
+    serviceId: string,
+  ): Promise<boolean> {
     const employee = await this.prismaService.userService.findFirst({
       where: { userId, serviceId },
     });
@@ -63,7 +74,10 @@ export class BookingsService {
     return true;
   }
 
-  private async validateEmployee(id: string, companyId: string) {
+  private async validateEmployee(
+    id: string,
+    companyId: string,
+  ): Promise<string> {
     const customer = await this.prismaService.customerCompany.findUnique({
       where: { id, companyId },
       select: { id: true, customerId: true },
@@ -88,7 +102,7 @@ export class BookingsService {
     userLocationId: string,
     start_time: string,
     end_time: string,
-  ) {
+  ): Promise<boolean> {
     const isWorked = await this.prismaService.schedule.findFirst({
       where: {
         date: date,
@@ -121,7 +135,7 @@ export class BookingsService {
     date: string,
     end_time: string,
     start_time: string,
-  ) {
+  ): Promise<boolean> {
     const isOverlapping = await this.prismaService.booking.findFirst({
       where: {
         employeeId,
@@ -142,9 +156,14 @@ export class BookingsService {
         },
         HttpStatus.BAD_REQUEST,
       );
+
+    return true;
   }
 
-  async create(dto: BookingCreateDto, company_id: string) {
+  async create(
+    dto: BookingCreateDto,
+    company_id: string,
+  ): Promise<BookingCreate> {
     await this.validateLocation(dto.location_id, dto.service_id);
     const locationId = await this.validateEmployeeLocation(
       dto.employee_id,
@@ -182,5 +201,56 @@ export class BookingsService {
     });
 
     return booking;
+  }
+
+  async getAll(userId: string, locationId: string): Promise<IBookings[]> {
+    const user = await this.prismaService.userLocation.findUnique({
+      where: { userId_locationId: { userId, locationId } },
+      select: { role: { select: { name: true } } },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка пользователя",
+          detail: "Пользователь не найден",
+          meta: { user_id: userId },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const isOwner = user.role?.name === "owner";
+
+    const bookings = await this.prismaService.booking.findMany({
+      where: isOwner ? { locationId } : { locationId, employeeId: userId },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        comment: true,
+        customer: {
+          select: { id: true, firstName: true, lastName: true, phone: true },
+        },
+      },
+    });
+
+    const res: IBookings[] = bookings.map((booking) => ({
+      id: booking.id,
+      name: booking.name,
+      status: booking.status,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      comment: booking.comment,
+      customer: {
+        id: booking.customer.id,
+        phone: booking.customer.phone,
+        name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+      },
+    }));
+
+    return res;
   }
 }

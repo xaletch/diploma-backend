@@ -1,6 +1,6 @@
 import { Controller } from "@nestjs/common";
 import { AddressService } from "./address.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 
 @ApiTags("Адрес")
 @Controller("address")

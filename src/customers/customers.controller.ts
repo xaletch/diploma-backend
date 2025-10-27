@@ -17,8 +17,10 @@ import { CompanyGuard } from "src/access/guard/company.guard";
 import { CustomerCompanyDto } from "./dto/customer-company.dto";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { AuthGuard } from "src/auth/guard/auth.guard";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 
 // отправить на микросервис
+@ApiTags("Клиенты")
 @Controller()
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}

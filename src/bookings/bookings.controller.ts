@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Req,
   UseGuards,
@@ -14,7 +16,10 @@ import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { BookingCreateDto } from "./dto/booking-create.dto";
 import { AuthGuard } from "src/auth/guard/auth.guard";
+import { LocationGuard } from "src/access/guard/location.guard";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 
+@ApiTags("Бронирование")
 @Controller()
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
@@ -26,5 +31,14 @@ export class BookingsController {
   create(@Body() dto: BookingCreateDto, @Req() req) {
     const companyId = req.user.companyId;
     return this.bookingsService.create(dto, companyId);
+  }
+
+  @Get("bookings/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("bookings:read")
+  @HttpCode(HttpStatus.OK)
+  getAll(@Param("location_id") locationId: string, @Req() req) {
+    const userId = req.user.id;
+    return this.bookingsService.getAll(userId, locationId);
   }
 }

@@ -17,8 +17,7 @@ import { ServiceCreateDto } from "./dto/service.dto";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
-import { ApiTags } from "@nestjs/swagger";
-import { Request } from "express";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
 
 @ApiTags("Услуги")

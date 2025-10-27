@@ -18,7 +18,7 @@ import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { AuthGuard } from "src/auth/guard/auth.guard";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 
 @ApiTags("Компании")
 @Controller("company")
