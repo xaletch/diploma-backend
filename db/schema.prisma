@@ -522,8 +522,9 @@ model Booking {
   name          String
   startTime     String        @map("start_time")
   endTime       String        @map("end_time")
+  date          String
   comment       String?
-  status        BookingStatus
+  status        BookingStatus @default(pending)
 
   location      Location      @relation("booking_locations", fields: [locationId], references: [id])
   locationId    String

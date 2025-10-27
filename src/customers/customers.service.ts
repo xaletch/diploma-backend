@@ -3,6 +3,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { SendCodeDto } from "./dto/send-code.dto";
 import { RedisService } from "src/redis/redis.service";
 import { VerifyCodeDto } from "./dto/verify.dto";
+import { CustomerCompanyDto } from "./dto/customer-company.dto";
 
 @Injectable()
 export class CustomersService {
@@ -108,5 +109,31 @@ export class CustomersService {
 
     // return { access_token: accessToken, refresh_token: refreshToken };
     return { success: true, ipAddress, customerPhone };
+  }
+
+  //                                            ### NOTE ###
+  // В КОМПАНИИ МОЖНО СОЗДАТЬ ПОЛЬЗОВАТЕЛЯ И ЗАПИСАТЬ ЕГО В КОМПАНИЮ ДАЖЕ КОГДА ЕГО НЕ СУЩЕСТВУЕТ В CUSTOMERS
+  // ПОКА ТЕСТОВЫЙ ВАРИАНТ КОТОРЫЙ ДОБАВЛЯЕТ СУЩЕСТВУЮЩЕГО CUSTOMER В КОМПАНИЮ
+  async createForCompany(dto: CustomerCompanyDto, companyId: string) {
+    const customer = await this.prismaService.customer.findUnique({
+      where: { id: dto.customer_id },
+    });
+
+    if (!customer)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка клиента",
+          detail: "Указанный клиент не найден",
+          meta: { customer_id: dto.customer_id },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const create = await this.prismaService.customerCompany.create({
+      data: { companyId, customerId: customer.id },
+    });
+
+    return create;
   }
 }
