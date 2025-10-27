@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { ScheduleCreateDto } from "./dto/schedule-create.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { LocationGuard } from "src/access/guard/location.guard";

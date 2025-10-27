@@ -54,9 +54,16 @@ enum BookingStatus {
 }
 
 enum OrderStatus {
+  pending
   open
   closed
   paid
+}
+
+enum PaymentType {
+  online
+  cash
+  credit_card
 }
 
 enum UserStatus {
@@ -157,6 +164,7 @@ model User {
 
   locations     UserLocation[] @relation("user_location")
   services      UserService[]  @relation("user_service")
+  bookings      Booking[]     @relation("booking_employee")
 
   sessions      Session[]     @relation("user_session")
 
@@ -514,8 +522,9 @@ model Booking {
   name          String
   startTime     String        @map("start_time")
   endTime       String        @map("end_time")
+  date          String
   comment       String?
-  status        BookingStatus
+  status        BookingStatus @default(pending)
 
   location      Location      @relation("booking_locations", fields: [locationId], references: [id])
   locationId    String
@@ -525,6 +534,9 @@ model Booking {
 
   service       Service       @relation("booking_service", fields: [serviceId], references: [id])
   serviceId     String
+
+  employee      User          @relation("booking_employee", fields: [employeeId], references: [id])
+  employeeId    String
 
   order         Order?        @relation("booking_order", fields: [orderId], references: [id])
   orderId       String?
@@ -538,8 +550,12 @@ model Booking {
 model Order {
   id            String        @id               @default(uuid())
 
-  status        OrderStatus
+  status        OrderStatus   @default(pending)
   subtotal      Int
+  total         Int?
+  discount      Int?
+  paymentMethod PaymentType   @map("payment_method")
+  paidAt        DateTime?     @map("paid_at")
   comment       String?
 
   bookings      Booking[]     @relation("booking_order")
@@ -555,7 +571,6 @@ model Schedule {
 
   // date          DateTime
   date          String
-
 
   intervals     ScheduleInterval[]              @relation("schedule_intervals_model")
 

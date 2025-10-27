@@ -18,7 +18,7 @@ import { AuthGuard } from "src/auth/guard/auth.guard";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { CheckInviteDto } from "./dto/check-invite.dto";
 import { CompanyGuard } from "src/access/guard/company.guard";
