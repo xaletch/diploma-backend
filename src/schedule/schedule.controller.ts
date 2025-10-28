@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -20,6 +19,7 @@ import { LoadUserGuard } from "src/user/guard/user.guard";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { AuthGuard } from "src/auth/guard/auth.guard";
+import { ScheduleIdsDto } from "./dto/schedule-ids.dto";
 
 @ApiTags("Расписание")
 @Controller("schedule")
@@ -45,17 +45,15 @@ export class ScheduleController {
     return this.scheduleService.findAll(userId, locationId);
   }
 
-  @Patch("/:location_id")
+  @Patch("/:location_id/schedule/:schedule_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:update")
   @HttpCode(HttpStatus.OK)
   update(
     @Body() dto: ScheduleDto,
     @Param("location_id") location_id: string,
-    @Headers("schedule_id") schedule_id: string,
-    @Req() req,
+    @Param("schedule_id") schedule_id: string,
   ) {
-    console.log(req.user);
     return this.scheduleService.update(dto, location_id, Number(schedule_id));
   }
 
@@ -65,14 +63,10 @@ export class ScheduleController {
   @HttpCode(HttpStatus.OK)
   delete(
     @Param("location_id") location_id: string,
-    @Headers("schedule_id") schedule_id: string,
-    @Headers("user_id") user_id: string,
+    @Body() dto: ScheduleIdsDto,
   ) {
-    return this.scheduleService.delete(
-      user_id,
-      Number(schedule_id),
-      location_id,
-    );
+    const { user_id, schedule_id } = dto;
+    return this.scheduleService.delete(user_id, schedule_id, location_id);
   }
 
   @Get("/:location_id")
@@ -81,13 +75,9 @@ export class ScheduleController {
   @HttpCode(HttpStatus.OK)
   findById(
     @Param("location_id") location_id: string,
-    @Headers("schedule_id") schedule_id: string,
-    @Headers("user_id") user_id: string,
+    @Body() dto: ScheduleIdsDto,
   ) {
-    return this.scheduleService.findById(
-      user_id,
-      Number(schedule_id),
-      location_id,
-    );
+    const { user_id, schedule_id } = dto;
+    return this.scheduleService.findById(user_id, schedule_id, location_id);
   }
 }
