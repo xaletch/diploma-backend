@@ -23,18 +23,31 @@ export class RoleService {
   }
 
   async createPermission(dto: RoleDto) {
-    const existing = await this.prismaService.permission.findUnique({
-      where: { name: dto.name },
-    });
-
-    if (existing) throw new BadRequestException("permission уже существует");
-
     const role = await this.prismaService.role.findUnique({
       where: { id: dto.role_id },
+      include: { permissions: true },
     });
 
     if (!role) {
       throw new NotFoundException("Роль не найдена");
+    }
+
+    const existing = await this.prismaService.permission.findUnique({
+      where: { name: dto.name },
+      include: { roles: true },
+    });
+
+    if (existing && existing.roles.some((r) => r.id === dto.role_id))
+      throw new BadRequestException("permission уже существует");
+
+    if (existing) {
+      return this.prismaService.permission.update({
+        where: { id: existing.id },
+        data: {
+          roles: { connect: { id: dto.role_id } },
+        },
+        include: { roles: true },
+      });
     }
 
     const permission = await this.prismaService.permission.create({
