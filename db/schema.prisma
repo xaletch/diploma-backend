@@ -186,7 +186,7 @@ model UserLocation {
   roleId        Int?          @map("role_id")
 
   note          String?
-  isBanned      Boolean?      @default(false)   @map("is_banned")
+  isBanned      Boolean       @default(false)   @map("is_banned")
   birthday      String?
 
   schedules     Schedule[]    @relation("user_location_schedule")

@@ -5,7 +5,7 @@ export type Interval = {
   end: string;
 };
 
-export class ScheduleCreateDto {
+export class ScheduleDto {
   @IsString()
   @Matches(/^\d{2}-\d{2}-\d{4}$/, {
     message: "Дата должна быть в формате YYYY-MM-DD",
