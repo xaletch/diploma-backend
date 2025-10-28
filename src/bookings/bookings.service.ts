@@ -8,6 +8,16 @@ import { BookingCreate } from "./type/booking-create.type";
 export class BookingsService {
   public constructor(private readonly prismaService: PrismaService) {}
 
+  private getDayShort(dayIndex: number): string {
+    const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    return map[dayIndex];
+  }
+
+  private dateParse(date: string): Date {
+    const [day, month, year] = date.split("-");
+    return new Date(`${year}-${month}-${day}`);
+  }
+
   private async validateLocation(
     locationId: string,
     serviceId: string,
@@ -50,6 +60,39 @@ export class BookingsService {
       );
 
     return employeeLocation.id;
+  }
+
+  private async validateService(
+    serviceId: string,
+    date: string,
+    start_time: string,
+    end_time: string,
+    companyId: string,
+  ): Promise<boolean> {
+    const parsed = this.dateParse(date);
+    const dayWeek = this.getDayShort(parsed.getDay());
+    const service = await this.prismaService.service.findFirst({
+      where: {
+        id: serviceId,
+        companyId,
+        days: { has: dayWeek },
+        timeStart: { lte: start_time },
+        timeEnd: { gte: end_time },
+      },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка расписания услуги",
+          detail: "Услуга не доступна в выбранное время.",
+          meta: { service_id: serviceId },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+
+    return true;
   }
 
   private async validateEmployeeService(
@@ -171,6 +214,13 @@ export class BookingsService {
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
     const customerId = await this.validateEmployee(dto.customer_id, company_id);
+    await this.validateService(
+      dto.service_id,
+      dto.date,
+      dto.start_time,
+      dto.end_time,
+      company_id,
+    );
     await this.validateCustomerWorked(
       dto.date,
       locationId,
@@ -234,6 +284,15 @@ export class BookingsService {
         customer: {
           select: { id: true, firstName: true, lastName: true, phone: true },
         },
+        employee: {
+          select: {
+            id: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            position: true,
+          },
+        },
       },
     });
 
@@ -248,6 +307,13 @@ export class BookingsService {
         id: booking.customer.id,
         phone: booking.customer.phone,
         name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+      },
+      employee: {
+        id: booking.employee.id,
+        first_name: booking.employee.firstName,
+        last_name: booking.employee.lastName,
+        phone: booking.employee.phone,
+        position: booking.employee.position,
       },
     }));
 
