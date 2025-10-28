@@ -1,15 +1,19 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
-import { ScheduleCreateDto } from "./dto/schedule-create.dto";
+import { ScheduleDto } from "./dto/schedule.dto";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
@@ -26,10 +30,7 @@ export class ScheduleController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:create")
   @HttpCode(HttpStatus.CREATED)
-  create(
-    @Body() dto: ScheduleCreateDto,
-    @Param("location_id") locationId: string,
-  ) {
+  create(@Body() dto: ScheduleDto, @Param("location_id") locationId: string) {
     return this.scheduleService.create(dto, locationId);
   }
 
@@ -42,5 +43,51 @@ export class ScheduleController {
     @Param("location_id") locationId: string,
   ) {
     return this.scheduleService.findAll(userId, locationId);
+  }
+
+  @Patch("/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("schedule:update")
+  @HttpCode(HttpStatus.OK)
+  update(
+    @Body() dto: ScheduleDto,
+    @Param("location_id") location_id: string,
+    @Headers("schedule_id") schedule_id: string,
+    @Req() req,
+  ) {
+    console.log(req.user);
+    return this.scheduleService.update(dto, location_id, Number(schedule_id));
+  }
+
+  @Delete("/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("schedule:delete")
+  @HttpCode(HttpStatus.OK)
+  delete(
+    @Param("location_id") location_id: string,
+    @Headers("schedule_id") schedule_id: string,
+    @Headers("user_id") user_id: string,
+  ) {
+    return this.scheduleService.delete(
+      user_id,
+      Number(schedule_id),
+      location_id,
+    );
+  }
+
+  @Get("/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("schedule:first")
+  @HttpCode(HttpStatus.OK)
+  findById(
+    @Param("location_id") location_id: string,
+    @Headers("schedule_id") schedule_id: string,
+    @Headers("user_id") user_id: string,
+  ) {
+    return this.scheduleService.findById(
+      user_id,
+      Number(schedule_id),
+      location_id,
+    );
   }
 }
