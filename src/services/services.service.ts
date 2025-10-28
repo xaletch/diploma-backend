@@ -3,6 +3,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { ServiceCreateDto } from "./dto/service.dto";
 import { IService, IServices } from "./types/service.type";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
+import { AddedUsersDto } from "./dto/added-users.dto";
 
 @Injectable()
 export class ServicesService {
@@ -320,5 +321,56 @@ export class ServicesService {
     });
 
     return category;
+  }
+
+  async addedUsers(
+    dto: AddedUsersDto,
+    serviceId: string,
+    companyId: string,
+  ): Promise<{ success: boolean }> {
+    const { user_ids: userIds } = dto;
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          message:
+            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const users = await this.prismaService.user.findMany({
+      where: { id: { in: userIds }, companyId },
+      select: { id: true },
+    });
+
+    const existingUserIds = users.map((u) => u.id);
+    const invalidIds = userIds.filter((id) => !existingUserIds.includes(id));
+
+    if (invalidIds.length > 0) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка: некоторые пользователи не найдены",
+          detail: `Пользователи с id ${invalidIds.join(", ")} не существуют.`,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.prismaService.$transaction([
+      this.prismaService.userService.deleteMany({ where: { serviceId } }),
+      this.prismaService.userService.createMany({
+        data: userIds.map((userId) => ({ userId, serviceId: service.id })),
+      }),
+    ]);
+
+    return { success: true };
   }
 }
