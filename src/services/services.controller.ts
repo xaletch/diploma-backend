@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -19,6 +20,7 @@ import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
+import { AddedUsersDto } from "./dto/added-users.dto";
 
 @ApiTags("Услуги")
 @Controller()
@@ -56,6 +58,19 @@ export class ServicesController {
   @HttpCode(HttpStatus.OK)
   delete(@Param("service_id") serviceId: string) {
     return this.servicesService.delete(serviceId);
+  }
+
+  @Put("service/users/:service_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-users:update")
+  @HttpCode(HttpStatus.OK)
+  addedUsers(
+    @Body() dto: AddedUsersDto,
+    @Param("service_id") serviceId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.servicesService.addedUsers(dto, serviceId, companyId);
   }
 
   @Get("categories/service")
