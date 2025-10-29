@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Req,
@@ -51,6 +52,19 @@ export class ServicesController {
   create(@Body() dto: ServiceCreateDto, @Req() req) {
     const companyId = req.user.companyId;
     return this.servicesService.create(dto, companyId);
+  }
+
+  @Patch("service/:service_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service:update")
+  @HttpCode(HttpStatus.CREATED)
+  update(
+    @Body() dto: ServiceCreateDto,
+    @Param("service_id") serviceId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.servicesService.update(dto, serviceId, companyId);
   }
 
   @Delete("service/:service_id")
