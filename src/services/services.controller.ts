@@ -21,6 +21,7 @@ import { ScopeGuard } from "src/access/guard/scope.guard";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
 import { AddedUsersDto } from "./dto/added-users.dto";
+import { AddedLocationsDto } from "./dto/added-locations.dto";
 
 @ApiTags("Услуги")
 @Controller()
@@ -71,6 +72,19 @@ export class ServicesController {
   ) {
     const companyId = req.user.companyId;
     return this.servicesService.addedUsers(dto, serviceId, companyId);
+  }
+
+  @Put("service/locations/:service_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-locations:update")
+  @HttpCode(HttpStatus.OK)
+  addedLocations(
+    @Body() dto: AddedLocationsDto,
+    @Param("service_id") serviceId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.servicesService.addedLocations(dto, serviceId, companyId);
   }
 
   @Get("categories/service")
