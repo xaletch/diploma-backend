@@ -44,6 +44,18 @@ export class ScheduleController {
     return this.scheduleService.findAll(userId, locationId);
   }
 
+  @Get("/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("schedule:first")
+  @HttpCode(HttpStatus.OK)
+  findById(
+    @Param("location_id") location_id: string,
+    @Body() dto: ScheduleIdsDto,
+  ) {
+    const { user_id, schedule_id } = dto;
+    return this.scheduleService.findById(user_id, schedule_id, location_id);
+  }
+
   @Patch("/:location_id/schedule/:schedule_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:update")
@@ -66,17 +78,5 @@ export class ScheduleController {
   ) {
     const { user_id, schedule_id } = dto;
     return this.scheduleService.delete(user_id, schedule_id, location_id);
-  }
-
-  @Get("/:location_id")
-  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
-  @Scopes("schedule:first")
-  @HttpCode(HttpStatus.OK)
-  findById(
-    @Param("location_id") location_id: string,
-    @Body() dto: ScheduleIdsDto,
-  ) {
-    const { user_id, schedule_id } = dto;
-    return this.scheduleService.findById(user_id, schedule_id, location_id);
   }
 }

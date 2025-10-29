@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Req,
@@ -21,6 +22,7 @@ import { AuthGuard } from "src/auth/guard/auth.guard";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { BookingStatusDto } from "./dto/booking-status.dto";
+import { BookingUpdateDto } from "./dto/booking-update.dto";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -45,12 +47,25 @@ export class BookingsController {
     return this.bookingsService.getAll(userId, locationId);
   }
 
-  @Delete("booking/:booking_id")
+  @Get("booking/:booking_id")
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
-  @Scopes("booking:delete")
+  @Scopes("booking-detail:read")
   @HttpCode(HttpStatus.OK)
-  delete(@Param("booking_id") bookingId: string) {
-    return this.bookingsService.delete(bookingId);
+  details(@Param("booking_id") bookingId: string) {
+    return this.bookingsService.details(bookingId);
+  }
+
+  @Patch("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("booking:update")
+  @HttpCode(HttpStatus.OK)
+  update(
+    @Body() dto: BookingUpdateDto,
+    @Param("booking_id") bookingId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.bookingsService.update(dto, bookingId, companyId);
   }
 
   @Put("booking/:booking_id")
@@ -62,5 +77,13 @@ export class BookingsController {
     @Param("booking_id") bookingId: string,
   ) {
     return this.bookingsService.statusUpdate(dto, bookingId);
+  }
+
+  @Delete("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("booking:delete")
+  @HttpCode(HttpStatus.OK)
+  delete(@Param("booking_id") bookingId: string) {
+    return this.bookingsService.delete(bookingId);
   }
 }

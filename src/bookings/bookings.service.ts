@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { BookingCreateDto } from "./dto/booking-create.dto";
-import { IBookings } from "./type/bookings.type";
+import { IBookingDetails, IBookings } from "./type/bookings.type";
 import { BookingCreate } from "./type/booking-create.type";
 import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingById } from "./type/booking-by-id.type";
+import { BookingUpdateDto } from "./dto/booking-update.dto";
 
 @Injectable()
 export class BookingsService {
@@ -353,6 +354,63 @@ export class BookingsService {
     return { success: true };
   }
 
+  async update(
+    dto: BookingUpdateDto,
+    bookingId: string,
+    company_id: string,
+  ): Promise<BookingCreate> {
+    await this.getById(bookingId);
+    await this.validateLocation(dto.location_id, dto.service_id);
+    const locationId = await this.validateEmployeeLocation(
+      dto.employee_id,
+      dto.location_id,
+    );
+    await this.validateEmployeeService(dto.employee_id, dto.service_id);
+    const customerId = await this.validateEmployee(dto.customer_id, company_id);
+
+    /// NOTE
+    // ПЕРЕПИСАТЬ ВАЛИДАЦИЮ - validateService
+    // ТЕКУЩАЯ ПРОБЛЕМА В ТОМ, ЧТО ЕСЛИ БУДЕМ ИЗМЕНЯТЬ БРОНИРОВАНИЕ УКАЗАВ ТОЧНО ТАКОЕ ЖЕ ВРЕМЯ
+    // ВАЛИДАЦИЯ СКАЖЕТ ЧТО ВРЕМЯ ПЕРЕСЕКАЕТСЯ С ДРУГОЙ БРОНЬЮ
+    await this.validateService(
+      dto.service_id,
+      dto.date,
+      dto.start_time,
+      dto.end_time,
+      company_id,
+    );
+    await this.validateCustomerWorked(
+      dto.date,
+      locationId,
+      dto.start_time,
+      dto.end_time,
+    );
+    await this.validateOverlapping(
+      dto.employee_id,
+      dto.date,
+      dto.end_time,
+      dto.start_time,
+    );
+
+    const booking = await this.prismaService.booking.update({
+      where: { id: bookingId },
+      data: {
+        name: dto.name,
+        date: dto.date,
+        startTime: dto.start_time,
+        endTime: dto.end_time,
+        comment: dto.comment,
+        employeeId: dto.employee_id,
+        customerId: customerId,
+        serviceId: dto.service_id,
+        locationId: dto.location_id,
+      },
+      select: { id: true, name: true, status: true },
+    });
+
+    return booking;
+  }
+
   async statusUpdate(
     dto: BookingStatusDto,
     bookingId: string,
@@ -365,5 +423,92 @@ export class BookingsService {
     });
 
     return { success: true };
+  }
+
+  async details(bookingId: string): Promise<IBookingDetails> {
+    const booking = await this.prismaService.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        date: true,
+        comment: true,
+        location: { select: { id: true, name: true } },
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            birthday: true,
+          },
+        },
+        employee: {
+          select: { id: true, firstName: true, lastName: true, phone: true },
+        },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+            price: { select: { price: true, costPrice: true } },
+          },
+        },
+      },
+    });
+
+    if (!booking)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Бронирование не найдено.",
+          meta: { booking_id: bookingId },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const res: IBookingDetails = {
+      id: booking.id,
+      name: booking.name,
+      status: booking.status,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      date: booking.date,
+      comment: booking.comment,
+      location: {
+        id: booking.location.id,
+        name: booking.location.name,
+      },
+      customer: {
+        id: booking.customer.id,
+        first_name: booking.customer.firstName,
+        last_name: booking.customer.lastName,
+        phone: booking.customer.phone,
+        email: booking.customer.email,
+        birthday: booking.customer.birthday,
+      },
+      employee: {
+        id: booking.employee.id,
+        first_name: booking.employee.firstName,
+        last_name: booking.employee.lastName,
+        phone: booking.employee.phone,
+      },
+      service: {
+        id: booking.service.id,
+        name: booking.service.name,
+        duration: booking.service.duration,
+        prices: {
+          price: booking.service.price?.price,
+          cost_price: booking.service.price?.costPrice,
+        },
+      },
+    };
+
+    return res;
   }
 }
