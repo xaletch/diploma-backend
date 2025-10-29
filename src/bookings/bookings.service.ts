@@ -3,6 +3,8 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { BookingCreateDto } from "./dto/booking-create.dto";
 import { IBookings } from "./type/bookings.type";
 import { BookingCreate } from "./type/booking-create.type";
+import { BookingStatusDto } from "./dto/booking-status.dto";
+import { BookingById } from "./type/booking-by-id.type";
 
 @Injectable()
 export class BookingsService {
@@ -295,6 +297,7 @@ export class BookingsService {
           },
         },
       },
+      orderBy: { createdAt: "asc" },
     });
 
     const res: IBookings[] = bookings.map((booking) => ({
@@ -320,5 +323,47 @@ export class BookingsService {
     }));
 
     return res;
+  }
+
+  async getById(bookingId: string): Promise<BookingById> {
+    const booking = await this.prismaService.booking.findUnique({
+      where: { id: bookingId },
+      select: { id: true, name: true, status: true },
+    });
+
+    if (!booking)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Бронирование не найдено.",
+          meta: { booking_id: bookingId },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return booking;
+  }
+
+  async delete(bookingId: string): Promise<SuccessResponse> {
+    await this.getById(bookingId);
+
+    await this.prismaService.booking.delete({ where: { id: bookingId } });
+
+    return { success: true };
+  }
+
+  async statusUpdate(
+    dto: BookingStatusDto,
+    bookingId: string,
+  ): Promise<SuccessResponse> {
+    await this.getById(bookingId);
+
+    await this.prismaService.booking.update({
+      where: { id: bookingId },
+      data: { status: dto.status },
+    });
+
+    return { success: true };
   }
 }

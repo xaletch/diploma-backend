@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -18,6 +20,7 @@ import { BookingCreateDto } from "./dto/booking-create.dto";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
+import { BookingStatusDto } from "./dto/booking-status.dto";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -40,5 +43,24 @@ export class BookingsController {
   getAll(@Param("location_id") locationId: string, @Req() req) {
     const userId = req.user.id;
     return this.bookingsService.getAll(userId, locationId);
+  }
+
+  @Delete("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("booking:delete")
+  @HttpCode(HttpStatus.OK)
+  delete(@Param("booking_id") bookingId: string) {
+    return this.bookingsService.delete(bookingId);
+  }
+
+  @Put("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("booking:status")
+  @HttpCode(HttpStatus.OK)
+  statusUpdate(
+    @Body() dto: BookingStatusDto,
+    @Param("booking_id") bookingId: string,
+  ) {
+    return this.bookingsService.statusUpdate(dto, bookingId);
   }
 }
