@@ -5,6 +5,7 @@ import { IService, IServices } from "./types/service.type";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
 import { AddedUsersDto } from "./dto/added-users.dto";
 import { AddedLocationsDto } from "./dto/added-locations.dto";
+import { ServiceUpdateDto } from "./dto/service-update.dto";
 
 @Injectable()
 export class ServicesService {
@@ -46,7 +47,7 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка: услуги не обнаружены",
-          message:
+          detail:
             "Запрошенные услуги не были найдены. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
         },
         HttpStatus.NOT_FOUND,
@@ -83,6 +84,7 @@ export class ServicesService {
         timeStart: true,
         timeEnd: true,
         category: true,
+        mark: true,
         price: {
           select: {
             id: true,
@@ -119,7 +121,7 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка: услуга не обнаружена",
-          message:
+          detail:
             "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
         },
         HttpStatus.NOT_FOUND,
@@ -131,6 +133,7 @@ export class ServicesService {
       duration: s.duration,
       public_name: s.publicName,
       category: s.category,
+      mark: s.mark,
       price: s.price!.price ?? null,
       date: { days: s.days, time_start: s.timeStart, time_end: s.timeEnd },
       prices: {
@@ -172,7 +175,7 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка создания услуги",
-          message:
+          detail:
             "Отсутствуют зарегистрированные пользователи. Услуга не может быть создана.",
         },
         HttpStatus.NOT_FOUND,
@@ -182,7 +185,7 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка создания услуги",
-          message:
+          detail:
             "Нет ни одной доступной локации. Услугу невозможно привязать к месту.",
         },
         HttpStatus.NOT_FOUND,
@@ -257,8 +260,8 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка: услуга не обнаружена",
-          message:
-            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
         },
         HttpStatus.NOT_FOUND,
       );
@@ -269,6 +272,76 @@ export class ServicesService {
     });
 
     return { status: "deleted" };
+  }
+
+  async update(
+    dto: ServiceUpdateDto,
+    serviceId: string,
+    companyId: string,
+  ): Promise<{ success: boolean }> {
+    const service = await this.prismaService.service.findUnique({
+      where: { id: serviceId },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const serviceDto = {
+      name: dto.name,
+      publicName: dto.public_name,
+      mark: dto.mark,
+      duration: dto.duration,
+      type: dto.type,
+      category: "",
+      companyId,
+    };
+
+    await this.prismaService.service.update({
+      where: { id: serviceId },
+      data: {
+        ...serviceDto,
+        days: dto.days,
+        timeStart: dto.time_start,
+        timeEnd: dto.time_end,
+        price: dto.price
+          ? {
+              update: {
+                price: dto.price,
+                costPrice: dto.cost_price,
+              },
+            }
+          : undefined,
+
+        discount: dto.discount_price
+          ? {
+              update: {
+                dateType: dto.date_type,
+                days: dto.discount_days,
+                price: dto.discount_price,
+                timeStart: dto.discount_time_start,
+                timeEnd: dto.discount_time_end,
+              },
+            }
+          : undefined,
+      },
+      select: {
+        id: true,
+        name: true,
+        mark: true,
+        duration: true,
+        type: true,
+      },
+    });
+
+    return { success: true };
   }
 
   async createCategory(dto: ServiceCategoryDto, companyId: string) {
@@ -340,8 +413,8 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка: услуга не обнаружена",
-          message:
-            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
         },
         HttpStatus.NOT_FOUND,
       );
@@ -391,8 +464,8 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка: услуга не обнаружена",
-          message:
-            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
         },
         HttpStatus.NOT_FOUND,
       );

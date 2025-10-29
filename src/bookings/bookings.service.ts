@@ -140,8 +140,6 @@ export class BookingsService {
     return customer.customerId;
   }
 
-  // userLocationId - ПЕРЕДАЕТСЯ НЕ ТОТ ID
-  // НАДО БРАТЬ ID ИЗ SCHEDULE - USER_LOCATION_ID
   private async validateCustomerWorked(
     date: string,
     userLocationId: string,
