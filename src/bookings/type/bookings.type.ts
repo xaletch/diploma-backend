@@ -7,6 +7,7 @@ export type IBookings = {
   status: BookingStatus;
   start_time: string;
   end_time: string;
+  date: string;
   comment: string | null;
   customer: IBookingCustomer;
   employee: IBookingEmployee;

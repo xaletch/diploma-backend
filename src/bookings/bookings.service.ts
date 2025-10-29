@@ -140,6 +140,8 @@ export class BookingsService {
     return customer.customerId;
   }
 
+  // userLocationId - ПЕРЕДАЕТСЯ НЕ ТОТ ID
+  // НАДО БРАТЬ ID ИЗ SCHEDULE - USER_LOCATION_ID
   private async validateCustomerWorked(
     date: string,
     userLocationId: string,
@@ -164,7 +166,7 @@ export class BookingsService {
         {
           status: HttpStatus.BAD_REQUEST,
           title: "Ошибка расписания",
-          detail: "Сотрудник не работает в указанный период времени",
+          detail: "Сотрудник не работает в указанный период времени.",
           meta: { employee_id: userLocationId },
         },
         HttpStatus.BAD_REQUEST,
@@ -280,6 +282,7 @@ export class BookingsService {
         status: true,
         startTime: true,
         endTime: true,
+        date: true,
         comment: true,
         customer: {
           select: { id: true, firstName: true, lastName: true, phone: true },
@@ -302,6 +305,7 @@ export class BookingsService {
       status: booking.status,
       start_time: booking.startTime,
       end_time: booking.endTime,
+      date: booking.date,
       comment: booking.comment,
       customer: {
         id: booking.customer.id,

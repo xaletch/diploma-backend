@@ -4,6 +4,7 @@ import { ServiceCreateDto } from "./dto/service.dto";
 import { IService, IServices } from "./types/service.type";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
 import { AddedUsersDto } from "./dto/added-users.dto";
+import { AddedLocationsDto } from "./dto/added-locations.dto";
 
 @Injectable()
 export class ServicesService {
@@ -368,6 +369,62 @@ export class ServicesService {
       this.prismaService.userService.deleteMany({ where: { serviceId } }),
       this.prismaService.userService.createMany({
         data: userIds.map((userId) => ({ userId, serviceId: service.id })),
+      }),
+    ]);
+
+    return { success: true };
+  }
+
+  async addedLocations(
+    dto: AddedLocationsDto,
+    serviceId: string,
+    companyId: string,
+  ): Promise<{ success: boolean }> {
+    const { location_ids: locationIds } = dto;
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          message:
+            "Запрошенная услуга не были найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const locations = await this.prismaService.location.findMany({
+      where: { id: { in: locationIds }, companyId },
+      select: { id: true },
+    });
+
+    const existingLocationIds = locations.map((u) => u.id);
+    const invalidIds = locationIds.filter(
+      (id) => !existingLocationIds.includes(id),
+    );
+
+    if (invalidIds.length > 0) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка: некоторые локации не найдены",
+          detail: `Локации с id ${invalidIds.join(", ")} не существуют.`,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.prismaService.$transaction([
+      this.prismaService.locationService.deleteMany({ where: { serviceId } }),
+      this.prismaService.locationService.createMany({
+        data: locationIds.map((locationId) => ({
+          locationId,
+          serviceId: service.id,
+        })),
       }),
     ]);
 
