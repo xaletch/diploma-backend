@@ -181,11 +181,13 @@ export class BookingsService {
     date: string,
     end_time: string,
     start_time: string,
+    booking_id: string = "",
   ): Promise<boolean> {
     const isOverlapping = await this.prismaService.booking.findFirst({
       where: {
         employeeId,
         date,
+        id: { not: booking_id },
         startTime: { lt: end_time },
         endTime: { gt: start_time },
       },
@@ -367,11 +369,6 @@ export class BookingsService {
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
     const customerId = await this.validateEmployee(dto.customer_id, company_id);
-
-    /// NOTE
-    // ПЕРЕПИСАТЬ ВАЛИДАЦИЮ - validateService
-    // ТЕКУЩАЯ ПРОБЛЕМА В ТОМ, ЧТО ЕСЛИ БУДЕМ ИЗМЕНЯТЬ БРОНИРОВАНИЕ УКАЗАВ ТОЧНО ТАКОЕ ЖЕ ВРЕМЯ
-    // ВАЛИДАЦИЯ СКАЖЕТ ЧТО ВРЕМЯ ПЕРЕСЕКАЕТСЯ С ДРУГОЙ БРОНЬЮ
     await this.validateService(
       dto.service_id,
       dto.date,
@@ -390,6 +387,7 @@ export class BookingsService {
       dto.date,
       dto.end_time,
       dto.start_time,
+      bookingId,
     );
 
     const booking = await this.prismaService.booking.update({
