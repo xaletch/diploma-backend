@@ -9,8 +9,8 @@ import { TokenService } from "./token/token.service";
 import { JwtService } from "@nestjs/jwt";
 import { RegisterDto } from "./dto/register.dto";
 import { JwtPayload } from "./jwt.payload";
-import { AuthPromise } from "./types/auth.type";
 import { LoginDto } from "./dto/login.dto";
+import { AuthResponseDto } from "./dto/auth-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,10 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly jwtService: JwtService,
   ) {}
-  async register(dto: RegisterDto, ipAddress: string): Promise<AuthPromise> {
+  async register(
+    dto: RegisterDto,
+    ipAddress: string,
+  ): Promise<AuthResponseDto> {
     const isExist = await this.userService.findByEmailOptional(dto.email);
 
     if (isExist)
@@ -37,7 +40,7 @@ export class AuthService {
     return { access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async login(dto: LoginDto, ipAddress: string): Promise<AuthPromise> {
+  async login(dto: LoginDto, ipAddress: string): Promise<AuthResponseDto> {
     const { passwordHash, id, email } = await this.userService.findByEmail(
       dto.email,
     );
