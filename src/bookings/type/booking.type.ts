@@ -1,10 +1,10 @@
-export type IBookingCustomer = {
+export type IBookingsCustomer = {
   id: string;
   phone: string;
   name: string;
 };
 
-export type IBookingEmployee = {
+export type IBookingsEmployee = {
   id: string;
   first_name: string;
   last_name: string | null;

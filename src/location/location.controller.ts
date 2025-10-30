@@ -66,14 +66,6 @@ export class LocationController {
     return this.locationService.update(dto, location_id);
   }
 
-  @Delete("location/:location_id")
-  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
-  @Scopes("location:delete")
-  @HttpCode(HttpStatus.OK)
-  delete(@Param("location_id") location_id: string) {
-    return this.locationService.delete(location_id);
-  }
-
   @Get("location/users/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:users")
@@ -91,5 +83,13 @@ export class LocationController {
     @Param("location_id") locationId: string,
   ) {
     return this.locationService.getFirstUser(userId, locationId);
+  }
+
+  @Delete("location/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("location:delete")
+  @HttpCode(HttpStatus.OK)
+  delete(@Param("location_id") location_id: string) {
+    return this.locationService.delete(location_id);
   }
 }

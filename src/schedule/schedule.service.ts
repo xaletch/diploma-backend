@@ -157,7 +157,7 @@ export class ScheduleService {
     userId: string,
     scheduleId: number,
     locationId: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<SuccessResponse> {
     if (!userId)
       throw new HttpException(
         {

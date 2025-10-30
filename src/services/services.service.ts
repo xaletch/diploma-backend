@@ -278,7 +278,7 @@ export class ServicesService {
     dto: ServiceUpdateDto,
     serviceId: string,
     companyId: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<SuccessResponse> {
     const service = await this.prismaService.service.findUnique({
       where: { id: serviceId },
     });
@@ -401,7 +401,7 @@ export class ServicesService {
     dto: AddedUsersDto,
     serviceId: string,
     companyId: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<SuccessResponse> {
     const { user_ids: userIds } = dto;
     const service = await this.prismaService.service.findFirst({
       where: { id: serviceId, companyId },
@@ -452,7 +452,7 @@ export class ServicesService {
     dto: AddedLocationsDto,
     serviceId: string,
     companyId: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<SuccessResponse> {
     const { location_ids: locationIds } = dto;
     const service = await this.prismaService.service.findFirst({
       where: { id: serviceId, companyId },

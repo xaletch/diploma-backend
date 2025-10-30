@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
+  Put,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -18,6 +21,8 @@ import { BookingCreateDto } from "./dto/booking-create.dto";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
+import { BookingStatusDto } from "./dto/booking-status.dto";
+import { BookingUpdateDto } from "./dto/booking-update.dto";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -40,5 +45,45 @@ export class BookingsController {
   getAll(@Param("location_id") locationId: string, @Req() req) {
     const userId = req.user.id;
     return this.bookingsService.getAll(userId, locationId);
+  }
+
+  @Get("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("booking-detail:read")
+  @HttpCode(HttpStatus.OK)
+  details(@Param("booking_id") bookingId: string) {
+    return this.bookingsService.details(bookingId);
+  }
+
+  @Patch("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("booking:update")
+  @HttpCode(HttpStatus.OK)
+  update(
+    @Body() dto: BookingUpdateDto,
+    @Param("booking_id") bookingId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.bookingsService.update(dto, bookingId, companyId);
+  }
+
+  @Put("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("booking:status")
+  @HttpCode(HttpStatus.OK)
+  statusUpdate(
+    @Body() dto: BookingStatusDto,
+    @Param("booking_id") bookingId: string,
+  ) {
+    return this.bookingsService.statusUpdate(dto, bookingId);
+  }
+
+  @Delete("booking/:booking_id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("booking:delete")
+  @HttpCode(HttpStatus.OK)
+  delete(@Param("booking_id") bookingId: string) {
+    return this.bookingsService.delete(bookingId);
   }
 }
