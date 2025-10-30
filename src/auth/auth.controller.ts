@@ -15,8 +15,16 @@ import { Response } from "express";
 import { IS_DEV_ENV, SAME_SITE } from "src/shared/utils/is-dev";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
-import { ApiTags } from "@nestjs/swagger/dist/decorators";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger/dist/decorators";
 import { AuthGuard } from "./guard/auth.guard";
+import { AuthResponseDto } from "./dto/auth-response.dto";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 
 @ApiTags("Authorization")
 @Controller()
@@ -24,12 +32,26 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("auth/register")
+  @ApiOperation({ summary: "Регистрация" })
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: AuthResponseDto,
+  })
   @HttpCode(HttpStatus.CREATED)
   register(@Body() dto: RegisterDto, @Ip() userIp) {
     return this.authService.register(dto, userIp);
   }
 
   @Post("auth/login")
+  @ApiOperation({ summary: "Авторизация" })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: AuthResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto, @Ip() userIp) {
     return this.authService.login(dto, userIp);
@@ -47,6 +69,13 @@ export class AuthController {
   // }
 
   @Post("auth/refresh")
+  @ApiOperation({ summary: "Refresh" })
+  @ApiBody({ type: RefreshRequestDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: RefreshRequestDto,
+  })
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() dto: RefreshRequestDto,
@@ -71,6 +100,13 @@ export class AuthController {
   }
 
   @Get("check/auth")
+  @ApiOperation({ summary: "Проверка авторизации" })
+  @ApiBearerAuth("Bearer")
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   checkAuth() {
