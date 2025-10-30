@@ -19,6 +19,7 @@ import { RedisModule } from "./redis/redis.module";
 import { CustomersModule } from './customers/customers.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { BookingsModule } from './bookings/bookings.module';
     CustomersModule,
     ScheduleModule,
     BookingsModule,
+    MinioModule,
   ],
   controllers: [AppController],
   providers: [AppService],
