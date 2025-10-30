@@ -153,6 +153,8 @@ model User {
   firstName     String        @map("first_name")
   lastName      String?       @map("last_name")
 
+  avatar        String?
+
   status        UserStatus    @default(invited)
   position      String?
   

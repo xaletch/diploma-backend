@@ -10,10 +10,16 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { UserCreateDto } from "./dto/user.dto";
 import { IUser, UserPrivate } from "./types/user.type";
 import { UserStatus } from "@prisma/client";
+import { BufferedFile } from "src/minio/file.model";
+import { MinioService } from "src/minio/minio.service";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 
 @Injectable()
 export class UserService {
-  public constructor(private readonly prismaService: PrismaService) {}
+  public constructor(
+    private readonly prismaService: PrismaService,
+    private readonly minioService: MinioService,
+  ) {}
 
   public async findById(id: string) {
     const user = await this.prismaService.user.findUnique({
@@ -24,6 +30,7 @@ export class UserService {
         phone: true,
         lastName: true,
         firstName: true,
+        avatar: true,
         role: { select: { id: true, name: true } },
         locations: true,
         company: {
@@ -85,6 +92,7 @@ export class UserService {
       first_name: user.firstName,
       last_name: user.lastName,
       name: `${user.firstName} ${user.lastName}`,
+      avatar: user.avatar,
       locations: locations,
       my_locations: user.locations,
       company: {
@@ -107,21 +115,23 @@ export class UserService {
   }
 
   public async findByIdOptional(userId: string) {
-    const isExist = await this.prismaService.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, avatar: true },
     });
 
-    if (!isExist)
+    if (!user)
       throw new HttpException(
         {
           title: "Ошибка",
           description: "Пользователь не найден",
-          detail: [`ID ${userId}`],
+          detail: `user_id ${userId}`,
           status: HttpStatus.NOT_FOUND,
         },
         HttpStatus.NOT_FOUND,
       );
+
+    return user;
   }
 
   public async findByEmailOptional(email: string): Promise<IUser | null> {
@@ -188,5 +198,26 @@ export class UserService {
     };
 
     return data;
+  }
+
+  async uploadAvatar(
+    image: BufferedFile,
+    userId: string,
+  ) {
+    const { avatar } = await this.findByIdOptional(userId);
+    const upload = await this.minioService.uploadFile(
+      "user-avatars",
+      image,
+      avatar ?? "",
+    );
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { avatar: upload },
+    });
+
+    const t = await this.minioService.getFileUrl("user-avatars", upload);
+
+    return { success: true, t };
   }
 }
