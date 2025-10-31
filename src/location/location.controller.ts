@@ -10,7 +10,9 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { LocationService } from "./location.service";
 import { LocationDto } from "./dto/location.dto";
@@ -23,6 +25,8 @@ import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Authorized } from "src/auth/decorators/authorized.decorator";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { BufferedFile } from "src/minio/file.model";
 
 @ApiTags("Локации")
 @Controller()
@@ -91,5 +95,16 @@ export class LocationController {
   @HttpCode(HttpStatus.OK)
   delete(@Param("location_id") location_id: string) {
     return this.locationService.delete(location_id);
+  }
+
+  @Post("location/avatar/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @UseInterceptors(FileInterceptor("file"))
+  @HttpCode(HttpStatus.OK)
+  upload(
+    @UploadedFile() file: BufferedFile,
+    @Param("location_id") locationId: string,
+  ) {
+    return this.locationService.uploadAvatar(file, locationId);
   }
 }

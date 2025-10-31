@@ -315,6 +315,7 @@ model Customer {
   email         String?       @unique
   phone         String        @unique
   birthday      String?
+  avatar        String?
 
   account       CustomerAccount?  @relation("account_customer")
   companies     CustomerCompany[] @relation("customer_company_customer")
@@ -369,6 +370,7 @@ model Location {
   phone         String
   comfort       String[]
   category      String[]
+  avatar        String?
 
   address       Address?      @relation("location_address")
 

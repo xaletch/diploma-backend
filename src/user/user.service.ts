@@ -44,21 +44,6 @@ export class UserService {
                 id: true,
                 name: true,
                 phone: true,
-                // users: {
-                //   select: {
-                //     id: true,
-                //     role: true,
-                //     user: {
-                //       select: {
-                //         id: true,
-                //         email: true,
-                //         status: true,
-                //         firstName: true,
-                //         lastName: true,
-                //       },
-                //     },
-                //   },
-                // },
                 address: { select: { country: true } },
               },
             },
@@ -203,7 +188,7 @@ export class UserService {
   async uploadAvatar(
     image: BufferedFile,
     userId: string,
-  ) {
+  ): Promise<GlobalSuccessDto> {
     const { avatar } = await this.findByIdOptional(userId);
     const upload = await this.minioService.uploadFile(
       "user-avatars",
@@ -215,9 +200,6 @@ export class UserService {
       where: { id: userId },
       data: { avatar: upload },
     });
-
-    const t = await this.minioService.getFileUrl("user-avatars", upload);
-
-    return { success: true, t };
+    return { success: true };
   }
 }

@@ -11,12 +11,18 @@ import { AddressService } from "src/address/address.service";
 import { LocationUpdateDto } from "./dto/location-update.dto";
 import { Prisma } from "@prisma/client";
 import { ILocationUser } from "./types/location-user.type";
+import { BufferedFile } from "src/minio/file.model";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
+import { MinioService } from "src/minio/minio.service";
+import { LocationsDto } from "./dto/locations.dto";
+import { LocationFirstDto } from "./dto/location-first.dto";
 
 @Injectable()
 export class LocationService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly addressService: AddressService,
+    private readonly minioService: MinioService,
   ) {}
 
   async create(dto: LocationDto, userId: string, companyId: string) {
@@ -132,7 +138,7 @@ export class LocationService {
     };
   }
 
-  async getOne(location_id: string) {
+  async getOne(location_id: string): Promise<LocationFirstDto> {
     if (!location_id) throw new BadRequestException("Выберите локацию");
 
     const location = await this.prismaService.location.findUnique({
@@ -140,6 +146,7 @@ export class LocationService {
       select: {
         id: true,
         name: true,
+        avatar: true,
         description: true,
         phone: true,
         users: true,
@@ -167,6 +174,7 @@ export class LocationService {
     return {
       id: location.id,
       name: location.name,
+      avatar: location.avatar,
       description: location.description,
       phone: location.phone,
       timezone: `${location.address?.timezone} (${location.address?.timezoneoffset})`,
@@ -197,7 +205,7 @@ export class LocationService {
     };
   }
 
-  async getAll(companyId: string) {
+  async getAll(companyId: string): Promise<LocationsDto[]> {
     if (!companyId) throw new BadRequestException("Выберите компанию");
 
     const locations = await this.prismaService.location.findMany({
@@ -205,6 +213,7 @@ export class LocationService {
       select: {
         id: true,
         name: true,
+        avatar: true,
         description: true,
         phone: true,
         category: true,
@@ -227,6 +236,7 @@ export class LocationService {
     const data = locations.map((location) => ({
       id: location.id,
       name: location.name,
+      avatar: location.avatar,
       description: location.description,
       phone: location.phone,
       category: location.category,
@@ -356,5 +366,23 @@ export class LocationService {
     };
 
     return res;
+  }
+
+  async uploadAvatar(
+    image: BufferedFile,
+    locationId: string,
+  ): Promise<GlobalSuccessDto> {
+    const { avatar } = await this.findById(locationId);
+    const upload = await this.minioService.uploadFile(
+      "location-avatars",
+      image,
+      avatar ?? "",
+    );
+
+    await this.prismaService.location.update({
+      where: { id: locationId },
+      data: { avatar: upload },
+    });
+    return { success: true };
   }
 }
