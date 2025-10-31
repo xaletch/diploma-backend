@@ -26,7 +26,7 @@ export class UserController {
   }
 
   @Authorization()
-  @Post("upload/:user_id")
+  @Post("user/avatar/:user_id")
   @UseInterceptors(FileInterceptor("file"))
   @HttpCode(HttpStatus.OK)
   upload(@UploadedFile() file: BufferedFile, @Param("user_id") userId: string) {
