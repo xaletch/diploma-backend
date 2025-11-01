@@ -32,7 +32,17 @@ export class UserService {
         firstName: true,
         avatar: true,
         role: { select: { id: true, name: true } },
-        locations: true,
+        locations: {
+          select: {
+            location: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        },
         company: {
           select: {
             id: true,
@@ -58,15 +68,11 @@ export class UserService {
 
     const company = user.company?.id ? user.company : null;
 
-    const locations =
-      company?.locations?.map((location) => ({
-        id: location.id,
-        name: location.name,
-        phone: location.phone,
-        company_name: company.name,
-        currency: company.currency,
-        country: location.address?.country,
-      })) ?? null;
+    const locationArr = user.locations.map((loc) => ({
+      id: loc.location.id,
+      name: loc.location.name,
+      avatar: loc.location.avatar,
+    }));
 
     return {
       id: user.id,
@@ -78,8 +84,7 @@ export class UserService {
       last_name: user.lastName,
       name: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,
-      locations: locations,
-      my_locations: user.locations,
+      locations: locationArr,
       company: {
         id: company?.id,
         name: company?.name,
