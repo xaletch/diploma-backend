@@ -42,7 +42,7 @@ export class CompanyController {
 
   @Post()
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Создать компанию" })
+  @ApiOperation({ summary: "Создание компании" })
   @ApiBody({ type: CreateCompanyDto })
   @ApiResponse({
     status: HttpStatus.CREATED,

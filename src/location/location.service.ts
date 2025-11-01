@@ -14,8 +14,6 @@ import { ILocationUser } from "./types/location-user.type";
 import { BufferedFile } from "src/minio/file.model";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { MinioService } from "src/minio/minio.service";
-import { LocationsDto } from "./dto/locations.dto";
-import { LocationFirstDto } from "./dto/location-first.dto";
 
 @Injectable()
 export class LocationService {
@@ -51,7 +49,7 @@ export class LocationService {
         },
       });
 
-      const address = await this.addressService.create(t, dto, location.id);
+      await this.addressService.create(t, dto, location.id);
 
       await t.userLocation.create({
         data: {
@@ -61,7 +59,7 @@ export class LocationService {
         },
       });
 
-      return { location, address };
+      return { location_id: location.id, name: location.name };
     });
 
     return location;
@@ -113,7 +111,7 @@ export class LocationService {
       data: { ...dto },
     });
 
-    return updated;
+    return { location_id: updated.id, name: updated.name };
   }
 
   async delete(location_id: string) {
@@ -138,7 +136,7 @@ export class LocationService {
     };
   }
 
-  async getOne(location_id: string): Promise<LocationFirstDto> {
+  async getOne(location_id: string) {
     if (!location_id) throw new BadRequestException("Выберите локацию");
 
     const location = await this.prismaService.location.findUnique({
@@ -205,7 +203,7 @@ export class LocationService {
     };
   }
 
-  async getAll(companyId: string): Promise<LocationsDto[]> {
+  async getAll(companyId: string) {
     if (!companyId) throw new BadRequestException("Выберите компанию");
 
     const locations = await this.prismaService.location.findMany({
@@ -283,6 +281,7 @@ export class LocationService {
                 firstName: true,
                 lastName: true,
                 email: true,
+                avatar: true,
                 role: true,
                 phone: true,
                 status: true,
@@ -306,6 +305,7 @@ export class LocationService {
         email: user.user.email,
         name: `${user.user.firstName} ${user.user.lastName}`,
         phone: user.user.phone,
+        avatar: user.user.avatar,
         status: user.user.status,
         position: user.user.position,
       },
