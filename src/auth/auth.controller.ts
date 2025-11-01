@@ -25,6 +25,7 @@ import {
 import { AuthGuard } from "./guard/auth.guard";
 import { AuthResponseDto } from "./dto/auth-response.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
+import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 
 @ApiTags("Authorization")
 @Controller()
@@ -56,17 +57,6 @@ export class AuthController {
   login(@Body() dto: LoginDto, @Ip() userIp) {
     return this.authService.login(dto, userIp);
   }
-
-  // old auth
-  // @Post("send-code")
-  // sendCode(@Body() dto: AuthPhoneDto) {
-  //   return this.authService.sendCode(dto);
-  // }
-
-  // @Post("verify-code")
-  // verifyCode(@Body() data: AuthVerifyDto, @Ip() userIp) {
-  //   return this.authService.verifyCode(data, userIp);
-  // }
 
   @Post("auth/refresh")
   @ApiOperation({ summary: "Refresh" })
@@ -100,12 +90,17 @@ export class AuthController {
   }
 
   @Get("check/auth")
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Проверка авторизации" })
-  @ApiBearerAuth("Bearer")
   @ApiResponse({
     status: HttpStatus.OK,
     description: "success",
     type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
   })
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)

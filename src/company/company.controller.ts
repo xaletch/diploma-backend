@@ -9,16 +9,28 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { CompanyService } from "./company.service";
-import { CreateCompanyDto } from "./dto/create.dto";
+import { CreateCompanyDto, CreateCompanyResponseDto } from "./dto/create.dto";
 import { Authorization } from "src/auth/decorators/auth.decorator";
 import { Authorized } from "src/auth/decorators/authorized.decorator";
 import { SpecializationService } from "./specialization.service";
-import { SpecializationDto } from "./dto/specialization/specialization.dto";
+import {
+  IndustryDto,
+  SpecializationDto,
+  SpecializationResponseDto,
+} from "./dto/specialization/specialization.dto";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { AuthGuard } from "src/auth/guard/auth.guard";
-import { ApiTags } from "@nestjs/swagger/dist/decorators";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExcludeEndpoint,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger/dist/decorators";
+import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 
 @ApiTags("Компании")
 @Controller("company")
@@ -29,6 +41,19 @@ export class CompanyController {
   ) {}
 
   @Post()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Создание компании" })
+  @ApiBody({ type: CreateCompanyDto })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "created",
+    type: CreateCompanyResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
   @Scopes("company:create")
   @HttpCode(HttpStatus.CREATED)
@@ -40,6 +65,7 @@ export class CompanyController {
   }
 
   // specializations
+  @ApiExcludeEndpoint(true)
   @Post("admin/specialization/create")
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
   @Scopes("programmer&developer:specialization_create")
@@ -49,6 +75,23 @@ export class CompanyController {
   }
 
   @Authorization()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Специализации" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: SpecializationResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+    type: NotFoundDto,
+  })
   @Get("specializations")
   @HttpCode(HttpStatus.OK)
   getProjectWorks() {
@@ -56,6 +99,24 @@ export class CompanyController {
   }
 
   @Authorization()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Индустрии специализации" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: IndustryDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+    type: NotFoundDto,
+  })
   @Get("industry/:specialization_id")
   @HttpCode(HttpStatus.OK)
   getWorkSpecializations(@Param("specialization_id") specializationId: number) {

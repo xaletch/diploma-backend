@@ -56,9 +56,6 @@ export class CompanyService {
           id: true,
           name: true,
           currency: true,
-          users: {
-            select: { id: true, phone: true, email: true },
-          },
         },
       });
 
@@ -79,7 +76,7 @@ export class CompanyService {
       return company;
     });
 
-    return { company };
+    return company;
   }
 
   async findById(id: string) {
