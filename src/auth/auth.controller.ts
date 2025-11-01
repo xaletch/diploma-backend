@@ -90,8 +90,8 @@ export class AuthController {
   }
 
   @Get("check/auth")
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Проверка авторизации" })
-  @ApiBearerAuth("Bearer")
   @ApiResponse({
     status: HttpStatus.OK,
     description: "success",

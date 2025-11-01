@@ -16,3 +16,26 @@ export class UnAuthorizedDto {
   @IsNumber()
   status: number;
 }
+
+export class NotFoundDto {
+  @ApiProperty({
+    example: 404,
+    description: "Error status",
+  })
+  @IsNumber()
+  status: number;
+
+  @ApiProperty({
+    example: "Not Found",
+    description: "Error title",
+  })
+  @IsString()
+  title: string;
+
+  @ApiProperty({
+    example: "Not Found Detail",
+    description: "Error message",
+  })
+  @IsString()
+  detail: string;
+}
