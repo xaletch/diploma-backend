@@ -1,7 +1,7 @@
 import {
-  ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { UserService } from "src/user/user.service";
@@ -26,7 +26,14 @@ export class AuthService {
     const isExist = await this.userService.findByEmailOptional(dto.email);
 
     if (isExist)
-      throw new ConflictException("Пользователь уже зарегистрирован");
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Ошибка регистрации",
+          detail: "Пользователь с таким email уже зарегистрирован",
+        },
+        HttpStatus.CONFLICT,
+      );
 
     const user = await this.userService.create({ ...dto }, "active");
     const payload = { sub: user.id, email: user.email } satisfies JwtPayload;
@@ -41,20 +48,27 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, ipAddress: string): Promise<AuthResponseDto> {
-    const { passwordHash, id, email } = await this.userService.findByEmail(
-      dto.email,
-    );
+    const user = await this.userService.findByEmail(dto.email);
 
-    if (!passwordHash) throw new NotFoundException("Не зарегистрирован");
+    const fakeHash: string = "$2b$08$Bgv6lWc0qHRKX32jclWsMbG3.6g2O";
+    const passHashCheck = user ? user.passwordHash : fakeHash;
 
     const isValidate = await this.userService.comparePassword(
       dto.password,
-      passwordHash,
+      passHashCheck,
     );
 
-    if (!isValidate) throw new NotFoundException("Неверный логин или пароль");
+    if (!user || !isValidate)
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          title: "Ошибка авторизации",
+          detail: "Неверный логин или пароль",
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
 
-    const payload = { sub: id, email } satisfies JwtPayload;
+    const payload = { sub: user.id, email: user.email } satisfies JwtPayload;
     const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
     const refreshToken = await this.tokenService.createRefreshToken({
       userId: payload.sub,

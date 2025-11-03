@@ -96,10 +96,8 @@ export class UserService {
     // return user;
   }
 
-  public async findByEmail(email: string): Promise<IUser> {
+  public async findByEmail(email: string): Promise<IUser | null> {
     const user = await this.prismaService.user.findUnique({ where: { email } });
-
-    if (!user) throw new NotFoundException("Аккаунт не найден");
 
     return user;
   }
@@ -154,8 +152,9 @@ export class UserService {
 
   public async comparePassword(
     password: string,
-    hash: string,
+    hash: string | null,
   ): Promise<boolean> {
+    if (!hash) return false;
     return bcrypt.compare(password, hash);
   }
 

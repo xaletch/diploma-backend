@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
@@ -23,11 +28,37 @@ export class TokenService {
       });
       const currentDate = new Date();
 
-      if (!token) throw new Error("Токен не найден");
-      if (token?.expiresAt < currentDate)
-        throw new Error("Срок действия токена истек");
+      if (!token)
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            title: "Ошибка обновления токена",
+            detail: "Refresh token не найден или недействителен",
+          },
+          HttpStatus.NOT_FOUND,
+        );
 
-      if (token.ipAddress !== ipAddress) throw new Error("IP не совпадает");
+      if (token?.expiresAt < currentDate)
+        throw new HttpException(
+          {
+            status: HttpStatus.UNAUTHORIZED,
+            title: "Ошибка обновления токена",
+            detail:
+              "Срок действия refresh token истек. Необходимо повторно войти в систему",
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+
+      if (token.ipAddress !== ipAddress)
+        throw new HttpException(
+          {
+            status: HttpStatus.FORBIDDEN,
+            title: "Подозрительная активность",
+            detail:
+              "Обновление токена с другого устройства. Необходимо повторно войти в систему",
+          },
+          HttpStatus.FORBIDDEN,
+        );
 
       const oldPayload = await this.validateToken(old_token, true);
       const payload: JwtPayload = {

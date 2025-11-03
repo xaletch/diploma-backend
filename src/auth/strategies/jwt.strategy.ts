@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { TokenService } from "../token/token.service";
@@ -24,9 +24,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(req: any, payload: JwtPayload) {
     const result = await this.tokenService.validatePayload(payload);
     req.user = result;
-    if (!result) {
-      throw new UnauthorizedException();
-    }
+    if (!result)
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          title: "Сессия истекла",
+          detail: "Срок вашей сессии истек. Пожалуйста, войдите снова",
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     return result;
   }
 }
