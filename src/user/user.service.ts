@@ -66,7 +66,15 @@ export class UserService {
 
     if (!user) throw new Error("Пользователь не найден");
 
-    const company = user.company?.id ? user.company : null;
+    const company = user.company?.id
+      ? {
+          id: user.company?.id,
+          name: user.company?.name,
+          currency: user.company?.currency,
+          industry: user.company?.industry,
+          specialization: user.company?.specialization.name,
+        }
+      : null;
 
     const locationArr = user.locations.map((loc) => ({
       id: loc.location.id,
@@ -84,14 +92,8 @@ export class UserService {
       last_name: user.lastName,
       name: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,
-      locations: locationArr,
-      company: {
-        id: company?.id,
-        name: company?.name,
-        currency: company?.currency,
-        industry: company?.industry,
-        specialization: company?.specialization.name,
-      },
+      locations: locationArr.length ? locationArr : null,
+      company: company,
     };
     // return user;
   }
