@@ -51,7 +51,7 @@ const main = async () => {
 
     console.log("🚀 Database has been seeded.");
   } catch (err) {
-    throw new Error(err);
+    throw new Error(err instanceof Error ? err.message : String(err));
   }
 };
 
