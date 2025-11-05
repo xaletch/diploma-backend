@@ -255,7 +255,7 @@ model Industry {
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
-  @@map("Industry")
+  @@map("industry")
 }
 
 model Company {
