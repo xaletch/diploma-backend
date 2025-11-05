@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { permissions } from "./data/permission.data";
-import { specializations } from "./data/specializations.data";
+import { permissions } from "./arr/permission.data";
+import { specializations } from "./arr/specializations.data";
 
 const prisma = new PrismaClient();
 
