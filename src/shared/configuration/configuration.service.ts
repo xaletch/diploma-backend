@@ -37,6 +37,8 @@ export class ConfigurationService {
   get JWT() {
     return {
       Key: process.env.JWT_ACCESS_SECRET || "DEMO_SECRET",
+      CustomerKey:
+        process.env.JWT_ACCESS_CUSTOMER_SECRET || "DEMO_CUSTOMER_SECRET",
       AccessTokenTtl: parseInt(process.env.ACCESS_TOKEN_TTL || "3600", 10),
       RefreshTokenTtl: parseInt(process.env.REFRESH_TOKEN_TTL || "30", 10),
     };
