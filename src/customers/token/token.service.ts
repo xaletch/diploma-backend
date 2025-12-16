@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
-import { JwtPayload } from "../types/jwt.payload";
+import { type CustomerJwtPayload } from "../types/jwt.payload";
 
 @Injectable()
-export class TokenService {
+export class CustomerTokenService {
   public constructor(
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
@@ -18,7 +18,7 @@ export class TokenService {
     ipAddress: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     try {
-      const token = await this.prismaService.session.findFirst({
+      const token = await this.prismaService.customerSession.findFirst({
         where: { token: refresh_token },
       });
       const currentDate = new Date();
@@ -30,13 +30,15 @@ export class TokenService {
       if (token.ipAddress !== ipAddress) throw new Error("IP не совпадает");
 
       const oldPayload = await this.validateToken(old_token, true);
-      const payload: JwtPayload = {
+      const payload: CustomerJwtPayload = {
         sub: oldPayload.sub,
         phone: oldPayload.phone,
       };
 
       const accessToken = await this.createAccessToken(payload);
-      await this.prismaService.session.delete({ where: { id: token.id } });
+      await this.prismaService.customerSession.delete({
+        where: { id: token.id },
+      });
       const newRefreshToken = await this.createRefreshToken({
         customerId: oldPayload.sub,
         ipAddress,
@@ -73,22 +75,24 @@ export class TokenService {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  private async createAccessToken(payload: JwtPayload): Promise<string> {
+  private async createAccessToken(
+    payload: CustomerJwtPayload,
+  ): Promise<string> {
     return this.jwtService.sign(payload, { expiresIn: "1h" });
   }
 
   private async validateToken(
     token: string,
     ignoreExpiration = false,
-  ): Promise<JwtPayload> {
+  ): Promise<CustomerJwtPayload> {
     return this.jwtService.verify(token, {
-      secret: process.env.JWT_ACCESS_SECRET,
+      secret: process.env.JWT_ACCESS_CUSTOMER_SECRET,
       ignoreExpiration,
     });
   }
 
   async validatePayload(
-    payload: JwtPayload,
+    payload: CustomerJwtPayload,
   ): Promise<{ id: string; phone: string } | null> {
     const user = await this.prismaService.customerAccount.findUnique({
       where: { id: payload.sub },

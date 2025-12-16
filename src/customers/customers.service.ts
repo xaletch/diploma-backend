@@ -4,14 +4,19 @@ import { SendCodeDto } from "./dto/send-code.dto";
 import { RedisService } from "src/redis/redis.service";
 import { VerifyCodeDto } from "./dto/verify.dto";
 import { CustomerCompanyDto } from "./dto/customer-company.dto";
+import { CustomerJwtPayload } from "./types/jwt.payload";
+import { CustomerTokenService } from "./token/token.service";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class CustomersService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly tokenService: CustomerTokenService,
+    private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
   ) {}
-  // ВСЕ ЧТО НАХОДИТСЯ СНИЗУ БУДЕТ УДАЛЕНО И НАПИСАНО В ОТДЕЛЬНОМ СЕРВИСЕ
+  // ВСЕ ЧТО НАХОДИТСЯ СНИЗУ БУДЕТ УДАЛЕНО И НАПИСАНО В ОТДЕЛЬНОМ СЕРВИСЕ (НЕТ)
   async firstByAccount(phone: string) {
     const customer = await this.prismaService.customerAccount.findUnique({
       where: { phone },
@@ -96,19 +101,19 @@ export class CustomersService {
     });
     await this.redisService.del(`auth:code:${phone}`);
 
-    // const payload = {
-    //   sub: customerId,
-    //   phone: customerPhone,
-    // } satisfies JwtPayload;
+    const payload = {
+      sub: customerId,
+      phone: customerPhone,
+    } satisfies CustomerJwtPayload;
 
-    // const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
-    // const refreshToken = await this.tokenService.createRefreshToken({
-    //   customerId,
-    //   ipAddress,
-    // });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
+    const refreshToken = await this.tokenService.createRefreshToken({
+      customerId,
+      ipAddress,
+    });
 
-    // return { access_token: accessToken, refresh_token: refreshToken };
-    return { success: true, ipAddress, customerPhone };
+    return { access_token: accessToken, refresh_token: refreshToken };
+    // return { success: true, ipAddress, customerPhone };
   }
 
   //                                            ### NOTE ###
@@ -135,5 +140,38 @@ export class CustomersService {
     });
 
     return create;
+  }
+
+  async getMe(id: string) {
+    const account = await this.prismaService.customerAccount.findUnique({
+      where: { id },
+      select: {
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            birthday: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    if (!account) throw new Error("Аккаунт не найден");
+
+    const customer = {
+      id: account.customer.id,
+      avatar: account.customer.avatar,
+      first_name: account.customer.firstName,
+      last_name: account.customer.lastName,
+      email: account.customer.email,
+      phone: account.customer.phone,
+      birthday: account.customer.birthday,
+    };
+
+    return customer;
   }
 }

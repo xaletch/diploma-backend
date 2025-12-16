@@ -6,7 +6,7 @@ import { JwtPayload } from "../jwt.payload";
 import { ConfigurationService } from "src/shared/configuration/configuration.service";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, "jwt_app") {
   constructor(
     private readonly tokenService: TokenService,
     configurationService: ConfigurationService,
