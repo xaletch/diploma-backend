@@ -113,7 +113,6 @@ export class CustomersService {
     });
 
     return { access_token: accessToken, refresh_token: refreshToken };
-    // return { success: true, ipAddress, customerPhone };
   }
 
   //                                            ### NOTE ###
@@ -135,11 +134,35 @@ export class CustomersService {
         HttpStatus.NOT_FOUND,
       );
 
-    const create = await this.prismaService.customerCompany.create({
-      data: { companyId, customerId: customer.id },
+    const findCustomer = await this.prismaService.customerCompany.findUnique({
+      where: { customerId_companyId: { companyId, customerId: customer.id } },
     });
 
-    return create;
+    if (findCustomer) {
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Ошибка клиента",
+          detail: "Указанный клиент уже существует в системе",
+          meta: { customer_id: dto.customer_id },
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const create = await this.prismaService.customerCompany.create({
+      data: {
+        companyId,
+        customerId: customer.id,
+        note: dto.note,
+        isBanned: dto.is_banned,
+      },
+    });
+
+    return {
+      success: true,
+      customer_id: create.customerId,
+    };
   }
 
   async getMe(id: string) {
