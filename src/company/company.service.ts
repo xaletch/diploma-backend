@@ -47,6 +47,7 @@ export class CompanyService {
       const company = await t.company.create({
         data: {
           name: dto.name,
+          publicName: dto.public_name,
           currency: dto.currency,
           specialization: { connect: { id: dto.specialization } },
           industry: { connect: { id: dto.industry } },
