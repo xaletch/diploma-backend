@@ -23,6 +23,9 @@ import { LocationGuard } from "src/access/guard/location.guard";
 import { ApiTags } from "@nestjs/swagger/dist/decorators";
 import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
+import { AuthCustomerGuard } from "src/customers/guard/auth.guard";
+import { AuthorizedCustomer } from "src/customers/decorators/authorized.decorator";
+import { ICustomer } from "src/customers/types/customer.type";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -38,7 +41,7 @@ export class BookingsController {
     return this.bookingsService.create(dto, companyId);
   }
 
-  @Get("bookings/:location_id")
+  @Get("bookings/location/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("bookings:read")
   @HttpCode(HttpStatus.OK)
@@ -85,5 +88,13 @@ export class BookingsController {
   @HttpCode(HttpStatus.OK)
   delete(@Param("booking_id") bookingId: string) {
     return this.bookingsService.delete(bookingId);
+  }
+
+  @Get("bookings/me")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthCustomerGuard)
+  // @Scopes("bookings-client-me:read")
+  getMyBookings(@AuthorizedCustomer() customer: ICustomer) {
+    return this.bookingsService.getMeBookings(customer.id);
   }
 }

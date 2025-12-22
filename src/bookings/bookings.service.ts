@@ -513,4 +513,102 @@ export class BookingsService {
 
     return res;
   }
+
+  async getMeBookings(customerId: string) {
+    const customer = await this.prismaService.customerAccount.findUnique({
+      where: { id: customerId },
+      select: { customerId: true },
+    });
+
+    if (!customer)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Клиент не найден.",
+          meta: { customer_id: customer },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const bookings = await this.prismaService.booking.findMany({
+      where: { customerId: customer.customerId },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        date: true,
+        employee: {
+          select: {
+            id: true,
+            phone: true,
+            avatar: true,
+            firstName: true,
+            lastName: true,
+            position: true,
+          },
+        },
+        location: {
+          select: {
+            name: true,
+            id: true,
+            avatar: true,
+            address: {
+              select: {
+                street: true,
+                city: true,
+                house: true,
+                country: true,
+              },
+            },
+          },
+        },
+        service: {
+          select: {
+            name: true,
+            publicName: true,
+            mark: true,
+            duration: true,
+            category: true,
+          },
+        },
+        order: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const res = bookings.map((booking) => ({
+      id: booking.id,
+      name: booking.name,
+      status: booking.status,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      date: booking.date,
+      employee: {
+        id: booking.employee.id,
+        first_name: booking.employee.firstName,
+        last_name: booking.employee.lastName,
+        phone: booking.employee.phone,
+        avatar: booking.employee.avatar,
+        position: booking.employee.position,
+      },
+      location: {
+        id: booking.location.id,
+        name: booking.location.name,
+        avatar: booking.location.avatar,
+        address: booking.location.address,
+      },
+      service: {
+        name: booking.service.name,
+        public_name: booking.service.publicName,
+        mark: booking.service.mark,
+        duration: booking.service.duration,
+        category: booking.service.category || null,
+      },
+    }));
+
+    return res;
+  }
 }
