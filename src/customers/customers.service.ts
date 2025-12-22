@@ -39,7 +39,6 @@ export class CustomersService {
     const { phone } = dto;
     const account = await this.prismaService.customerAccount.findUnique({
       where: { phone },
-      include: { customer: true },
     });
 
     let customerPhone = account?.phone || null;
@@ -131,24 +130,53 @@ export class CustomersService {
 
     ** ПОСЛЕ КАК КЛИЕНТ ЗАХОЧЕ ПОСМОТРЕТЬ СВОИ ЗАПИСИ ИЛИ ЗАПИСАТЬ САМОСТОЯТЕЛЬНО, ВОЙДЯ В АККАУНТ ВСЯ ИСТОРИЯ ЗАКАЗОВ БУДЕТ У НЕГО НА РУКАХ
   **/
-  async createForCompany(dto: CustomerCompanyDto, companyId: string) {
-    const customer = await this.prismaService.customer.findUnique({
-      where: { id: dto.customer_id },
-    });
+  async checkCreateCustomerForCompany(phone: string): Promise<string> {
+    try {
+      const customer = await this.prismaService.customer.findUnique({
+        where: { phone },
+        select: { id: true },
+      });
 
-    if (!customer)
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          title: "Ошибка клиента",
-          detail: "Указанный клиент не найден",
-          meta: { customer_id: dto.customer_id },
+      if (customer) {
+        return customer.id;
+      }
+
+      const createCustomer = await this.prismaService.$transaction(
+        async (t) => {
+          const customer = await t.customer.create({
+            data: { phone },
+            select: { id: true },
+          });
+          await t.customerAccount.create({
+            data: {
+              phone: phone,
+              customerId: customer.id,
+            },
+          });
+
+          return customer.id;
         },
-        HttpStatus.NOT_FOUND,
       );
 
+      return createCustomer;
+    } catch (err) {
+      if (err.code === "P2002") {
+        const customer = await this.prismaService.customer.findUnique({
+          where: { phone },
+          select: { id: true },
+        });
+
+        return customer!.id;
+      }
+      throw err;
+    }
+  }
+
+  async createForCompany(dto: CustomerCompanyDto, companyId: string) {
+    const customerId = await this.checkCreateCustomerForCompany(dto.phone);
+
     const findCustomer = await this.prismaService.customerCompany.findUnique({
-      where: { customerId_companyId: { companyId, customerId: customer.id } },
+      where: { customerId_companyId: { companyId, customerId } },
     });
 
     if (findCustomer) {
@@ -157,7 +185,7 @@ export class CustomersService {
           status: HttpStatus.CONFLICT,
           title: "Ошибка клиента",
           detail: "Указанный клиент уже существует в системе",
-          meta: { customer_id: dto.customer_id },
+          meta: { customer_id: customerId },
         },
         HttpStatus.CONFLICT,
       );
@@ -166,16 +194,14 @@ export class CustomersService {
     const create = await this.prismaService.customerCompany.create({
       data: {
         companyId,
-        customerId: customer.id,
+        customerId,
         note: dto.note,
         isBanned: dto.is_banned,
       },
+      select: { id: true, isBanned: true, note: true },
     });
 
-    return {
-      success: true,
-      customer_id: create.customerId,
-    };
+    return { success: true, create };
   }
 
   async getMe(id: string) {
