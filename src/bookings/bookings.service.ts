@@ -120,13 +120,17 @@ export class BookingsService {
     return true;
   }
 
-  private async validateEmployee(
-    id: string,
-    companyId: string,
-  ): Promise<string> {
-    const customer = await this.prismaService.customerCompany.findUnique({
-      where: { id, companyId },
-      select: { id: true, customerId: true },
+  private async validateEmployee(id: string): Promise<string> {
+    // const customer = await this.prismaService.customerCompany.findUnique({
+    //   where: { id, companyId },
+    //   select: { id: true, customerId: true },
+    // });
+    /** 
+      ТЕПЕРЬ ПРОВЕРЯЕМ КЛИЕНТА НЕ В CUSTOMER_COMPANY А НА ПРЯМУЮ В CUSTOMER
+    **/
+    const customer = await this.prismaService.customer.findUnique({
+      where: { id },
+      select: { id: true },
     });
 
     if (!customer)
@@ -140,7 +144,7 @@ export class BookingsService {
         HttpStatus.NOT_FOUND,
       );
 
-    return customer.customerId;
+    return customer.id;
   }
 
   private async validateCustomerWorked(
@@ -218,7 +222,7 @@ export class BookingsService {
       dto.location_id,
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
-    const customerId = await this.validateEmployee(dto.customer_id, company_id);
+    const customerId = await this.validateEmployee(dto.customer_id);
     await this.validateService(
       dto.service_id,
       dto.date,
@@ -368,7 +372,7 @@ export class BookingsService {
       dto.location_id,
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
-    const customerId = await this.validateEmployee(dto.customer_id, company_id);
+    const customerId = await this.validateEmployee(dto.customer_id);
     await this.validateService(
       dto.service_id,
       dto.date,
