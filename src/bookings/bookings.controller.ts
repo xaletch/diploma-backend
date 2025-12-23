@@ -26,6 +26,7 @@ import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { AuthCustomerGuard } from "src/customers/guard/auth.guard";
 import { AuthorizedCustomer } from "src/customers/decorators/authorized.decorator";
 import { ICustomer } from "src/customers/types/customer.type";
+import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -96,5 +97,16 @@ export class BookingsController {
   // @Scopes("bookings-client-me:read")
   getMyBookings(@AuthorizedCustomer() customer: ICustomer) {
     return this.bookingsService.getMeBookings(customer.id);
+  }
+
+  @Post("booking/client")
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthCustomerGuard)
+  // @Scopes("bookings-client-me:create")
+  createCustomerBooking(
+    @Body() dto: BookingCreateCustomerDto,
+    @AuthorizedCustomer() customer: ICustomer,
+  ) {
+    return this.bookingsService.createCustomerBooking(dto, customer.id);
   }
 }

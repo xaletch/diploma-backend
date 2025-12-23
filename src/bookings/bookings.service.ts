@@ -6,6 +6,7 @@ import { BookingCreate } from "./type/booking-create.type";
 import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingById } from "./type/booking-by-id.type";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
+import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
 
 @Injectable()
 export class BookingsService {
@@ -120,7 +121,7 @@ export class BookingsService {
     return true;
   }
 
-  private async validateEmployee(id: string): Promise<string> {
+  private async validateCustomer(id: string): Promise<string> {
     // const customer = await this.prismaService.customerCompany.findUnique({
     //   where: { id, companyId },
     //   select: { id: true, customerId: true },
@@ -212,54 +213,89 @@ export class BookingsService {
     return true;
   }
 
+  private async validateCustomerOverlapping(
+    customerId: string,
+    date: string,
+    start_time: string,
+    end_time: string,
+  ) {
+    const overlap = await this.prismaService.booking.findFirst({
+      where: {
+        customerId,
+        date,
+        startTime: { lt: end_time },
+        endTime: { gt: start_time },
+      },
+    });
+
+    if (overlap)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка бронирования",
+          detail: "Услуга уже забронирована другим пользователем",
+          meta: { customer_id: customerId },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+  }
+
   async create(
     dto: BookingCreateDto,
     company_id: string,
   ): Promise<BookingCreate> {
-    await this.validateLocation(dto.location_id, dto.service_id);
-    const locationId = await this.validateEmployeeLocation(
-      dto.employee_id,
-      dto.location_id,
-    );
-    await this.validateEmployeeService(dto.employee_id, dto.service_id);
-    const customerId = await this.validateEmployee(dto.customer_id);
-    await this.validateService(
-      dto.service_id,
-      dto.date,
-      dto.start_time,
-      dto.end_time,
-      company_id,
-    );
-    await this.validateCustomerWorked(
-      dto.date,
-      locationId,
-      dto.start_time,
-      dto.end_time,
-    );
-    await this.validateOverlapping(
-      dto.employee_id,
-      dto.date,
-      dto.end_time,
-      dto.start_time,
-    );
+    return this.prismaService.$transaction(async (t) => {
+      await this.validateLocation(dto.location_id, dto.service_id);
+      const locationId = await this.validateEmployeeLocation(
+        dto.employee_id,
+        dto.location_id,
+      );
+      await this.validateEmployeeService(dto.employee_id, dto.service_id);
+      const customerId = await this.validateCustomer(dto.customer_id);
+      await this.validateService(
+        dto.service_id,
+        dto.date,
+        dto.start_time,
+        dto.end_time,
+        company_id,
+      );
+      await this.validateCustomerWorked(
+        dto.date,
+        locationId,
+        dto.start_time,
+        dto.end_time,
+      );
+      await this.validateOverlapping(
+        dto.employee_id,
+        dto.date,
+        dto.end_time,
+        dto.start_time,
+      );
+      await this.validateCustomerOverlapping(
+        customerId,
+        dto.date,
+        dto.start_time,
+        dto.end_time,
+      );
 
-    const booking = await this.prismaService.booking.create({
-      data: {
-        name: dto.name,
-        date: dto.date,
-        startTime: dto.start_time,
-        endTime: dto.end_time,
-        comment: dto.comment,
-        status: dto.status,
-        employeeId: dto.employee_id,
-        customerId: customerId,
-        serviceId: dto.service_id,
-        locationId: dto.location_id,
-      },
-      select: { id: true, name: true, status: true },
+      const booking = await t.booking.create({
+        data: {
+          name: dto.name,
+          date: dto.date,
+          startTime: dto.start_time,
+          endTime: dto.end_time,
+          comment: dto.comment,
+          status: dto.status,
+          employeeId: dto.employee_id,
+          customerId: customerId,
+          serviceId: dto.service_id,
+          locationId: dto.location_id,
+        },
+        select: { id: true, name: true, status: true },
+      });
+
+      return booking;
     });
-
-    return booking;
   }
 
   async getAll(userId: string, locationId: string): Promise<IBookings[]> {
@@ -372,7 +408,7 @@ export class BookingsService {
       dto.location_id,
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
-    const customerId = await this.validateEmployee(dto.customer_id);
+    const customerId = await this.validateCustomer(dto.customer_id);
     await this.validateService(
       dto.service_id,
       dto.date,
@@ -608,6 +644,60 @@ export class BookingsService {
         category: booking.service.category || null,
       },
     }));
+
+    return res;
+  }
+
+  async createCustomerBooking(
+    dto: BookingCreateCustomerDto,
+    customerId: string,
+  ) {
+    const company = await this.prismaService.company.findUnique({
+      where: { publicName: dto.company },
+      select: { id: true },
+    });
+
+    if (!company)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Компания не найдена.",
+          meta: { public_name: dto.company },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const customer = await this.prismaService.customerAccount.findUnique({
+      where: { id: customerId },
+      select: { customerId: true },
+    });
+
+    if (!customer)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Клиент не найден.",
+          meta: { customer_id: customer },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const createDto = {
+      name: dto.name,
+      start_time: dto.start_time,
+      end_time: dto.end_time,
+      date: dto.date,
+      comment: dto.comment,
+      location_id: dto.location_id,
+      service_id: dto.service_id,
+      employee_id: dto.employee_id,
+      customer_id: customer?.customerId,
+      status: dto.status,
+    } satisfies BookingCreateDto;
+
+    const res = this.create(createDto, company.id);
 
     return res;
   }
