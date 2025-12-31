@@ -7,10 +7,14 @@ import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingById } from "./type/booking-by-id.type";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
+import { OrdersService } from "src/orders/orders.service";
 
 @Injectable()
 export class BookingsService {
-  public constructor(private readonly prismaService: PrismaService) {}
+  public constructor(
+    private readonly prismaService: PrismaService,
+    private readonly orderService: OrdersService,
+  ) {}
 
   private getDayShort(dayIndex: number): string {
     const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -127,7 +131,7 @@ export class BookingsService {
     //   select: { id: true, customerId: true },
     // });
     /** 
-      ТЕПЕРЬ ПРОВЕРЯЕМ КЛИЕНТА НЕ В CUSTOMER_COMPANY А НА ПРЯМУЮ В CUSTOMER
+      ТЕПЕРЬ ПРОВЕРЯЕМ КЛИЕНТА НЕ В CUSTOMER_COMPANY А НАПРЯМУЮ В CUSTOMER
     **/
     const customer = await this.prismaService.customer.findUnique({
       where: { id },
@@ -240,10 +244,7 @@ export class BookingsService {
       );
   }
 
-  async create(
-    dto: BookingCreateDto,
-    company_id: string,
-  ): Promise<BookingCreate> {
+  async create(dto: BookingCreateDto, company_id: string) {
     return this.prismaService.$transaction(async (t) => {
       await this.validateLocation(dto.location_id, dto.service_id);
       const locationId = await this.validateEmployeeLocation(
@@ -291,8 +292,34 @@ export class BookingsService {
           serviceId: dto.service_id,
           locationId: dto.location_id,
         },
-        select: { id: true, name: true, status: true },
+        select: {
+          id: true,
+          name: true,
+          status: true,
+          date: true,
+          location: { select: { id: true, name: true } },
+          employee: {
+            select: { id: true, firstName: true, lastName: true, phone: true },
+          },
+          service: {
+            select: {
+              id: true,
+              name: true,
+              mark: true,
+              price: { select: { price: true } },
+              duration: true,
+            },
+          },
+        },
       });
+
+      // const order = await this.orderService.create({
+      //   booking_ids: [booking.id],
+      //   payment_method: "online",
+      //   status: "pending",
+      // });
+
+      // return { ...booking, order };
 
       return booking;
     });
