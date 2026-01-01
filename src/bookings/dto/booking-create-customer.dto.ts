@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, PaymentType } from "@prisma/client";
 import { IsEnum, IsOptional, IsString, Matches } from "class-validator";
 
 export class BookingCreateCustomerDto {
@@ -39,4 +39,7 @@ export class BookingCreateCustomerDto {
   @IsEnum(BookingStatus)
   @IsOptional()
   status?: BookingStatus;
+
+  @IsEnum(PaymentType)
+  payment_method: PaymentType;
 }

@@ -7,14 +7,11 @@ import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingById } from "./type/booking-by-id.type";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
-import { OrdersService } from "src/orders/orders.service";
+import { BookingStatus, OrderStatus } from "@prisma/client";
 
 @Injectable()
 export class BookingsService {
-  public constructor(
-    private readonly prismaService: PrismaService,
-    private readonly orderService: OrdersService,
-  ) {}
+  public constructor(private readonly prismaService: PrismaService) {}
 
   private getDayShort(dayIndex: number): string {
     const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -313,15 +310,57 @@ export class BookingsService {
         },
       });
 
-      // const order = await this.orderService.create({
-      //   booking_ids: [booking.id],
-      //   payment_method: "online",
-      //   status: "pending",
-      // });
+      /** СОЗДАНИЕ ЗАКАЗА V1 **/
+      const bookings = await t.booking.findMany({
+        where: {
+          id: { in: [booking.id] },
+          orderId: null,
+          status: BookingStatus.confirmed,
+        },
+        include: { service: { select: { price: true } } },
+      });
 
-      // return { ...booking, order };
+      const subtotal = bookings.reduce(
+        (s, b) => s + (b.service.price?.price ?? 0),
+        0,
+      );
 
-      return booking;
+      const order = await t.order.create({
+        data: {
+          status: OrderStatus.pending,
+          subtotal,
+          paymentMethod: dto.payment_method,
+          bookings: { connect: bookings.map((b) => ({ id: b.id })) },
+        },
+        select: {
+          id: true,
+          paymentMethod: true,
+          status: true,
+          subtotal: true,
+          comment: true,
+          discount: true,
+        },
+      });
+
+      const res = {
+        ...booking,
+        employee: {
+          id: booking.employee.id,
+          first_name: booking.employee.firstName,
+          last_name: booking.employee.lastName,
+          phone: booking.employee.phone,
+        },
+        order: {
+          id: order.id,
+          status: order.status,
+          subtotal: order.subtotal,
+          comment: order.comment,
+          discount: order.discount,
+          payment_method: order.paymentMethod,
+        },
+      };
+
+      return res;
     });
   }
 
@@ -722,6 +761,7 @@ export class BookingsService {
       employee_id: dto.employee_id,
       customer_id: customer?.customerId,
       status: dto.status,
+      payment_method: dto.payment_method,
     } satisfies BookingCreateDto;
 
     const res = this.create(createDto, company.id);
