@@ -18,6 +18,15 @@ export class CreateCompanyDto {
   name: string;
 
   @ApiProperty({
+    example: "yandex",
+    required: true,
+    description:
+      "Публичное имя - береться из name. Если NAME на русском - преобразуем на англ буквы",
+  })
+  @IsString()
+  public_name: string;
+
+  @ApiProperty({
     example: "RUB",
     required: true,
     description: "Валюта",

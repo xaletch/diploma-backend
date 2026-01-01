@@ -16,10 +16,11 @@ import { RoleModule } from "./role/role.module";
 import { AccessModule } from "./access/access.module";
 import { ServicesModule } from "./services/services.module";
 import { RedisModule } from "./redis/redis.module";
-import { CustomersModule } from './customers/customers.module';
-import { ScheduleModule } from './schedule/schedule.module';
-import { BookingsModule } from './bookings/bookings.module';
-import { MinioModule } from './minio/minio.module';
+import { CustomersModule } from "./customers/customers.module";
+import { ScheduleModule } from "./schedule/schedule.module";
+import { BookingsModule } from "./bookings/bookings.module";
+import { MinioModule } from "./minio/minio.module";
+import { OrdersModule } from "./orders/orders.module";
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MinioModule } from './minio/minio.module';
     ScheduleModule,
     BookingsModule,
     MinioModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,9 +1,12 @@
 import { BookingStatus, PaymentType } from "@prisma/client";
 import { IsEnum, IsOptional, IsString, Matches } from "class-validator";
 
-export class BookingCreateDto {
+export class BookingCreateCustomerDto {
   @IsString()
   name: string;
+
+  @IsString()
+  company: string;
 
   @IsString()
   @Matches(/^\d{2}:\d{2}$/, { message: "Время должно быть в формате HH:mm" })
@@ -32,9 +35,6 @@ export class BookingCreateDto {
 
   @IsString()
   employee_id: string;
-
-  @IsString()
-  customer_id: string;
 
   @IsEnum(BookingStatus)
   @IsOptional()

@@ -39,7 +39,6 @@ export class CustomersService {
     const { phone } = dto;
     const account = await this.prismaService.customerAccount.findUnique({
       where: { phone },
-      include: { customer: true },
     });
 
     let customerPhone = account?.phone || null;
@@ -113,33 +112,96 @@ export class CustomersService {
     });
 
     return { access_token: accessToken, refresh_token: refreshToken };
-    // return { success: true, ipAddress, customerPhone };
   }
 
   //                                            ### NOTE ###
   // В КОМПАНИИ МОЖНО СОЗДАТЬ ПОЛЬЗОВАТЕЛЯ И ЗАПИСАТЬ ЕГО В КОМПАНИЮ ДАЖЕ КОГДА ЕГО НЕ СУЩЕСТВУЕТ В CUSTOMERS
   // ПОКА ТЕСТОВЫЙ ВАРИАНТ КОТОРЫЙ ДОБАВЛЯЕТ СУЩЕСТВУЮЩЕГО CUSTOMER В КОМПАНИЮ
-  async createForCompany(dto: CustomerCompanyDto, companyId: string) {
-    const customer = await this.prismaService.customer.findUnique({
-      where: { id: dto.customer_id },
-    });
 
-    if (!customer)
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          title: "Ошибка клиента",
-          detail: "Указанный клиент не найден",
-          meta: { customer_id: dto.customer_id },
+  /** 
+    СМОТРИ, ЗНАЧИТ МЫ БЕРЕМ В БОДИ ПРОКИДЫВАЕМ CUSTOMER_PHONE И ДРУГИЕ ПОЛЯ КОТОРЫЕ НЕОБХОДИМЫ ДЛЯ СОЗДАНИЯ КЛИЕНТА В КОМПАНИИ
+    
+    ТАК... И ЗАТЕМ МЫ ДОЛЖНЫ ПРОДЕЛАТЬ РАБОТУ НАД ПРОВЕРКОЙ СУЩЕСТВУЕТ ЛИ ТАКОЙ КЛИЕНТ В СИСТЕМЕ - ВО ВСЕЙ ИНФРАСТРУКТУРЕ 
+    ЕСЛИ КЛИЕНТА НЕ СУЩЕСТВУЕТ, ТО СОЗДАЕМ ЕГО В CUSTOMERS И СОЗДАЕМ CUSTOMER ACCOUNT ПРОКИНУВ ТУДА ТОЛЬКО НОМЕР ТЕЛЕФОНА
+    ЕСЛИ СУЩЕСТВУЕТ, ТО ПРОСТО СОЗДАЕМ CUSTOMER COMPANY
+
+    И ЭТО НАМ ДАСТ ВОЗМОЖНОСТЬ ЗАПИСЫВАТЬ НЕАВТОРИЗОВАННОГО КЛИЕНТА НА УСЛУГИ КОМПАНИИ, ЧТО В ДАЛЬНЕЙШЕМ
+    КОГДА КЛИЕНТ ЗАЙДЕТ В АККАУНТ У НЕГО БУДУТ ЕГО ЗАПИСИ И ИСТОРИЯ
+
+    ** ПОСЛЕ КАК КЛИЕНТ ЗАХОЧЕ ПОСМОТРЕТЬ СВОИ ЗАПИСИ ИЛИ ЗАПИСАТЬ САМОСТОЯТЕЛЬНО, ВОЙДЯ В АККАУНТ ВСЯ ИСТОРИЯ ЗАКАЗОВ БУДЕТ У НЕГО НА РУКАХ
+  **/
+  async checkCreateCustomerForCompany(phone: string): Promise<string> {
+    try {
+      const customer = await this.prismaService.customer.findUnique({
+        where: { phone },
+        select: { id: true },
+      });
+
+      if (customer) {
+        return customer.id;
+      }
+
+      const createCustomer = await this.prismaService.$transaction(
+        async (t) => {
+          const customer = await t.customer.create({
+            data: { phone },
+            select: { id: true },
+          });
+          await t.customerAccount.create({
+            data: {
+              phone: phone,
+              customerId: customer.id,
+            },
+          });
+
+          return customer.id;
         },
-        HttpStatus.NOT_FOUND,
       );
 
-    const create = await this.prismaService.customerCompany.create({
-      data: { companyId, customerId: customer.id },
+      return createCustomer;
+    } catch (err) {
+      if (err.code === "P2002") {
+        const customer = await this.prismaService.customer.findUnique({
+          where: { phone },
+          select: { id: true },
+        });
+
+        return customer!.id;
+      }
+      throw err;
+    }
+  }
+
+  async createForCompany(dto: CustomerCompanyDto, companyId: string) {
+    const customerId = await this.checkCreateCustomerForCompany(dto.phone);
+
+    const findCustomer = await this.prismaService.customerCompany.findUnique({
+      where: { customerId_companyId: { companyId, customerId } },
     });
 
-    return create;
+    if (findCustomer) {
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Ошибка клиента",
+          detail: "Указанный клиент уже существует в системе",
+          meta: { customer_id: customerId },
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const create = await this.prismaService.customerCompany.create({
+      data: {
+        companyId,
+        customerId,
+        note: dto.note,
+        isBanned: dto.is_banned,
+      },
+      select: { id: true, isBanned: true, note: true },
+    });
+
+    return { success: true, create };
   }
 
   async getMe(id: string) {

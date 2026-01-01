@@ -147,7 +147,7 @@ model User {
   id            String        @id               @default(uuid())
 
   email         String        @unique
-  passwordHash  String?        @map("password_hash")
+  passwordHash  String?       @map("password_hash")
   phone         String        // @unique
 
   firstName     String        @map("first_name")
@@ -262,6 +262,8 @@ model Company {
   id            String        @id               @default(uuid())
 
   name          String
+  publicName    String        @unique           @map("public_name")
+
   currency      CURRENCY
 
   // address       Address?      @relation("company_address")
@@ -359,6 +361,7 @@ model CustomerCompany {
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
+  @@unique([customerId, companyId])
   @@map("customer_companies")
 }
 
@@ -456,7 +459,7 @@ model Service {
 
   category      String?
 
-  company       Company       @relation("company_service", fields: [companyId], references: [id])
+  company       Company       @relation("company_service", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String
 
   price         ServicePrice? @relation("service_prices")
@@ -528,7 +531,7 @@ model Booking {
   endTime       String        @map("end_time")
   date          String
   comment       String?
-  status        BookingStatus @default(pending)
+  status        BookingStatus @default(confirmed)
 
   location      Location      @relation("booking_locations", fields: [locationId], references: [id])
   locationId    String
