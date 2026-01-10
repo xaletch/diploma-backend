@@ -164,7 +164,7 @@ export class LocationController {
     status: HttpStatus.NOT_FOUND,
     description: "not found",
   })
-  @Get("location/users/:location_id")
+  @Get("location/:location_id/users")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:users")
   @HttpCode(HttpStatus.OK)
