@@ -21,6 +21,7 @@ import { ScheduleModule } from "./schedule/schedule.module";
 import { BookingsModule } from "./bookings/bookings.module";
 import { MinioModule } from "./minio/minio.module";
 import { OrdersModule } from "./orders/orders.module";
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { OrdersModule } from "./orders/orders.module";
     BookingsModule,
     MinioModule,
     OrdersModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
