@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -106,6 +107,15 @@ export class LocationsDto {
   })
   @IsPhoneNumber("RU")
   phone: string;
+
+  @ApiProperty({
+    example: false,
+    required: false,
+    description: "Статус",
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
 
   @ApiProperty({
     example: ["Категория 1", "Категория 2", "Категория 3"],

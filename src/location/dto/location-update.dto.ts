@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsArray,
+  IsBoolean,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -35,6 +36,15 @@ export class LocationUpdateDto {
   @IsPhoneNumber("RU")
   @IsOptional()
   phone?: string;
+
+  @ApiProperty({
+    example: true,
+    required: false,
+    description: "Активна",
+  })
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean;
 
   @ApiProperty({
     example: ["WiFi", "Кофе", "Печеньки"],

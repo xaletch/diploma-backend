@@ -14,6 +14,7 @@ import { ILocationUser } from "./types/location-user.type";
 import { BufferedFile } from "src/minio/file.model";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { MinioService } from "src/minio/minio.service";
+import { LocationActivateDto } from "./dto/location-activate.dto";
 
 @Injectable()
 export class LocationService {
@@ -136,6 +137,31 @@ export class LocationService {
     };
   }
 
+  async changeStatus(dto: LocationActivateDto, location_id: string) {
+    await this.findById(location_id);
+
+    const updated = await this.prismaService.location.update({
+      where: { id: location_id },
+      data: { active: dto.active },
+    });
+
+    if (!updated)
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          title: "Ошибка",
+          description: `Не удалось обновить статус локации`,
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: new Error() },
+      );
+
+    return {
+      message: "Статус обновлен",
+      location: { id: updated.id },
+    };
+  }
+
   async getOne(location_id: string) {
     if (!location_id) throw new BadRequestException("Выберите локацию");
 
@@ -147,7 +173,13 @@ export class LocationService {
         avatar: true,
         description: true,
         phone: true,
-        users: true,
+        active: true,
+        users: {
+          select: {
+            id: true,
+            user: { select: { id: true, firstName: true, avatar: true } },
+          },
+        },
         category: true,
         comfort: true,
         address: {
@@ -177,15 +209,22 @@ export class LocationService {
       phone: location.phone,
       timezone: `${location.address?.timezone} (${location.address?.timezoneoffset})`,
       user_count: location.users.length,
+      is_active: location.active,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      users: location.users.map((u) => ({
+        id: u.user.id,
+        name: u.user.firstName,
+        avatar: u.user.avatar,
+      })),
       category: location.category,
       comfort: location.comfort,
       address: {
         full_address: [
+          location.address?.country,
+          location.address?.region,
+          location.address?.city,
           location.address?.street,
           location.address?.house,
-          location.address?.city,
-          location.address?.region,
-          location.address?.country,
         ]
           .filter(Boolean)
           .join("/"),
@@ -214,6 +253,7 @@ export class LocationService {
         avatar: true,
         description: true,
         phone: true,
+        active: true,
         category: true,
         comfort: true,
         address: {
@@ -237,15 +277,16 @@ export class LocationService {
       avatar: location.avatar,
       description: location.description,
       phone: location.phone,
+      is_active: location.active,
       category: location.category,
       comfort: location.comfort,
       address: {
         full_address: [
+          location.address?.country,
+          location.address?.region,
+          location.address?.city,
           location.address?.street,
           location.address?.house,
-          location.address?.city,
-          location.address?.region,
-          location.address?.country,
         ]
           .filter(Boolean)
           .join("/"),

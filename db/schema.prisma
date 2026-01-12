@@ -377,6 +377,8 @@ model Location {
 
   address       Address?      @relation("location_address")
 
+  active        Boolean       @default(true)
+
   company       Company       @relation("company_locations", fields: [companyId], references: [id], onDelete: Cascade)
   companyId     String        @map("company_id")
 

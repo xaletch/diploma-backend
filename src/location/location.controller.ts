@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -40,11 +38,15 @@ import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { CreateLocationResponseDto } from "src/address/dto/create.dto";
 import { LocationsDto } from "./dto/locations.dto";
 import { LocationFirstDto } from "./dto/location-first.dto";
-import { LocationDeleteDto } from "./dto/location-delete.dto";
+// import { LocationDeleteDto } from "./dto/location-delete.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { UploadAvatarDto } from "src/shared/dto/file-uploaddto";
 import { LocationUsersDto } from "./dto/location-users.dto";
 import { LocationUserDto } from "./dto/location-user.dto";
+import {
+  LocationActivateDto,
+  LocationActivateResponseDto,
+} from "./dto/location-activate.dto";
 
 @ApiTags("Локации")
 @Controller()
@@ -200,11 +202,11 @@ export class LocationController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Удаление локации" })
+  @ApiOperation({ summary: "Активировать/деактивировать локацию" })
   @ApiResponse({
     status: HttpStatus.OK,
     description: "success",
-    type: LocationDeleteDto,
+    type: LocationActivateResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -215,13 +217,40 @@ export class LocationController {
     status: HttpStatus.NOT_FOUND,
     description: "not found",
   })
-  @Delete("location/:location_id")
+  @Post("location/:location_id/status")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("location:delete")
   @HttpCode(HttpStatus.OK)
-  delete(@Param("location_id") location_id: string) {
-    return this.locationService.delete(location_id);
+  changeStatus(
+    @Body() dto: LocationActivateDto,
+    @Param("location_id") location_id: string,
+  ) {
+    return this.locationService.changeStatus(dto, location_id);
   }
+
+  // @ApiBearerAuth()
+  // @ApiOperation({ summary: "Удаление локации" })
+  // @ApiResponse({
+  //   status: HttpStatus.OK,
+  //   description: "success",
+  //   type: LocationDeleteDto,
+  // })
+  // @ApiResponse({
+  //   status: HttpStatus.UNAUTHORIZED,
+  //   description: "unauthorized",
+  //   type: UnAuthorizedDto,
+  // })
+  // @ApiResponse({
+  //   status: HttpStatus.NOT_FOUND,
+  //   description: "not found",
+  // })
+  // @Delete("location/:location_id")
+  // @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  // @Scopes("location:delete")
+  // @HttpCode(HttpStatus.OK)
+  // delete(@Param("location_id") location_id: string) {
+  //   return this.locationService.delete(location_id);
+  // }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: "Загрузить аватар" })
