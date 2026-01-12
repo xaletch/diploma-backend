@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger/dist/decorators";
 import { Type } from "class-transformer";
 import {
   IsArray,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsPhoneNumber,
@@ -95,6 +96,30 @@ export class LocationAddressDto {
   map: LocationAddressMapDto;
 }
 
+export class LocationFirstUsers {
+  @ApiProperty({
+    example: "97786513-20f0-434d-a9fe-b59b78f60e6d",
+    description: "ID сотрудника",
+  })
+  @IsUUID()
+  @IsString()
+  id: string;
+
+  @ApiProperty({
+    example: "Бобо",
+    description: "Имя ",
+  })
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    example: "71657a704cb3726f8f1116879bd6f908.jpg",
+    description: "Аватар",
+  })
+  @IsString()
+  avatar: string;
+}
+
 export class LocationFirstDto {
   @ApiProperty({
     example: "97786513-20f0-434d-a9fe-b59b78f60e6d",
@@ -120,6 +145,15 @@ export class LocationFirstDto {
   avatar?: string | null;
 
   @ApiProperty({
+    example: false,
+    required: false,
+    description: "Статус",
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
+
+  @ApiProperty({
     example:
       "Штаб-квартира одной из крупнейших технологических компаний России.",
     description: "Описание",
@@ -142,6 +176,25 @@ export class LocationFirstDto {
   })
   @IsNumber()
   user_count: number;
+
+  @ApiProperty({
+    example: [
+      {
+        id: "90dcc18b-44c1-4776-88cb-aa576f338de6",
+        name: "Боб",
+        avatar:
+          "https://storage.domain.ru/71657a704cb3726f8f1116879bd6f908.jpg",
+      },
+      {
+        id: "dba7afb9-4002-47c1-a4a1-2dd14aed11d6",
+        name: "Толик",
+        avatar: null,
+      },
+    ],
+    description: "Сотрудники",
+  })
+  @IsArray()
+  users: LocationFirstUsers[];
 
   @ApiProperty({
     example: "8 999 999 99 99",
