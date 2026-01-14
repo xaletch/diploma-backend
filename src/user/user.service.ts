@@ -104,6 +104,43 @@ export class UserService {
     return user;
   }
 
+  async findUserByEmil(email: string, companyId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { email, companyId },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        role: { select: { name: true } },
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          title: "Ошибка",
+          description: "Пользователь не найден",
+          detail: `Email: ${email}`,
+          status: HttpStatus.NOT_FOUND,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      name: `${user.firstName} ${user.lastName}`,
+      avatar: user.avatar,
+      role: user.role?.name,
+      first_name: user.firstName,
+      last_name: user.lastName,
+    };
+  }
+
   public async findByIdOptional(userId: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
