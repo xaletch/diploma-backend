@@ -12,7 +12,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { EmployeeService } from "./employee.service";
-import { CreateEmployeeResponse, EmployeeDto } from "./dto/employee.dto";
+import {
+  CreateEmployeeResponse,
+  EmployeeDto,
+  InviteEmployeeConflict,
+} from "./dto/employee.dto";
 import { Ip } from "src/shared/decorators/ip.decorator";
 import { RegisterEmployeeDto } from "./dto/register.dto";
 import { AuthGuard } from "src/auth/guard/auth.guard";
@@ -51,12 +55,19 @@ export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Создание сотрудника для компании" })
+  @ApiOperation({
+    summary: "Создание сотрудника и добавление в локацию",
+  })
   @ApiBody({ type: EmployeeDto })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: "created",
     type: CreateEmployeeResponse,
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: "conflict",
+    type: InviteEmployeeConflict,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,

@@ -229,7 +229,7 @@ export class EmployeeService {
 
     return {
       success: true,
-      message: "Приглашение было отправлено на почту",
+      message: "Приглашение отправлено на почту",
       detail: {
         action: "invite",
       },
