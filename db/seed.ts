@@ -26,6 +26,7 @@ const permissions = [
   "employee/register",
   "employee:update",
   "employee:delete",
+  "employees:read",
   "company-customer:create",
   "company:create",
   "booking:create",

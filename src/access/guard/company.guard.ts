@@ -6,15 +6,11 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { AccessService } from "../access.service";
-import { UserService } from "src/user/user.service";
 import { UserPrivate } from "src/user/types/user.type";
 
 @Injectable()
 export class CompanyGuard implements CanActivate {
-  constructor(
-    private readonly accessService: AccessService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly accessService: AccessService) {}
 
   // НЕМНОГО НЕ СХОДИТСЯ - СНЕСТИ ГВАРД ДЛЯ КОМПАНИИ И ЛОКАЦИИ И ОБЪЕДИНИТЬ
   async canActivate(context: ExecutionContext): Promise<boolean> {

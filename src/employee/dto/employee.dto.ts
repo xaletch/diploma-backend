@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
   IsBoolean,
   IsEmail,
@@ -93,6 +94,11 @@ export class EmployeeDto {
   note?: string;
 }
 
+class EmployeeResDetail {
+  @IsString()
+  action: string;
+}
+
 export class CreateEmployeeResponse {
   @ApiProperty({
     example: true,
@@ -107,4 +113,36 @@ export class CreateEmployeeResponse {
   })
   @IsString()
   message: string;
+
+  @ApiProperty({
+    example: {
+      action: "invite",
+    },
+    description: "Действие",
+  })
+  @Type(() => EmployeeResDetail)
+  detail: EmployeeResDetail;
+}
+
+export class InviteEmployeeConflict {
+  @ApiProperty({
+    example: 409,
+    description: "Статус",
+  })
+  @IsNumber()
+  status: number;
+
+  @ApiProperty({
+    example: "Ошибка",
+    description: "Заголовок",
+  })
+  @IsString()
+  title: string;
+
+  @ApiProperty({
+    example: "Пользователь уже привязан к указанной локации.",
+    description: "Детали",
+  })
+  @IsString()
+  detail: string;
 }

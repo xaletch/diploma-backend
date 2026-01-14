@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -11,7 +12,11 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { EmployeeService } from "./employee.service";
-import { CreateEmployeeResponse, EmployeeDto } from "./dto/employee.dto";
+import {
+  CreateEmployeeResponse,
+  EmployeeDto,
+  InviteEmployeeConflict,
+} from "./dto/employee.dto";
 import { Ip } from "src/shared/decorators/ip.decorator";
 import { RegisterEmployeeDto } from "./dto/register.dto";
 import { AuthGuard } from "src/auth/guard/auth.guard";
@@ -42,6 +47,7 @@ import {
 } from "./dto/blocked.dto";
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { AuthResponseDto } from "src/auth/dto/auth-response.dto";
+import { CompanyEmployeesDto } from "./dto/company-employees.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -49,12 +55,19 @@ export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Создание сотрудника для компании" })
+  @ApiOperation({
+    summary: "Создание сотрудника и добавление в локацию",
+  })
   @ApiBody({ type: EmployeeDto })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: "created",
     type: CreateEmployeeResponse,
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: "conflict",
+    type: InviteEmployeeConflict,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -67,7 +80,7 @@ export class EmployeeController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: EmployeeDto, @Req() req) {
     const companyId = req.user.company.id;
-    return this.employeeService.create(dto, companyId);
+    return this.employeeService.inviteCreate(dto, companyId);
   }
 
   @ApiBearerAuth()
@@ -162,6 +175,30 @@ export class EmployeeController {
     @Param("location_id") locationId: string,
   ) {
     return this.employeeService.blocked(dto, userId, locationId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Получить список все сотрудников работающих в компании",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: CompanyEmployeesDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("employee")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("employees:read")
+  @HttpCode(HttpStatus.OK)
+  getAll(@Req() req) {
+    const companyId = req.user.company.id;
+    return this.employeeService.getEmployees(companyId);
   }
 
   @ApiBearerAuth()

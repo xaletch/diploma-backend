@@ -26,6 +26,7 @@ import { CheckInviteResponse } from "./types/check-invite.type";
 import { EmployeeFirst } from "./types/employee.type";
 import { EmployeeBlockedDto } from "./dto/blocked.dto";
 import { SuccessResponse } from "./types/success.type";
+import { InviteAction } from "@prisma/client";
 
 @Injectable()
 export class EmployeeService {
@@ -62,8 +63,9 @@ export class EmployeeService {
     return employee;
   }
 
-  async invite(dto: InviteDto): Promise<InviteResponse> {
+  async invite(dto: InviteDto, action: InviteAction): Promise<InviteResponse> {
     const token = generateInviteToken();
+    const baseUrl = process.env.APP_BASE_URL;
 
     await this.prismaService.invite.create({
       data: {
@@ -72,10 +74,13 @@ export class EmployeeService {
         locationId: dto.location_id,
         role: dto.role,
         expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        action,
       },
     });
 
-    return { url: `http://localhost:8080/invite/${token}?email=${dto.email}` };
+    return {
+      url: `${baseUrl}/${action}/${token}?email=${dto.email}`,
+    };
   }
 
   async checkInvite(dto: CheckInviteDto): Promise<CheckInviteResponse> {
@@ -98,27 +103,91 @@ export class EmployeeService {
     return { valid: true };
   }
 
-  async create(dto: EmployeeDto, companyId: string): Promise<InviteResponse> {
-    const isExist = await this.prismaService.user.findUnique({
-      where: { email: dto.email },
+  private async validateExistInvite(email: string, locationId: string) {
+    const isExist = await this.prismaService.invite.findFirst({
+      where: {
+        email,
+        locationId,
+        expiresAt: { gte: new Date() },
+      },
     });
-    await this.roleService.findById(dto.role);
 
-    if (isExist) {
+    if (isExist)
       throw new HttpException(
         {
           status: HttpStatus.CONFLICT,
-          error:
-            isExist.status === "active"
-              ? "Пользователь уже существует"
-              : "Приглашение уже отправлено",
+          title: "Приглашение уже отправлено",
+          detail: "Вы уже отправляли приглашение ранее.",
         },
         HttpStatus.CONFLICT,
-        { cause: new Error() },
       );
-    }
+  }
 
+  /** 
+      ДОБАВИТЬ ОТПРАВКУ ПИСЕМ НА EMAIL | УВЕДОМЛЕНИЯ В СИСТЕМЕ
+  **/
+  sendInviteNotify(email: string, name: string, locationId: string) {
+    console.log({ email, name, locationId });
+  }
+
+  async inviteCreate(dto: EmployeeDto, companyId: string) {
     await this.locationService.findById(dto.location_id);
+    await this.roleService.findById(dto.role);
+
+    const isExistUser = await this.prismaService.user.findUnique({
+      where: { email: dto.email },
+      include: {
+        locations: { where: { locationId: dto.location_id } },
+      },
+    });
+
+    const locations = Array.isArray(isExistUser?.locations)
+      ? isExistUser.locations
+      : [];
+    if (locations.length > 0)
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Ошибка",
+          detail: "Пользователь уже привязан к указанной локации.",
+        },
+        HttpStatus.CONFLICT,
+      );
+
+    await this.validateExistInvite(dto.email, dto.location_id);
+
+    /** 
+      ЕСЛИ ПОЛЬЗОВАТЕЛЬ УЖЕ ЕСТЬ В БАЗЕ, 
+      ТО НЕ СОЗДАВАТЬ ДЛЯ НЕГО ИНВАЙТ, 
+      А ПРОСТО УВЕДОМЛЯТЬ ЕГО О ТОМ, ЧТО ОН БЫЛ ДОБАВЛЕН В ТАКУЮ-ТО ЛОКАЦИЮ
+    **/
+    if (isExistUser) {
+      await this.prismaService.userLocation.create({
+        data: {
+          userId: isExistUser.id,
+          locationId: dto.location_id,
+          roleId: dto.role,
+          birthday: dto.birthdate,
+          note: dto.note,
+        },
+      });
+
+      this.sendInviteNotify(
+        dto.email,
+        `${dto.first_name} ${dto.last_name}`,
+        dto.location_id,
+      );
+
+      return {
+        success: true,
+        message: "Пользователь добавлен в локацию",
+        detail: {
+          email: dto.email,
+          user_id: isExistUser.id,
+          location_id: dto.location_id,
+        },
+      };
+    }
 
     await this.prismaService.$transaction(async (t) => {
       const user = await t.user.create({
@@ -151,7 +220,20 @@ export class EmployeeService {
       role: dto.role,
     } satisfies InviteDto;
 
-    return await this.invite(data);
+    await this.invite(data, InviteAction.register);
+    this.sendInviteNotify(
+      dto.email,
+      `${dto.first_name} ${dto.last_name}`,
+      dto.location_id,
+    );
+
+    return {
+      success: true,
+      message: "Приглашение отправлено на почту",
+      detail: {
+        action: "invite",
+      },
+    };
   }
 
   async register(
@@ -308,5 +390,45 @@ export class EmployeeService {
       success: true,
       user: { id: user.id, location_id: user.locationId },
     };
+  }
+
+  async getEmployees(companyId: string) {
+    const company = await this.prismaService.company.findUnique({
+      where: { id: companyId },
+    });
+
+    if (!company)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Компания не найдена",
+          detail: `ID ${companyId}`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const employees = await this.prismaService.user.findMany({
+      where: { companyId },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        status: true,
+        position: true,
+      },
+    });
+
+    return employees.map((employee) => ({
+      id: employee.id,
+      email: employee.email,
+      phone: employee.phone,
+      name: `${employee.firstName} ${employee.lastName}`,
+      avatar: employee.avatar,
+      status: employee.status,
+      position: employee.position,
+    }));
   }
 }
