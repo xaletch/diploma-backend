@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -42,6 +43,7 @@ import {
 } from "./dto/blocked.dto";
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { AuthResponseDto } from "src/auth/dto/auth-response.dto";
+import { CompanyEmployeesDto } from "./dto/company-employees.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -67,7 +69,7 @@ export class EmployeeController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: EmployeeDto, @Req() req) {
     const companyId = req.user.company.id;
-    return this.employeeService.create(dto, companyId);
+    return this.employeeService.inviteCreate(dto, companyId);
   }
 
   @ApiBearerAuth()
@@ -162,6 +164,30 @@ export class EmployeeController {
     @Param("location_id") locationId: string,
   ) {
     return this.employeeService.blocked(dto, userId, locationId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Получить список все сотрудников работающих в компании",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: CompanyEmployeesDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("employee")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("employees:read")
+  @HttpCode(HttpStatus.OK)
+  getAll(@Req() req) {
+    const companyId = req.user.company.id;
+    return this.employeeService.getEmployees(companyId);
   }
 
   @ApiBearerAuth()

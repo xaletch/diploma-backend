@@ -376,6 +376,7 @@ export class LocationService {
             phone: true,
             status: true,
             position: true,
+            avatar: true,
           },
         },
       },
@@ -403,6 +404,7 @@ export class LocationService {
         phone: user.user.phone,
         status: user.user.status,
         position: user.user.position,
+        avatar: user.user.avatar,
       },
     };
 

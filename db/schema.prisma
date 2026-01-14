@@ -87,6 +87,12 @@ enum MarkEnum {
   pink
 }
 
+enum InviteAction {
+  accept
+  register
+  notify
+}
+
 model Session {
   id            String        @id               @default(uuid())
 
@@ -404,6 +410,8 @@ model Invite {
   location      Location      @relation("location_invite", fields: [locationId], references: [id], onDelete: Cascade)
   role          Int?           
   locationId    String        @map("location_id")
+
+  action        InviteAction
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
