@@ -201,31 +201,9 @@ export class LocationService {
             id: true,
             service: {
               select: {
-                name: true,
-                publicName: true,
-                mark: true,
-                duration: true,
-                type: true,
-                days: true,
-                timeStart: true,
-                timeEnd: true,
-                category: true,
                 id: true,
-                discount: {
-                  select: {
-                    dateType: true,
-                    days: true,
-                    price: true,
-                    timeStart: true,
-                    timeEnd: true,
-                  },
-                },
-                price: {
-                  select: {
-                    price: true,
-                    costPrice: true,
-                  },
-                },
+                name: true,
+                mark: true,
               },
             },
           },
@@ -274,34 +252,9 @@ export class LocationService {
         },
       },
       services: location.services.map((service) => ({
-        location_service_id: service.id,
-        service_id: service.service.id,
+        id: service.service.id,
         name: service.service.name,
-        public_name: service.service.publicName,
         mark: service.service.mark,
-        price: {
-          price: service.service.price?.price,
-          cost_price: service.service.price?.costPrice,
-        },
-        discount: service.service.discount?.days.length
-          ? {
-              days: service.service.discount?.days,
-              date_type: service.service.discount?.dateType,
-              time: {
-                start: service.service.discount?.timeStart,
-                end: service.service.discount?.timeEnd,
-              },
-              price: service.service.discount?.price,
-            }
-          : null,
-        duration: service.service.duration,
-        type: service.service.type,
-        days: service.service.days,
-        time: {
-          time_start: service.service.timeStart,
-          time_end: service.service.timeEnd,
-        },
-        category: service.service.category || null,
       })),
     };
   }
