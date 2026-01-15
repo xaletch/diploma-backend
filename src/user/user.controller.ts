@@ -5,7 +5,9 @@ import {
   HttpStatus,
   Param,
   Post,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
@@ -20,14 +22,27 @@ import {
   ApiResponse,
 } from "@nestjs/swagger/dist/decorators";
 import { MeDto } from "./dto/me.dto";
-import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
+import {
+  ConflictDto,
+  NotFoundDto,
+  UnAuthorizedDto,
+} from "src/shared/dto/errors.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { UploadAvatarDto } from "src/shared/dto/file-uploaddto";
+import { UserDetailDto } from "./dto/user.dto";
+import { AuthGuard } from "src/auth/guard/auth.guard";
+import { CompanyGuard } from "src/access/guard/company.guard";
+import { ScopeGuard } from "src/access/guard/scope.guard";
+import { Scopes } from "src/access/decorator/scopes.decorator";
+import { LoadUserGuard } from "./guard/user.guard";
 
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  /**
+    --- ИНФОРМАЦИЯ О ПРОФИЛЕ --- 
+  **/
   @Authorization()
   @ApiBearerAuth()
   @ApiOperation({ summary: "Инфо о профиле" })
@@ -47,6 +62,43 @@ export class UserController {
     return this.userService.findById(userId);
   }
 
+  /** 
+    --- ПОИСК ПОЛЬЗОВАТЕЛЯ ПО EMAIL ---
+  **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Получить пользователя по email" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: UserDetailDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+    type: NotFoundDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: "conflict",
+    type: ConflictDto,
+  })
+  @Get("user/:email")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("user-find:email")
+  @HttpCode(HttpStatus.OK)
+  getByEmail(@Req() req, @Param("email") email: string) {
+    const companyId = req.user.companyId;
+    return this.userService.findUserByEmil(email, companyId);
+  }
+
+  /**
+    --- ЗАГРУЗКА АВАТАРКИ ПРОФИЛЯ ---
+  **/
   @Authorization()
   @ApiBearerAuth()
   @ApiOperation({ summary: "Загрузить аватар" })

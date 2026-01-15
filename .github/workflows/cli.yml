@@ -1,0 +1,35 @@
+name: CLI
+
+on:
+  workflow_call:
+    inputs:
+      run_linter:
+        required: false
+        type: boolean
+        default: true
+      run_tests:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '>=24'
+      - name: Setup Go
+        run: yarn install
+
+      - name: Linter
+        if: ${{ inputs.run_linter }}
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+      - name: Tests
+        if: ${{ inputs.run_tests }}
+        run: yarn test

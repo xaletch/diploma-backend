@@ -196,6 +196,18 @@ export class LocationService {
             post_code: true,
           },
         },
+        services: {
+          select: {
+            id: true,
+            service: {
+              select: {
+                id: true,
+                name: true,
+                mark: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -210,7 +222,7 @@ export class LocationService {
       timezone: `${location.address?.timezone} (${location.address?.timezoneoffset})`,
       user_count: location.users.length,
       is_active: location.active,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       users: location.users.map((u) => ({
         id: u.user.id,
         name: u.user.firstName,
@@ -239,6 +251,11 @@ export class LocationService {
           lng: location.address?.positionLng,
         },
       },
+      services: location.services.map((service) => ({
+        id: service.service.id,
+        name: service.service.name,
+        mark: service.service.mark,
+      })),
     };
   }
 
