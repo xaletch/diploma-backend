@@ -39,3 +39,35 @@ export class NotFoundDto {
   @IsString()
   detail: string;
 }
+
+export class ConflictDto {
+  @ApiProperty({
+    example: 409,
+    description: "Error status",
+  })
+  @IsNumber()
+  status: number;
+
+  @ApiProperty({
+    example: "Заголовок",
+    description: "Error title",
+  })
+  @IsString()
+  title: string;
+
+  @ApiProperty({
+    example: "Детали",
+    description: "Error message",
+  })
+  @IsString()
+  detail: string;
+
+  @ApiProperty({
+    example: {
+      user_id: "Например id пользователя",
+    },
+    description: "Error message",
+  })
+  @IsString()
+  meta: string;
+}

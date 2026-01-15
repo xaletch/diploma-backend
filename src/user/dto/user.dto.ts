@@ -75,13 +75,6 @@ export class UserDetailDto {
   last_name: string;
 
   @ApiProperty({
-    example: "Имя Фамилия",
-    description: "full_name",
-  })
-  @IsString()
-  name: string;
-
-  @ApiProperty({
     example: "d01e304sc2hc4c9372849a41a182dj3f.jpeg",
     description: "avatar",
   })

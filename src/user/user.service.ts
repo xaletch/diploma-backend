@@ -106,7 +106,7 @@ export class UserService {
 
   async findUserByEmil(email: string, companyId: string) {
     const user = await this.prismaService.user.findUnique({
-      where: { email, companyId },
+      where: { email },
       select: {
         id: true,
         email: true,
@@ -114,6 +114,7 @@ export class UserService {
         firstName: true,
         lastName: true,
         avatar: true,
+        companyId: true,
         role: { select: { name: true } },
       },
     });
@@ -121,19 +122,30 @@ export class UserService {
     if (!user)
       throw new HttpException(
         {
-          title: "Ошибка",
-          description: "Пользователь не найден",
-          detail: `Email: ${email}`,
           status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Пользователь не найден",
+          meta: { email },
         },
         HttpStatus.NOT_FOUND,
+      );
+
+    if (user.companyId !== companyId)
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Пользователь уже привязан к другой компании",
+          detail:
+            "Данный пользователь уже является сотрудником другой компании.",
+          meta: { email },
+        },
+        HttpStatus.CONFLICT,
       );
 
     return {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      name: `${user.firstName} ${user.lastName}`,
       avatar: user.avatar,
       role: user.role?.name,
       first_name: user.firstName,
@@ -150,10 +162,12 @@ export class UserService {
     if (!user)
       throw new HttpException(
         {
-          title: "Ошибка",
-          description: "Пользователь не найден",
-          detail: `user_id ${userId}`,
           status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Пользователь не найден",
+          meta: {
+            user_id: userId,
+          },
         },
         HttpStatus.NOT_FOUND,
       );

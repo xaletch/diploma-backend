@@ -10,11 +10,13 @@ const permissions = [
   "service-locations:update",
   "service-category:create",
   "service-category:delete",
+
   "schedule:create",
   "schedule:all",
   "schedule:first",
   "schedule:update",
   "schedule:delete",
+
   "location:create",
   "locations:read",
   "location:read",
@@ -22,13 +24,18 @@ const permissions = [
   "location:users",
   "location:user",
   "location:delete",
+
   "employee:invite",
   "employee/register",
   "employee:update",
   "employee:delete",
   "employees:read",
+
+  "user-find:email",
+
   "company-customer:create",
   "company:create",
+
   "booking:create",
   "bookings:read",
   "booking-detail:read",
@@ -36,6 +43,29 @@ const permissions = [
   "booking:status",
   "booking:delete",
 ];
+
+const employeePermissions = [
+  "schedule:create",
+  "schedule:all",
+  "schedule:first",
+  "schedule:update",
+
+  "locations:read",
+  "location:read",
+
+  "employees:read",
+
+  "booking:create",
+  "bookings:read",
+  "booking-detail:read",
+  "booking:update",
+  "booking:status",
+];
+
+const ROLE_PRESETS: Record<string, string[]> = {
+  owner: permissions,
+  employee: employeePermissions,
+};
 
 const specializations = [
   {
@@ -186,26 +216,33 @@ const main = async () => {
     }
 
     await prisma.role.createMany({
-      data: [{ name: "owner" }, { name: "employee" }],
+      data: Object.keys(ROLE_PRESETS).map((name) => ({ name })),
     });
 
-    for (const name of permissions) {
-      await prisma.permission.create({ data: { name } });
-    }
-    const owner = await prisma.role.findFirst({
-      where: { name: "owner" },
-      select: { id: true },
+    await prisma.permission.createMany({
+      data: permissions.map((name) => ({ name })),
     });
-    const allPermissions = await prisma.permission.findMany();
 
-    await prisma.role.update({
-      where: { id: owner!.id },
-      data: {
-        permissions: {
-          connect: allPermissions.map((p: { id: number }) => ({ id: p.id })),
+    const roles = await prisma.role.findMany();
+    const permissionsApp = await prisma.permission.findMany();
+
+    const permissionMap = new Map(
+      permissionsApp.map((perm) => [perm.name, perm.id]),
+    );
+
+    for (const role of roles) {
+      const preset = ROLE_PRESETS[role.name];
+      if (!preset) continue;
+
+      await prisma.role.update({
+        where: { id: role.id },
+        data: {
+          permissions: {
+            connect: preset.map((perm) => ({ id: permissionMap.get(perm)! })),
+          },
         },
-      },
-    });
+      });
+    }
 
     console.log("🚀 Database has been seeded.");
   } catch (err) {

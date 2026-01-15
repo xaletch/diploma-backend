@@ -210,7 +210,7 @@ export class LocationService {
       timezone: `${location.address?.timezone} (${location.address?.timezoneoffset})`,
       user_count: location.users.length,
       is_active: location.active,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       users: location.users.map((u) => ({
         id: u.user.id,
         name: u.user.firstName,
