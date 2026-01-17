@@ -39,7 +39,7 @@ async function bootstrap() {
   app.enableCors({
     origin: config.getOrThrow<string>("ALLOWED_ORIGINS").split(","),
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     exposedHeaders: ["Content-Type", "Authorization"],
     allowedHeaders: ["Content-Type", "Authorization"],
   });
