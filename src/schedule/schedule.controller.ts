@@ -12,19 +12,55 @@ import {
 } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
 import { ScheduleDto } from "./dto/schedule.dto";
-import { ApiTags } from "@nestjs/swagger/dist/decorators";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger/dist/decorators";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { ScheduleIdsDto } from "./dto/schedule-ids.dto";
+import {
+  CreateScheduleResponseDto,
+  ScheduleDetailResponseDto,
+  ScheduleResponseDto,
+} from "./dto/schedule-response.dto";
+import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 
 @ApiTags("Расписание")
 @Controller("schedule")
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Создание расписания для сотрудника" })
+  @ApiParam({
+    name: "location_id",
+    example: "a8f4ff39-f908-472e-bf19-259b557c952a",
+    description: "ID локации",
+  })
+  @ApiBody({ type: ScheduleDto })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "Расписание успешно создано",
+    type: CreateScheduleResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Post("/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:create")
@@ -33,6 +69,33 @@ export class ScheduleController {
     return this.scheduleService.create(dto, locationId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Получение всего расписания сотрудника в локации" })
+  @ApiParam({
+    name: "user_id",
+    example: "89e1ff87-f273-47a4-ab34-a90c716c59f0",
+    description: "ID сотрудника",
+  })
+  @ApiParam({
+    name: "location_id",
+    example: "a8f4ff39-f908-472e-bf19-259b557c952a",
+    description: "ID локации",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Список расписаний",
+    type: ScheduleResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Get("/:user_id/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:all")
@@ -44,6 +107,28 @@ export class ScheduleController {
     return this.scheduleService.findAll(userId, locationId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Получение детального расписания сотрудника по ID" })
+  @ApiParam({
+    name: "location_id",
+    example: "a8f4ff39-f908-472e-bf19-259b557c952a",
+    description: "ID локации",
+  })
+  @ApiBody({ type: ScheduleIdsDto })
+  @ApiResponse({
+    status: 200,
+    description: "Детальная информация о расписании",
+    type: ScheduleDetailResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Get("/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:first")
@@ -56,6 +141,29 @@ export class ScheduleController {
     return this.scheduleService.findById(user_id, schedule_id, location_id);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Редактирование расписания" })
+  @ApiParam({
+    name: "location_id",
+    example: "a8f4ff39-f908-472e-bf19-259b557c952a",
+    description: "ID локации",
+  })
+  @ApiParam({ name: "schedule_id", example: "1", description: "ID расписания" })
+  @ApiBody({ type: ScheduleDto })
+  @ApiResponse({
+    status: 200,
+    description: "Расписание успешно обновлено",
+    type: CreateScheduleResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Patch("/:location_id/schedule/:schedule_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:update")
@@ -68,6 +176,22 @@ export class ScheduleController {
     return this.scheduleService.update(dto, location_id, Number(schedule_id));
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Удаление расписания" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Delete("/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("schedule:delete")

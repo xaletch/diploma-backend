@@ -11,7 +11,7 @@ import { ServiceUpdateDto } from "./dto/service-update.dto";
 export class ServicesService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getAll(company_id: string): Promise<IServices[]> {
+  async getAll(company_id: string) {
     const services = await this.prismaService.service.findMany({
       where: { companyId: company_id },
       select: {
@@ -19,6 +19,8 @@ export class ServicesService {
         name: true,
         duration: true,
         timeStart: true,
+        mark: true,
+        type: true,
         timeEnd: true,
         category: true,
         price: {
@@ -42,16 +44,7 @@ export class ServicesService {
       },
     });
 
-    if (!services.length)
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          title: "Ошибка: услуги не обнаружены",
-          detail:
-            "Запрошенные услуги не были найдены. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
-        },
-        HttpStatus.NOT_FOUND,
-      );
+    if (!services.length) return { data: [] };
 
     const response: IServices[] = services.map((s) => {
       return {
@@ -61,6 +54,8 @@ export class ServicesService {
         category: s.category,
         public_name: s.publicName,
         price: s.price!.price ?? null,
+        mark: s.mark,
+        type: s.type,
         prices: {
           price: s.price?.price ?? null,
           cost_price: s.price?.costPrice ?? null,

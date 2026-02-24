@@ -1,4 +1,4 @@
-import { MarkEnum } from "@prisma/client";
+import { MarkEnum, ServiceType } from "@prisma/client";
 
 export type ServiceDate = {
   days: string[];
@@ -51,6 +51,8 @@ export interface IServices {
   public_name: string | null;
   price: number | null;
   prices: ServicePrices;
+  mark: MarkEnum;
+  type: ServiceType;
   // date: ServiceDate;
   // discount: ServiceDiscount | null;
   users_length: number;

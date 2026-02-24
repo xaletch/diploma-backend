@@ -46,6 +46,7 @@ enum SEX {
   none
 }
 
+// можно дополнить - "pending" | "approved" | "rejected" | "canceled" | "completed" | "expired" | "error";
 enum BookingStatus {
   pending
   confirmed

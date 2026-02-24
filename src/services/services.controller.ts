@@ -15,20 +15,47 @@ import {
 import { ServicesService } from "./services.service";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { CompanyGuard } from "src/access/guard/company.guard";
-import { ServiceCreateDto } from "./dto/service.dto";
+import {
+  ServiceCreateDto,
+  ServiceCreateResponseDto,
+  ServicesDto,
+} from "./dto/service.dto";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
-import { ApiTags } from "@nestjs/swagger/dist/decorators";
-import { ServiceCategoryDto } from "./dto/service-category.dto";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger/dist/decorators";
+import {
+  ServiceCategoriesDto,
+  ServiceCategoryDto,
+} from "./dto/service-category.dto";
 import { AddedUsersDto } from "./dto/added-users.dto";
 import { AddedLocationsDto } from "./dto/added-locations.dto";
+import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 
 @ApiTags("Услуги")
 @Controller()
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Просмотр услуг" })
+  @ApiResponse({
+    type: ServicesDto,
+    status: HttpStatus.OK,
+    isArray: true,
+    description: "success",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Get("services")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -45,6 +72,19 @@ export class ServicesController {
     return this.servicesService.getFirst(serviceId, companyId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Создание услуги" })
+  @ApiBody({ type: ServiceCreateDto })
+  @ApiResponse({
+    type: ServiceCreateResponseDto,
+    status: HttpStatus.CREATED,
+    description: "success",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Post("service")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:create")
@@ -54,10 +94,22 @@ export class ServicesController {
     return this.servicesService.create(dto, companyId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Редактирование услуги" })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Patch("service/:service_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:update")
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   update(
     @Body() dto: ServiceCreateDto,
     @Param("service_id") serviceId: string,
@@ -67,6 +119,18 @@ export class ServicesController {
     return this.servicesService.update(dto, serviceId, companyId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Удаление услуги" })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Delete("service/:service_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service:delete")
@@ -75,6 +139,19 @@ export class ServicesController {
     return this.servicesService.delete(serviceId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Добавление сотрудника к услуге" })
+  @ApiBody({ type: AddedUsersDto })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Put("service/users/:service_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-users:update")
@@ -88,6 +165,19 @@ export class ServicesController {
     return this.servicesService.addedUsers(dto, serviceId, companyId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Добавление локации к услуге" })
+  @ApiBody({ type: AddedLocationsDto })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Put("service/locations/:service_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-locations:update")
@@ -101,6 +191,19 @@ export class ServicesController {
     return this.servicesService.addedLocations(dto, serviceId, companyId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Получить список категорий" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: ServiceCategoriesDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Get("categories/service")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @HttpCode(HttpStatus.OK)
@@ -109,6 +212,19 @@ export class ServicesController {
     return this.servicesService.getAllCategory(companyId);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Создание категории" })
+  @ApiBody({ type: ServiceCategoryDto })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: ServiceCategoriesDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Post("service/category")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-category:create")
@@ -117,7 +233,18 @@ export class ServicesController {
     const companyId = req.user.companyId;
     return this.servicesService.createCategory(dto, companyId);
   }
-
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Удаление категории" })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: ServiceCategoriesDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
   @Delete("service/category/:category_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-category:delete")

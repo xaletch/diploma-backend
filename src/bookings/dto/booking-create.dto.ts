@@ -1,45 +1,31 @@
-import { BookingStatus, PaymentType } from "@prisma/client";
-import { IsEnum, IsOptional, IsString, Matches } from "class-validator";
+import { BookingStatus } from "@prisma/client";
+import { IsEnum, IsOptional, IsUUID } from "class-validator";
+import { BookingBaseDto } from "./booking-base.dto";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-export class BookingCreateDto {
-  @IsString()
-  name: string;
-
-  @IsString()
-  @Matches(/^\d{2}:\d{2}$/, { message: "Время должно быть в формате HH:mm" })
-  start_time: string;
-
-  @IsString()
-  @Matches(/^\d{2}:\d{2}$/, { message: "Время должно быть в формате HH:mm" })
-  end_time: string;
-
-  @IsString()
-  @Matches(/^\d{2}-\d{2}-\d{4}$/, {
-    message: "Дата должна быть в формате YYYY-MM-DD",
+export class BookingCreateDto extends BookingBaseDto {
+  @ApiProperty({
+    example: "d91e3d55-6ba2-4c26-bd7a-55a7ce35e13b",
+    description: "ID клиента",
+    required: true,
   })
-  date: string;
+  @IsUUID()
+  customer_id!: string;
 
-  @IsString()
-  @IsOptional()
-  comment?: string;
+  @ApiProperty({
+    example: "a8f4ff39-f908-472e-bf19-259b557c952a",
+    description: "ID локации",
+    required: true,
+  })
+  @IsUUID()
+  location_id!: string;
 
-  @IsString()
-  @IsOptional()
-  location_id: string;
-
-  @IsString()
-  service_id: string;
-
-  @IsString()
-  employee_id: string;
-
-  @IsString()
-  customer_id: string;
-
+  @ApiPropertyOptional({
+    enum: BookingStatus,
+    example: BookingStatus.confirmed,
+    description: "Статус бронирования",
+  })
   @IsEnum(BookingStatus)
   @IsOptional()
   status?: BookingStatus;
-
-  @IsEnum(PaymentType)
-  payment_method: PaymentType;
 }

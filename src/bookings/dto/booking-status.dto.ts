@@ -1,7 +1,14 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { BookingStatus } from "@prisma/client";
 import { IsEnum } from "class-validator";
 
 export class BookingStatusDto {
+  @ApiProperty({
+    enum: BookingStatus,
+    example: BookingStatus.confirmed,
+    description: "Новый статус бронирования",
+    required: true,
+  })
   @IsEnum(BookingStatus)
-  status: BookingStatus;
+  status!: BookingStatus;
 }

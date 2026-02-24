@@ -18,8 +18,6 @@ export class OrdersService {
         },
         include: { service: { select: { price: true } } },
       });
-
-      console.log(bookings)
   
       if (!bookings.length)
         throw new HttpException(
