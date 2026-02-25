@@ -48,13 +48,13 @@ export class ServiceCreateDto {
   @IsEnum(ServiceType)
   type!: ServiceType;
 
-  @ApiProperty({
-    example: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-    description: "Рабочие дни",
-  })
-  @IsArray()
-  @IsEnum(DAYS, { each: true })
-  days: DAYS[];
+  // @ApiProperty({
+  //   example: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+  //   description: "Рабочие дни",
+  // })
+  // @IsArray()
+  // @IsEnum(DAYS, { each: true })
+  // days!: DAYS[];
 
   @ApiProperty({
     example: "category",
@@ -65,26 +65,26 @@ export class ServiceCreateDto {
   @IsOptional()
   category?: string;
 
-  @ApiProperty({
-    example: "07:00",
-    description: "Время начала продаж",
-  })
-  @IsString()
-  time_start: string;
+  // @ApiProperty({
+  //   example: "07:00",
+  //   description: "Время начала продаж",
+  // })
+  // @IsString()
+  // time_start: string;
 
-  @ApiProperty({
-    example: "09:00",
-    description: "Время окончания продаж",
-  })
-  @IsString()
-  time_end: string;
+  // @ApiProperty({
+  //   example: "09:00",
+  //   description: "Время окончания продаж",
+  // })
+  // @IsString()
+  // time_end: string;
 
   @ApiProperty({
     example: 1999,
     description: "Стоимость",
   })
   @IsNumber()
-  price: number;
+  price!: number;
 
   @ApiProperty({
     example: 299,

@@ -11,5 +11,5 @@ export class AddedLocationsDto {
   })
   @IsArray()
   @IsUUID("all", { each: true })
-  location_ids: string[];
+  location_ids!: string[];
 }

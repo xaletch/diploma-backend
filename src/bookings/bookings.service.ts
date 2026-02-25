@@ -69,20 +69,12 @@ export class BookingsService {
 
   private async validateService(
     serviceId: string,
-    date: string,
-    start_time: string,
-    end_time: string,
     companyId: string,
   ): Promise<boolean> {
-    const parsed = this.dateParse(date);
-    const dayWeek = this.getDayShort(parsed.getDay());
     const service = await this.prismaService.service.findFirst({
       where: {
         id: serviceId,
         companyId,
-        days: { has: dayWeek },
-        timeStart: { lte: start_time },
-        timeEnd: { gte: end_time },
       },
     });
 
@@ -90,8 +82,8 @@ export class BookingsService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          title: "Ошибка расписания услуги",
-          detail: "Услуга не доступна в выбранное время.",
+          title: "Ошибка Услуги",
+          detail: "Услуга не найдена",
           meta: { service_id: serviceId },
         },
         HttpStatus.BAD_REQUEST,
@@ -250,13 +242,7 @@ export class BookingsService {
       );
       await this.validateEmployeeService(dto.employee_id, dto.service_id);
       const customerId = await this.validateCustomer(dto.customer_id);
-      await this.validateService(
-        dto.service_id,
-        dto.date,
-        dto.start_time,
-        dto.end_time,
-        company_id,
-      );
+      await this.validateService(dto.service_id, company_id);
       await this.validateCustomerWorked(
         dto.date,
         locationId,
@@ -475,13 +461,7 @@ export class BookingsService {
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
     const customerId = await this.validateCustomer(dto.customer_id);
-    await this.validateService(
-      dto.service_id,
-      dto.date,
-      dto.start_time,
-      dto.end_time,
-      company_id,
-    );
+    await this.validateService(dto.service_id, company_id);
     await this.validateCustomerWorked(
       dto.date,
       locationId,

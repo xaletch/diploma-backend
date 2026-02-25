@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { ServiceCreateDto } from "./dto/service.dto";
-import { IService, IServices } from "./types/service.type";
+import { IServices } from "./types/service.type";
 import { ServiceCategoryDto } from "./dto/service-category.dto";
 import { AddedUsersDto } from "./dto/added-users.dto";
 import { AddedLocationsDto } from "./dto/added-locations.dto";
@@ -18,10 +18,10 @@ export class ServicesService {
         id: true,
         name: true,
         duration: true,
-        timeStart: true,
+        // timeStart: true,
+        // timeEnd: true,
         mark: true,
         type: true,
-        timeEnd: true,
         category: true,
         price: {
           select: {
@@ -68,16 +68,16 @@ export class ServicesService {
     return response;
   }
 
-  async getFirst(service_id: string, company_id: string): Promise<IService> {
+  async getFirst(service_id: string, company_id: string) {
     const s = await this.prismaService.service.findFirst({
       where: { id: service_id, companyId: company_id },
       select: {
         id: true,
         name: true,
         duration: true,
-        days: true,
-        timeStart: true,
-        timeEnd: true,
+        // days: true,
+        // timeStart: true,
+        // timeEnd: true,
         category: true,
         mark: true,
         price: {
@@ -122,7 +122,7 @@ export class ServicesService {
         HttpStatus.NOT_FOUND,
       );
 
-    const response: IService = {
+    const response = {
       id: s.id,
       name: s.name,
       duration: s.duration,
@@ -130,7 +130,6 @@ export class ServicesService {
       category: s.category,
       mark: s.mark,
       price: s.price!.price ?? null,
-      date: { days: s.days, time_start: s.timeStart, time_end: s.timeEnd },
       prices: {
         price: s.price?.price ?? null,
         cost_price: s.price?.costPrice ?? null,
@@ -200,9 +199,9 @@ export class ServicesService {
       const service = await t.service.create({
         data: {
           ...serviceDto,
-          days: dto.days,
-          timeStart: dto.time_start,
-          timeEnd: dto.time_end,
+          // days: dto.days,
+          // timeStart: dto.time_start,
+          // timeEnd: dto.time_end,
           price: {
             create: {
               price: dto.price,
@@ -303,9 +302,9 @@ export class ServicesService {
       where: { id: serviceId },
       data: {
         ...serviceDto,
-        days: dto.days,
-        timeStart: dto.time_start,
-        timeEnd: dto.time_end,
+        // days: dto.days,
+        // timeStart: dto.time_start,
+        // timeEnd: dto.time_end,
         price: dto.price
           ? {
               update: {

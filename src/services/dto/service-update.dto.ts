@@ -9,37 +9,37 @@ import {
 
 export class ServiceUpdateDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
   @IsOptional({ each: true })
   public_name?: string;
 
   @IsEnum(MarkEnum)
-  mark: MarkEnum;
+  mark!: MarkEnum;
 
   @IsNumber()
-  duration: number;
+  duration!: number;
 
   @IsEnum(ServiceType)
-  type: ServiceType;
+  type!: ServiceType;
 
-  @IsArray()
-  @IsEnum(DAYS, { each: true })
-  days: DAYS[];
+  // @IsArray()
+  // @IsEnum(DAYS, { each: true })
+  // days!: DAYS[];
 
   @IsString()
   @IsOptional()
   category?: string;
 
-  @IsString()
-  time_start: string;
+  // @IsString()
+  // time_start: string;
 
-  @IsString()
-  time_end: string;
+  // @IsString()
+  // time_end: string;
 
   @IsNumber()
-  price: number;
+  price!: number;
 
   @IsNumber()
   @IsOptional()

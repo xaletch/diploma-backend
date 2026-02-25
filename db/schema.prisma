@@ -464,9 +464,9 @@ model Service {
 
   type          ServiceType
 
-  days          String[]
-  timeStart     String        @map("time_start")
-  timeEnd       String        @map("time_end")
+  // days          String[]?
+  // timeStart     String?       @map("time_start")
+  // timeEnd       String?       @map("time_end")
 
   category      String?
 
