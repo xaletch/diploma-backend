@@ -22,6 +22,7 @@ import { BookingsModule } from "./bookings/bookings.module";
 import { MinioModule } from "./minio/minio.module";
 import { OrdersModule } from "./orders/orders.module";
 import { HealthModule } from "./health/health.module";
+import { DirectoriesModule } from "./directories/directories.module";
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { HealthModule } from "./health/health.module";
     MinioModule,
     OrdersModule,
     HealthModule,
+    DirectoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
