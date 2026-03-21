@@ -47,7 +47,7 @@ import {
 } from "./dto/blocked.dto";
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { AuthResponseDto } from "src/auth/dto/auth-response.dto";
-import { CompanyEmployeesDto } from "./dto/company-employees.dto";
+import { LocationEmployeesDto } from "./dto/location-employees.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -179,12 +179,12 @@ export class EmployeeController {
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: "Получить список все сотрудников работающих в компании",
+    summary: "Получить список все сотрудников работающих в локации",
   })
   @ApiResponse({
     status: HttpStatus.OK,
     description: "success",
-    type: CompanyEmployeesDto,
+    type: LocationEmployeesDto,
     isArray: true,
   })
   @ApiResponse({
@@ -192,13 +192,12 @@ export class EmployeeController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("employee")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Get("employee/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employees:read")
   @HttpCode(HttpStatus.OK)
-  getAll(@Req() req) {
-    const companyId = req.user.company.id;
-    return this.employeeService.getEmployees(companyId);
+  getAll(@Param("location_id") locationId: string) {
+    return this.employeeService.getEmployees(locationId);
   }
 
   @ApiBearerAuth()

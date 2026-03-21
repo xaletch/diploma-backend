@@ -392,43 +392,57 @@ export class EmployeeService {
     };
   }
 
-  async getEmployees(companyId: string) {
-    const company = await this.prismaService.company.findUnique({
-      where: { id: companyId },
-    });
-
-    if (!company)
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          title: "Компания не найдена",
-          detail: `ID ${companyId}`,
-        },
-        HttpStatus.NOT_FOUND,
-      );
-
-    const employees = await this.prismaService.user.findMany({
-      where: { companyId },
+  async getEmployees(locationId: string) {
+    const userLocations = await this.prismaService.userLocation.findMany({
+      where: {
+        locationId,
+      },
       select: {
-        id: true,
-        email: true,
-        phone: true,
-        firstName: true,
-        lastName: true,
-        avatar: true,
-        status: true,
-        position: true,
+        isBanned: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+            position: true,
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        user: {
+          createdAt: "desc",
+        },
       },
     });
 
-    return employees.map((employee) => ({
-      id: employee.id,
-      email: employee.email,
-      phone: employee.phone,
-      name: `${employee.firstName} ${employee.lastName}`,
-      avatar: employee.avatar,
-      status: employee.status,
-      position: employee.position,
+    return userLocations.map((userLocation) => ({
+      id: userLocation.user.id,
+      email: userLocation.user.email,
+      phone: userLocation.user.phone,
+      name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
+      first_name: userLocation.user.firstName,
+      last_name: userLocation.user.lastName,
+      avatar: userLocation.user.avatar,
+      status: userLocation.user.status,
+      position: userLocation.user.position,
+      role: userLocation.role,
+      is_banned: userLocation.isBanned,
     }));
   }
 }
