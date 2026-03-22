@@ -8,7 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -34,43 +33,13 @@ import {
   ServiceCategoriesDto,
   ServiceCategoryDto,
 } from "./dto/service-category.dto";
-import { AddedUsersDto } from "./dto/added-users.dto";
-import { AddedLocationsDto } from "./dto/added-locations.dto";
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 
 @ApiTags("Услуги")
 @Controller()
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: "Просмотр услуг" })
-  @ApiResponse({
-    type: ServicesDto,
-    status: HttpStatus.OK,
-    isArray: true,
-    description: "success",
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: "unauthorized",
-    type: UnAuthorizedDto,
-  })
-  @Get("services")
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.OK)
-  getAllServices(@Req() req) {
-    const companyId = req.user.companyId;
-    return this.servicesService.getAll(companyId);
-  }
-
-  @Get("service/:service_id")
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.OK)
-  getFirstService(@Param("service_id") serviceId: string, @Req() req) {
-    const companyId = req.user.companyId;
-    return this.servicesService.getFirst(serviceId, companyId);
-  }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: "Создание услуги" })
@@ -140,8 +109,54 @@ export class ServicesController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: "Просмотр услуг" })
+  @ApiResponse({
+    type: ServicesDto,
+    status: HttpStatus.OK,
+    isArray: true,
+    description: "success",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("services")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  getAllServices(@Req() req) {
+    const companyId = req.user.companyId;
+    return this.servicesService.getAll(companyId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Просмотр детальной информации об услуге" })
+  @ApiResponse({
+    type: undefined,
+    status: HttpStatus.OK,
+    isArray: true,
+    description: "success",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("service/:service_id")
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  getFirstService(@Param("service_id") serviceId: string, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.servicesService.getFirst(serviceId, companyId);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Добавление сотрудника к услуге" })
-  @ApiBody({ type: AddedUsersDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
   @ApiResponse({
     type: NotFoundDto,
     status: HttpStatus.NOT_FOUND,
@@ -152,22 +167,26 @@ export class ServicesController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Put("service/users/:service_id")
+  @Post("service/users/:service_id/:user_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-users:update")
   @HttpCode(HttpStatus.OK)
   addedUsers(
-    @Body() dto: AddedUsersDto,
     @Param("service_id") serviceId: string,
+    @Param("user_id") userId: string,
     @Req() req,
   ) {
     const companyId = req.user.companyId;
-    return this.servicesService.addedUsers(dto, serviceId, companyId);
+    return this.servicesService.addUserToService(serviceId, userId, companyId);
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Добавление локации к услуге" })
-  @ApiBody({ type: AddedLocationsDto })
+  @ApiOperation({ summary: "Удаление сотрудника из услуги" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
   @ApiResponse({
     type: NotFoundDto,
     status: HttpStatus.NOT_FOUND,
@@ -178,17 +197,89 @@ export class ServicesController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Put("service/locations/:service_id")
+  @Delete("service/users/:service_id/:user_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-users:update")
+  @HttpCode(HttpStatus.OK)
+  removeUsers(
+    @Param("service_id") serviceId: string,
+    @Param("user_id") userId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.servicesService.removeUserFromService(
+      serviceId,
+      userId,
+      companyId,
+    );
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Добавление локации к услуге" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Post("service/locations/:service_id/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-locations:update")
   @HttpCode(HttpStatus.OK)
   addedLocations(
-    @Body() dto: AddedLocationsDto,
     @Param("service_id") serviceId: string,
+    @Param("location_id") locationId: string,
     @Req() req,
   ) {
     const companyId = req.user.companyId;
-    return this.servicesService.addedLocations(dto, serviceId, companyId);
+    return this.servicesService.addedLocationToService(
+      serviceId,
+      locationId,
+      companyId,
+    );
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Удаление локации из услуги" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Delete("service/locations/:service_id/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-locations:update")
+  @HttpCode(HttpStatus.OK)
+  removeLocations(
+    @Param("service_id") serviceId: string,
+    @Param("location_id") locationId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.servicesService.removeLocation(
+      serviceId,
+      locationId,
+      companyId,
+    );
   }
 
   @ApiBearerAuth()
