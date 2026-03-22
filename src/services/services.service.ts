@@ -391,6 +391,9 @@ export class ServicesService {
     return category;
   }
 
+  /**
+    ==== СТАРЫЙ ВАРИАНТ ДОБАВЛЕНИЯ СОТРУДНИКА К УСЛУГЕ ===== 
+  **/
   async addedUsers(
     dto: AddedUsersDto,
     serviceId: string,
@@ -442,6 +445,105 @@ export class ServicesService {
     return { success: true };
   }
 
+  /**
+    ==== НОВЫЙ ВАРИАНТ ДОБАВЛЕНИЯ СОТРУДНИКА К УСЛУГЕ ===== 
+  **/
+  async addUserToService(serviceId: string, userId: string, companyId: string) {
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId, companyId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: пользователь не найден",
+          detail: `Пользователь с id ${userId} не существует.`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const exist = await this.prismaService.userService.findFirst({
+      where: { serviceId, userId },
+    });
+
+    if (exist)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка: пользователь уже привязан",
+          detail: "Данный пользователь уже привязан к этой услуге",
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+
+    await this.prismaService.userService.create({
+      data: { userId, serviceId: service.id },
+    });
+
+    return { success: true };
+  }
+
+  async removeUserFromService(
+    serviceId: string,
+    userId: string,
+    companyId: string,
+  ) {
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const deleteRes = await this.prismaService.userService.deleteMany({
+      where: { serviceId, userId },
+    });
+
+    if (deleteRes.count === 0) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: пользователь не найден",
+          detail: "Пользователь не найден или не привязан к этой услуге",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return { success: true };
+  }
+
+  /**
+    ==== СТАРЫЙ ВАРИАНТ ДОБАВЛЕНИЯ ЛОКАЦИИ К УСЛУГЕ ===== 
+  **/
   async addedLocations(
     dto: AddedLocationsDto,
     serviceId: string,
@@ -494,6 +596,106 @@ export class ServicesService {
         })),
       }),
     ]);
+
+    return { success: true };
+  }
+
+  /**
+    ==== НОВЫЙ ВАРИАНТ ДОБАВЛЕНИЯ ЛОКАЦИИ К УСЛУГЕ ===== 
+  **/
+  async addedLocationToService(
+    serviceId: string,
+    locationId: string,
+    companyId: string,
+  ) {
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const location = await this.prismaService.location.findFirst({
+      where: { id: locationId, companyId },
+      select: { id: true },
+    });
+
+    console.log(location, locationId, companyId, serviceId);
+
+    if (!location)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: локация не обнаружена",
+          detail: `Локация с id ${locationId} не существует.`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const exist = await this.prismaService.locationService.findFirst({
+      where: { serviceId, locationId },
+    });
+
+    if (exist)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка: локация уже привязана",
+          detail: "Данная локация уже привязана к этой услуге.",
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+
+    await this.prismaService.locationService.create({
+      data: { locationId, serviceId: service.id },
+    });
+
+    return { success: true };
+  }
+
+  async removeLocation(
+    serviceId: string,
+    locationId: string,
+    companyId: string,
+  ) {
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const deleteRes = await this.prismaService.locationService.deleteMany({
+      where: { serviceId, locationId },
+    });
+
+    if (deleteRes.count === 0)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: связь не найдена",
+          detail: "Данная локация не привязана к этой услуге.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
 
     return { success: true };
   }
