@@ -15,6 +15,7 @@ import { BufferedFile } from "src/minio/file.model";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { MinioService } from "src/minio/minio.service";
 import { LocationActivateDto } from "./dto/location-activate.dto";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class LocationService {
@@ -216,7 +217,7 @@ export class LocationService {
     return {
       id: location.id,
       name: location.name,
-      avatar: location.avatar,
+      avatar: buildFileUrl(location.avatar),
       description: location.description,
       phone: location.phone,
       timezone: `${location.address?.timezone} (${location.address?.timezoneoffset})`,
@@ -226,7 +227,7 @@ export class LocationService {
       users: location.users.map((u) => ({
         id: u.user.id,
         name: u.user.firstName,
-        avatar: u.user.avatar,
+        avatar: buildFileUrl(u.user.avatar),
       })),
       category: location.category,
       comfort: location.comfort,
@@ -291,7 +292,7 @@ export class LocationService {
     const data = locations.map((location) => ({
       id: location.id,
       name: location.name,
-      avatar: location.avatar,
+      avatar: buildFileUrl(location.avatar),
       description: location.description,
       phone: location.phone,
       is_active: location.active,
@@ -363,7 +364,7 @@ export class LocationService {
         email: user.user.email,
         name: `${user.user.firstName} ${user.user.lastName}`,
         phone: user.user.phone,
-        avatar: user.user.avatar,
+        avatar: buildFileUrl(user.user.avatar),
         status: user.user.status,
         position: user.user.position,
       },
@@ -421,7 +422,7 @@ export class LocationService {
         phone: user.user.phone,
         status: user.user.status,
         position: user.user.position,
-        avatar: user.user.avatar,
+        avatar: buildFileUrl(user.user.avatar),
       },
     };
 
@@ -436,12 +437,14 @@ export class LocationService {
     const upload = await this.minioService.uploadFile(
       "location-avatars",
       image,
-      avatar ?? "",
+      avatar || undefined,
     );
+
+    const key = `location-avatars/${upload}`;
 
     await this.prismaService.location.update({
       where: { id: locationId },
-      data: { avatar: upload },
+      data: { avatar: key },
     });
     return { success: true };
   }

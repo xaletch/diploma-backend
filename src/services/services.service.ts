@@ -629,8 +629,6 @@ export class ServicesService {
       select: { id: true },
     });
 
-    console.log(location, locationId, companyId, serviceId);
-
     if (!location)
       throw new HttpException(
         {

@@ -192,12 +192,38 @@ export class EmployeeController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("employee/:location_id")
+  @Get("employees/:location_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employees:read")
   @HttpCode(HttpStatus.OK)
   getAll(@Param("location_id") locationId: string) {
     return this.employeeService.getEmployees(locationId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Получить детальную информацию о сотруднике",
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: undefined,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("employee/:location_id/:employee_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("employees:read")
+  @HttpCode(HttpStatus.OK)
+  getEmployee(
+    @Param("location_id") locationId: string,
+    @Param("employee_id") employeeId: string,
+  ) {
+    return this.employeeService.getEmployee(locationId, employeeId);
   }
 
   @ApiBearerAuth()

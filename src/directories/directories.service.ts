@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class DirectoriesService {
@@ -29,7 +30,7 @@ export class DirectoriesService {
       email: emp.email,
       first_name: emp.firstName,
       last_name: emp.lastName,
-      avatar: emp.avatar,
+      avatar: buildFileUrl(emp.avatar),
       position: emp.position,
       role: emp.role,
     }));

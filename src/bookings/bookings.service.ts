@@ -8,6 +8,7 @@ import { BookingById } from "./type/booking-by-id.type";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
 import { BookingStatus, OrderStatus } from "@prisma/client";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class BookingsService {
@@ -673,13 +674,13 @@ export class BookingsService {
         first_name: booking.employee.firstName,
         last_name: booking.employee.lastName,
         phone: booking.employee.phone,
-        avatar: booking.employee.avatar,
+        avatar: buildFileUrl(booking.employee.avatar),
         position: booking.employee.position,
       },
       location: {
         id: booking.location.id,
         name: booking.location.name,
-        avatar: booking.location.avatar,
+        avatar: buildFileUrl(booking.location.avatar),
         address: booking.location.address,
       },
       service: {
