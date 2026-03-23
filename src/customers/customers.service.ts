@@ -7,6 +7,7 @@ import { CustomerCompanyDto } from "./dto/customer-company.dto";
 import { CustomerJwtPayload } from "./types/jwt.payload";
 import { CustomerTokenService } from "./token/token.service";
 import { JwtService } from "@nestjs/jwt";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class CustomersService {
@@ -16,7 +17,6 @@ export class CustomersService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
   ) {}
-  // ВСЕ ЧТО НАХОДИТСЯ СНИЗУ БУДЕТ УДАЛЕНО И НАПИСАНО В ОТДЕЛЬНОМ СЕРВИСЕ (НЕТ)
   async firstByAccount(phone: string) {
     const customer = await this.prismaService.customerAccount.findUnique({
       where: { phone },
@@ -226,7 +226,7 @@ export class CustomersService {
 
     const customer = {
       id: account.customer.id,
-      avatar: account.customer.avatar,
+      avatar: buildFileUrl(account.customer.avatar),
       first_name: account.customer.firstName,
       last_name: account.customer.lastName,
       email: account.customer.email,

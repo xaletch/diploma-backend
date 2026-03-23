@@ -27,6 +27,7 @@ import { EmployeeFirst } from "./types/employee.type";
 import { EmployeeBlockedDto } from "./dto/blocked.dto";
 import { SuccessResponse } from "./types/success.type";
 import { InviteAction } from "@prisma/client";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class EmployeeService {
@@ -438,11 +439,109 @@ export class EmployeeService {
       name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
       first_name: userLocation.user.firstName,
       last_name: userLocation.user.lastName,
-      avatar: userLocation.user.avatar,
+      avatar: buildFileUrl(userLocation.user.avatar),
       status: userLocation.user.status,
       position: userLocation.user.position,
       role: userLocation.role,
       is_banned: userLocation.isBanned,
     }));
+  }
+
+  /**
+    ===== ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О СОТРУДНИКЕ =====
+  **/
+  async getEmployee(locationId: string, userId: string) {
+    const employee = await this.prismaService.userLocation.findFirst({
+      where: { locationId, userId },
+      select: {
+        id: true,
+        birthday: true,
+        note: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            status: true,
+            position: true,
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            services: {
+              take: 6,
+              select: {
+                service: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            locations: {
+              take: 6,
+              select: {
+                location: {
+                  select: {
+                    id: true,
+                    name: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            _count: {
+              select: { services: true, locations: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!employee)
+      throw new HttpException(
+        {
+          title: "Ошибка",
+          description: "Пользователь не найден",
+          detail: [`ID ${userId}`],
+          status: HttpStatus.NOT_FOUND,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return {
+      id: employee.id,
+      note: employee.note,
+      service_count: employee.user._count.services,
+      location_count: employee.user._count.locations,
+      profile: {
+        id: employee.user.id,
+        email: employee.user.email,
+        phone: employee.user.phone,
+        first_name: employee.user.firstName,
+        last_name: employee.user.lastName,
+        full_name: `${employee.user.firstName} ${employee.user.lastName}`,
+        avatar: buildFileUrl(employee.user.avatar),
+        status: employee.user.status,
+        position: employee.user.position,
+        role: employee.user.role,
+        birthday: employee.birthday,
+      },
+      services: employee.user.services.map((s) => ({
+        id: s.service.id,
+        name: s.service.name,
+      })),
+      locations: employee.user.locations.map((l) => ({
+        id: l.location.id,
+        name: l.location.name,
+        avatar: buildFileUrl(l.location.avatar),
+      })),
+    };
   }
 }

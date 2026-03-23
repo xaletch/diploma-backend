@@ -13,6 +13,7 @@ import { UserStatus } from "@prisma/client";
 import { BufferedFile } from "src/minio/file.model";
 import { MinioService } from "src/minio/minio.service";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class UserService {
@@ -79,7 +80,7 @@ export class UserService {
     const locationArr = user.locations.map((loc) => ({
       id: loc.location.id,
       name: loc.location.name,
-      avatar: loc.location.avatar,
+      avatar: buildFileUrl(loc.location.avatar),
     }));
 
     return {
@@ -91,7 +92,7 @@ export class UserService {
       first_name: user.firstName,
       last_name: user.lastName,
       name: `${user.firstName} ${user.lastName}`,
-      avatar: user.avatar,
+      avatar: buildFileUrl(user.avatar),
       locations: locationArr.length ? locationArr : null,
       company: company,
     };
@@ -146,7 +147,7 @@ export class UserService {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      avatar: user.avatar,
+      avatar: buildFileUrl(user.avatar),
       role: user.role?.name,
       first_name: user.firstName,
       last_name: user.lastName,
@@ -250,12 +251,14 @@ export class UserService {
     const upload = await this.minioService.uploadFile(
       "user-avatars",
       image,
-      avatar ?? "",
+      avatar || undefined,
     );
+
+    const key = `user-avatars/${upload}`;
 
     await this.prismaService.user.update({
       where: { id: userId },
-      data: { avatar: upload },
+      data: { avatar: key },
     });
     return { success: true };
   }
