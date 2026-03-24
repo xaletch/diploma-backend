@@ -301,7 +301,7 @@ export class EmployeeService {
       const update = await t.user.update({
         where: { id: user.id },
         data: {
-          email: dto.email,
+          // email: dto.email,
           firstName: dto.first_name,
           lastName: dto.last_name,
           phone: dto.phone,

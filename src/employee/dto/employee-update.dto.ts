@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsBoolean,
-  IsEmail,
+  // IsEmail,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -12,15 +12,15 @@ import {
 import { RoleIds } from "src/role/types/role.type";
 
 export class EmployeeUpdateDto {
-  @ApiProperty({
-    example: "example@gmail.com",
-    required: true,
-    description: "Email",
-  })
-  @IsString()
-  @IsEmail()
-  @IsNotEmpty({ message: "Обязательное поле" })
-  email: string;
+  // @ApiProperty({
+  //   example: "example@gmail.com",
+  //   required: true,
+  //   description: "Email",
+  // })
+  // @IsString()
+  // @IsEmail()
+  // @IsNotEmpty({ message: "Обязательное поле" })
+  // email: string;
 
   @ApiProperty({
     example: "+7 999 999 99 99",

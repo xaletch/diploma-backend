@@ -52,4 +52,3 @@ volumes:
   postgres_data:
   redis_data:
   minio-storage:
-    name: app_minio-storage
