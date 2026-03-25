@@ -46,6 +46,7 @@ const permissions = [
 
   "directory:employees",
   "directory:locations",
+  "directory:services",
 ];
 
 const employeePermissions = [

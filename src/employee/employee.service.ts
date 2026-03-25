@@ -318,6 +318,8 @@ export class EmployeeService {
           id: true,
           note: true,
           birthday: true,
+          isBanned: true,
+          locationId: true,
           user: {
             select: {
               id: true,
@@ -371,6 +373,8 @@ export class EmployeeService {
     return {
       id: newUser.id,
       note: newUser.note,
+      is_banned: employee.isBanned,
+      current_location: newUser.locationId,
       service_count: newUser.user._count.services,
       location_count: newUser.user._count.locations,
       profile: {
@@ -521,6 +525,8 @@ export class EmployeeService {
         id: true,
         birthday: true,
         note: true,
+        isBanned: true,
+        locationId: true,
         user: {
           select: {
             id: true,
@@ -582,6 +588,8 @@ export class EmployeeService {
     return {
       id: employee.id,
       note: employee.note,
+      is_banned: employee.isBanned,
+      current_location: employee.locationId,
       service_count: employee.user._count.services,
       location_count: employee.user._count.locations,
       profile: {
@@ -607,5 +615,94 @@ export class EmployeeService {
         avatar: buildFileUrl(l.location.avatar),
       })),
     };
+  }
+
+  /**
+    ==== ДОБАВЛЕНИE УСЛУГИ ДЛЯ СОТРУДНИКА ===== 
+  **/
+  async addServiceToUser(userId: string, serviceId: string, companyId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId, companyId },
+      select: { id: true },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: пользователь не найден",
+          detail: `Пользователь с id ${userId} не существует.`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const service = await this.prismaService.service.findFirst({
+      where: { id: serviceId, companyId },
+      select: { id: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail: "Услуга не найдена.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    try {
+      await this.prismaService.userService.create({
+        data: { userId: user.id, serviceId: service.id },
+      });
+    } catch {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка: услуга уже привязана",
+          detail: "Эта услуга уже назначена пользователю",
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return { success: true };
+  }
+
+  async removeServiceFromUser(
+    userId: string,
+    serviceId: string,
+    companyId: string,
+  ) {
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId, companyId },
+      select: { id: true },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: пользователь не найден",
+          detail: `Пользователь с id ${userId} не существует.`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const deleteRes = await this.prismaService.userService.deleteMany({
+      where: { userId, serviceId },
+    });
+
+    if (deleteRes.count === 0)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не найдена",
+          detail: "Услуга не привязана к пользователю",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return { success: true };
   }
 }

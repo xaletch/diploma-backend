@@ -22,7 +22,7 @@ export class ScopeGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const user: UserPrivate = req.user;
 
-    console.log(user.permissions);
+    // console.log(user.permissions);
 
     if (!user.permissions?.length)
       throw new HttpException(
