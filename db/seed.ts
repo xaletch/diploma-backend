@@ -33,6 +33,7 @@ const permissions = [
   "employees:read",
 
   "user-find:email",
+  "user-check:location",
 
   "company-customer:create",
   "company:create",

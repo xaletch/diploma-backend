@@ -138,6 +138,7 @@ export class EmployeeService {
       where: { email: dto.email },
       include: {
         locations: { where: { locationId: dto.location_id } },
+        role: { select: { id: true, name: true } },
       },
     });
 
@@ -162,13 +163,34 @@ export class EmployeeService {
       А ПРОСТО УВЕДОМЛЯТЬ ЕГО О ТОМ, ЧТО ОН БЫЛ ДОБАВЛЕН В ТАКУЮ-ТО ЛОКАЦИЮ
     **/
     if (isExistUser) {
-      await this.prismaService.userLocation.create({
+      const user = await this.prismaService.userLocation.create({
         data: {
           userId: isExistUser.id,
           locationId: dto.location_id,
           roleId: dto.role,
           birthday: dto.birthdate,
           note: dto.note,
+        },
+        select: {
+          isBanned: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              status: true,
+              position: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -182,9 +204,17 @@ export class EmployeeService {
         success: true,
         message: "Пользователь добавлен в локацию",
         detail: {
-          email: dto.email,
-          user_id: isExistUser.id,
-          location_id: dto.location_id,
+          id: user.user.id,
+          email: user.user.email,
+          phone: user.user.phone,
+          full_name: `${user.user.firstName} ${user.user.lastName}`,
+          first_name: user.user.firstName,
+          last_name: user.user.lastName,
+          avatar: user.user.avatar,
+          status: user.user.status,
+          position: user.user.position,
+          role: user.user.role,
+          is_banned: user.isBanned,
         },
       };
     }
@@ -701,6 +731,42 @@ export class EmployeeService {
           detail: "Услуга не привязана к пользователю",
         },
         HttpStatus.NOT_FOUND,
+      );
+
+    return { success: true };
+  }
+
+  /**
+    ===== ПРОВЕРКА СУЩЕСТВУЕТ ЛИ СОТРУДНИК В ТЕКУЩЕЙ ЛОКАЦИИ ===== 
+  **/
+  async checkEmployeeInLocation(userId: string, locationId: string) {
+    const employee = await this.prismaService.user.findFirst({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!employee)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: пользователь не найден",
+          detail: `Пользователь с id ${userId} не существует.`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const exist = await this.prismaService.userLocation.findFirst({
+      where: { userId, locationId },
+    });
+
+    if (exist)
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Ошибка: сотрудник уже привязан к локации",
+          detail: "Сотрудник уже привязан к локации",
+        },
+        HttpStatus.BAD_REQUEST,
       );
 
     return { success: true };
