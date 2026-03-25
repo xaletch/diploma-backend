@@ -108,12 +108,97 @@ export class LocationService {
   async update(dto: LocationUpdateDto, location_id: string) {
     await this.findById(location_id);
 
-    const updated = await this.prismaService.location.update({
+    const newLocation = await this.prismaService.location.update({
       where: { id: location_id },
       data: { ...dto },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        description: true,
+        phone: true,
+        active: true,
+        users: {
+          select: {
+            id: true,
+            user: { select: { id: true, firstName: true, avatar: true } },
+          },
+        },
+        category: true,
+        comfort: true,
+        address: {
+          select: {
+            street: true,
+            region: true,
+            country: true,
+            city: true,
+            house: true,
+            timezone: true,
+            timezoneoffset: true,
+            positionLat: true,
+            positionLng: true,
+            post_code: true,
+          },
+        },
+        services: {
+          select: {
+            id: true,
+            service: {
+              select: {
+                id: true,
+                name: true,
+                mark: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return { location_id: updated.id, name: updated.name };
+    return {
+      id: newLocation.id,
+      name: newLocation.name,
+      avatar: buildFileUrl(newLocation.avatar),
+      description: newLocation.description,
+      phone: newLocation.phone,
+      timezone: `${newLocation.address?.timezone} (${newLocation.address?.timezoneoffset})`,
+      user_count: newLocation.users.length,
+      is_active: newLocation.active,
+
+      users: newLocation.users.map((u) => ({
+        id: u.user.id,
+        name: u.user.firstName,
+        avatar: buildFileUrl(u.user.avatar),
+      })),
+      category: newLocation.category,
+      comfort: newLocation.comfort,
+      address: {
+        full_address: [
+          newLocation.address?.country,
+          newLocation.address?.region,
+          newLocation.address?.city,
+          newLocation.address?.street,
+          newLocation.address?.house,
+        ]
+          .filter(Boolean)
+          .join("/"),
+        street: newLocation.address?.street,
+        house: newLocation.address?.house,
+        city: newLocation.address?.city,
+        region: newLocation.address?.region,
+        country: newLocation.address?.country,
+        post_code: newLocation.address?.post_code,
+        map: {
+          lat: newLocation.address?.positionLat,
+          lng: newLocation.address?.positionLng,
+        },
+      },
+      services: newLocation.services.map((service) => ({
+        id: service.service.id,
+        name: service.service.name,
+        mark: service.service.mark,
+      })),
+    };
   }
 
   async delete(location_id: string) {

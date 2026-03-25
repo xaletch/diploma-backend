@@ -18,7 +18,6 @@ import { JwtPayload } from "src/auth/jwt.payload";
 import { RoleService } from "src/role/role.service";
 import { CheckInviteDto } from "./dto/check-invite.dto";
 import { EmployeeUpdateDto } from "./dto/employee-update.dto";
-import { EmployeeUpdateResponse } from "./types/update.type";
 import { EmployeeDeleteResponse } from "./types/delete.type";
 import { EmployeeAuthResponse } from "./types/employee-auth.type";
 import { InviteResponse } from "./types/invite.type";
@@ -278,10 +277,7 @@ export class EmployeeService {
     return { access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async update(
-    dto: EmployeeUpdateDto,
-    userId: string,
-  ): Promise<EmployeeUpdateResponse> {
+  async update(dto: EmployeeUpdateDto, userId: string) {
     const employee = await this.findById(userId);
     const user = await this.prismaService.user.findFirst({
       where: { locations: { some: { id: employee.id } } },
@@ -297,8 +293,8 @@ export class EmployeeService {
         HttpStatus.NOT_FOUND,
       );
 
-    const userUpdate = await this.prismaService.$transaction(async (t) => {
-      const update = await t.user.update({
+    const newUser = await this.prismaService.$transaction(async (t) => {
+      await t.user.update({
         where: { id: user.id },
         data: {
           // email: dto.email,
@@ -308,10 +304,9 @@ export class EmployeeService {
           position: dto.position,
           roleId: dto.role,
         },
-        select: { id: true, email: true, phone: true },
       });
 
-      await t.userLocation.update({
+      const update = await t.userLocation.update({
         where: { id: employee.id },
         data: {
           note: dto.note,
@@ -319,18 +314,87 @@ export class EmployeeService {
           birthday: dto.birthdate,
           roleId: dto.role,
         },
+        select: {
+          id: true,
+          note: true,
+          birthday: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              status: true,
+              position: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              services: {
+                take: 6,
+                select: {
+                  service: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+              },
+              locations: {
+                take: 6,
+                select: {
+                  location: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatar: true,
+                    },
+                  },
+                },
+              },
+              _count: {
+                select: { services: true, locations: true },
+              },
+            },
+          },
+        },
       });
 
       return update;
     });
 
     return {
-      user: {
-        id: userUpdate.id,
-        email: userUpdate.email,
-        phone: userUpdate.phone,
+      id: newUser.id,
+      note: newUser.note,
+      service_count: newUser.user._count.services,
+      location_count: newUser.user._count.locations,
+      profile: {
+        id: newUser.user.id,
+        email: newUser.user.email,
+        phone: newUser.user.phone,
+        first_name: newUser.user.firstName,
+        last_name: newUser.user.lastName,
+        full_name: `${newUser.user.firstName} ${newUser.user.lastName}`,
+        avatar: buildFileUrl(newUser.user.avatar),
+        status: newUser.user.status,
+        position: newUser.user.position,
+        role: newUser.user.role,
+        birthday: newUser.birthday,
       },
-      success: true,
+      services: newUser.user.services.map((s) => ({
+        id: s.service.id,
+        name: s.service.name,
+      })),
+      locations: newUser.user.locations.map((l) => ({
+        id: l.location.id,
+        name: l.location.name,
+        avatar: buildFileUrl(l.location.avatar),
+      })),
     };
   }
 
@@ -436,7 +500,7 @@ export class EmployeeService {
       id: userLocation.user.id,
       email: userLocation.user.email,
       phone: userLocation.user.phone,
-      name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
+      full_name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
       first_name: userLocation.user.firstName,
       last_name: userLocation.user.lastName,
       avatar: buildFileUrl(userLocation.user.avatar),

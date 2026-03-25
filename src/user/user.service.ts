@@ -91,7 +91,7 @@ export class UserService {
       role_id: { id: user.role?.id },
       first_name: user.firstName,
       last_name: user.lastName,
-      name: `${user.firstName} ${user.lastName}`,
+      full_name: `${user.firstName} ${user.lastName}`,
       avatar: buildFileUrl(user.avatar),
       locations: locationArr.length ? locationArr : null,
       company: company,

@@ -441,12 +441,15 @@ export class BookingsService {
     return booking;
   }
 
-  async delete(bookingId: string): Promise<SuccessResponse> {
+  async delete(bookingId: string) {
     await this.getById(bookingId);
 
-    await this.prismaService.booking.delete({ where: { id: bookingId } });
+    const booking = await this.prismaService.booking.delete({
+      where: { id: bookingId },
+      select: { id: true },
+    });
 
-    return { success: true };
+    return { success: true, booking_id: booking.id };
   }
 
   async update(
@@ -490,10 +493,77 @@ export class BookingsService {
         serviceId: dto.service_id,
         locationId: dto.location_id,
       },
-      select: { id: true, name: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        date: true,
+        comment: true,
+        location: { select: { id: true, name: true } },
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            birthday: true,
+          },
+        },
+        employee: {
+          select: { id: true, firstName: true, lastName: true, phone: true },
+        },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+            price: { select: { price: true, costPrice: true } },
+          },
+        },
+      },
     });
 
-    return booking;
+    const res: IBookingDetails = {
+      id: booking.id,
+      name: booking.name,
+      status: booking.status,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      date: booking.date,
+      comment: booking.comment,
+      location: {
+        id: booking.location.id,
+        name: booking.location.name,
+      },
+      customer: {
+        id: booking.customer.id,
+        first_name: booking.customer.firstName,
+        last_name: booking.customer.lastName,
+        phone: booking.customer.phone,
+        email: booking.customer.email,
+        birthday: booking.customer.birthday,
+      },
+      employee: {
+        id: booking.employee.id,
+        first_name: booking.employee.firstName,
+        last_name: booking.employee.lastName,
+        phone: booking.employee.phone,
+      },
+      service: {
+        id: booking.service.id,
+        name: booking.service.name,
+        duration: booking.service.duration,
+        prices: {
+          price: booking.service.price?.price,
+          cost_price: booking.service.price?.costPrice,
+        },
+      },
+    };
+
+    return res;
   }
 
   async statusUpdate(
