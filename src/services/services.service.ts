@@ -268,11 +268,7 @@ export class ServicesService {
     return { status: "deleted" };
   }
 
-  async update(
-    dto: ServiceUpdateDto,
-    serviceId: string,
-    companyId: string,
-  ): Promise<SuccessResponse> {
+  async update(dto: ServiceUpdateDto, serviceId: string, companyId: string) {
     const service = await this.prismaService.service.findUnique({
       where: { id: serviceId },
     });
@@ -298,7 +294,7 @@ export class ServicesService {
       companyId,
     };
 
-    await this.prismaService.service.update({
+    const newService = await this.prismaService.service.update({
       where: { id: serviceId },
       data: {
         ...serviceDto,
@@ -329,13 +325,75 @@ export class ServicesService {
       select: {
         id: true,
         name: true,
-        mark: true,
         duration: true,
-        type: true,
+        // days: true,
+        // timeStart: true,
+        // timeEnd: true,
+        category: true,
+        mark: true,
+        price: {
+          select: {
+            id: true,
+            price: true,
+            costPrice: true,
+          },
+        },
+        discount: {
+          select: {
+            id: true,
+            dateType: true,
+            days: true,
+            price: true,
+            timeStart: true,
+            timeEnd: true,
+          },
+        },
+        publicName: true,
+        users: {
+          select: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+        locations: {
+          select: {
+            location: { select: { id: true, name: true } },
+          },
+        },
       },
     });
 
-    return { success: true };
+    const response = {
+      id: newService.id,
+      name: newService.name,
+      duration: newService.duration,
+      public_name: newService.publicName,
+      category: newService.category,
+      mark: newService.mark,
+      price: newService.price!.price ?? null,
+      prices: {
+        price: newService.price?.price ?? null,
+        cost_price: newService.price?.costPrice ?? null,
+      },
+      discount: newService.discount
+        ? {
+            date_type: newService.discount.dateType,
+            days: newService.discount.days,
+            price: newService.discount.price ?? null,
+            time_start: newService.discount.timeStart ?? null,
+            time_end: newService.discount.timeEnd ?? null,
+          }
+        : null,
+      users: newService.users.map((u) => ({
+        id: u.user.id,
+        name: `${u.user.firstName} ${u.user.lastName}`,
+      })),
+      locations: newService.locations.map((l) => ({
+        id: l.location.id,
+        name: l.location.name,
+      })),
+    };
+
+    return response;
   }
 
   async createCategory(dto: ServiceCategoryDto, companyId: string) {
@@ -364,13 +422,18 @@ export class ServicesService {
     const category = await this.prismaService.serviceCategory.findMany({
       where: { companyId },
       select: { id: true, name: true },
+      orderBy: { createdAt: "desc" },
     });
 
     return category;
   }
 
-  async deleteCategory(categoryId: number) {
-    const isExists = await this.prismaService.serviceCategory.findUnique({
+  async updateCategory(
+    dto: ServiceCategoryDto,
+    categoryId: number,
+    companyId: string,
+  ) {
+    const isExists = await this.prismaService.serviceCategory.findFirst({
       where: { id: categoryId },
     });
 
@@ -379,6 +442,31 @@ export class ServicesService {
         {
           status: HttpStatus.NOT_FOUND,
           title: "Категория не найдена",
+          detail: null,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const category = await this.prismaService.serviceCategory.update({
+      data: { name: dto.name },
+      where: { id: categoryId, companyId },
+      select: { id: true, name: true },
+    });
+
+    return category;
+  }
+
+  async deleteCategory(categoryId: number, companyId: string) {
+    const isExists = await this.prismaService.serviceCategory.findUnique({
+      where: { id: categoryId, companyId },
+    });
+
+    if (!isExists)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Категория не найдена",
+          detail: null,
         },
         HttpStatus.NOT_FOUND,
       );

@@ -9,6 +9,7 @@ const permissions = [
   "service-users:update",
   "service-locations:update",
   "service-category:create",
+  "service-category:update",
   "service-category:delete",
 
   "schedule:create",

@@ -324,10 +324,37 @@ export class ServicesController {
     const companyId = req.user.companyId;
     return this.servicesService.createCategory(dto, companyId);
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Редактирование категории" })
+  @ApiBody({ type: ServiceCategoryDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: ServiceCategoriesDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Patch("service/category/:category_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-category:update")
+  @HttpCode(HttpStatus.CREATED)
+  editCategory(
+    @Body() dto: ServiceCategoryDto,
+    @Param("category_id") categoryId: number,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.servicesService.updateCategory(dto, categoryId, companyId);
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: "Удаление категории" })
   @ApiResponse({
-    status: HttpStatus.CREATED,
+    status: HttpStatus.OK,
     description: "success",
     type: ServiceCategoriesDto,
   })
@@ -340,7 +367,8 @@ export class ServicesController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("service-category:delete")
   @HttpCode(HttpStatus.OK)
-  deleteCategory(@Param("category_id") categoryId: number) {
-    return this.servicesService.deleteCategory(categoryId);
+  deleteCategory(@Param("category_id") categoryId: number, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.servicesService.deleteCategory(categoryId, companyId);
   }
 }

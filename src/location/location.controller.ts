@@ -14,10 +14,7 @@ import {
 } from "@nestjs/common";
 import { LocationService } from "./location.service";
 import { LocationDto } from "./dto/location.dto";
-import {
-  LocationUpdateDto,
-  LocationUpdateResponseDto,
-} from "./dto/location-update.dto";
+import { LocationUpdateDto } from "./dto/location-update.dto";
 import { LocationGuard } from "src/access/guard/location.guard";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { CompanyGuard } from "src/access/guard/company.guard";
@@ -127,7 +124,7 @@ export class LocationController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: "success",
-    type: LocationUpdateResponseDto,
+    type: LocationFirstDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,

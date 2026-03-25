@@ -40,7 +40,6 @@ import {
   ClientBookingResponseDto,
   CreateBookingResponseDto,
   SuccessResponseDto,
-  UpdateBookingResponseDto,
 } from "./dto/booking-response.dto";
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 
@@ -159,7 +158,7 @@ export class BookingsController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: "Бронирование обновлено",
-    type: UpdateBookingResponseDto,
+    type: BookingResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,

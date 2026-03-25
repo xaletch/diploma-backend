@@ -87,7 +87,7 @@ export class ScheduleService {
     dto: ScheduleDto,
     locationId: string,
     scheduleId: number,
-  ): Promise<ScheduleRes> {
+  ): Promise<ISchedule> {
     const { user_id: userId } = dto;
 
     if (!scheduleId)
@@ -133,11 +133,16 @@ export class ScheduleService {
     const schedule = await this.prismaService.$transaction(async (t) => {
       const sch = await t.schedule.update({
         where: { id: scheduleId },
-        data: { date: dto.date, userLocation: { connect: { id: user.id } } },
-        select: { id: true, date: true },
+        data: {
+          date: dto.date,
+          userLocation: { connect: { id: user.id } },
+        },
+        select: { id: true },
       });
 
-      await t.scheduleInterval.deleteMany({ where: { scheduleId } });
+      await t.scheduleInterval.deleteMany({
+        where: { scheduleId: sch.id },
+      });
 
       await t.scheduleInterval.createMany({
         data: dto.intervals.map((i) => ({
@@ -147,17 +152,52 @@ export class ScheduleService {
         })),
       });
 
-      return sch;
+      const result = await t.schedule.findUnique({
+        where: { id: sch.id },
+        select: {
+          id: true,
+          intervals: { select: { start: true, end: true } },
+          date: true,
+          userLocation: {
+            select: {
+              id: true,
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  phone: true,
+                  position: true,
+                },
+              },
+              locationId: true,
+              isBanned: true,
+            },
+          },
+        },
+      });
+
+      return result;
     });
 
-    return schedule;
+    const res = {
+      id: schedule!.id,
+      date: schedule!.date,
+      intervals: schedule!.intervals,
+      location_id: schedule!.userLocation.locationId,
+      user: {
+        id: schedule!.userLocation.id,
+        full_name: `${schedule!.userLocation.user.firstName} ${schedule!.userLocation.user.lastName}`,
+        first_name: schedule!.userLocation.user.firstName,
+        last_name: schedule!.userLocation.user.lastName,
+        phone: schedule!.userLocation.user.phone,
+        position: schedule!.userLocation.user.position,
+        is_banned: schedule!.userLocation.isBanned,
+      },
+    };
+    return res;
   }
 
-  async delete(
-    userId: string,
-    scheduleId: number,
-    locationId: string,
-  ): Promise<SuccessResponse> {
+  async delete(userId: string, scheduleId: number, locationId: string) {
     if (!userId)
       throw new HttpException(
         {
@@ -200,7 +240,7 @@ export class ScheduleService {
 
     await this.prismaService.schedule.delete({ where: { id: scheduleId } });
 
-    return { success: true };
+    return { success: true, schedule_id: scheduleId };
   }
 
   async findById(
@@ -275,7 +315,9 @@ export class ScheduleService {
       location_id: schedule.userLocation.locationId,
       user: {
         id: schedule.userLocation.id,
-        name: `${schedule.userLocation.user.firstName} ${schedule.userLocation.user.lastName}`,
+        full_name: `${schedule.userLocation.user.firstName} ${schedule.userLocation.user.lastName}`,
+        first_name: schedule.userLocation.user.firstName,
+        last_name: schedule.userLocation.user.lastName,
         phone: schedule.userLocation.user.phone,
         position: schedule.userLocation.user.position,
         is_banned: schedule.userLocation.isBanned,
