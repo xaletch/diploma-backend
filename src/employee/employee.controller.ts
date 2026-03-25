@@ -48,6 +48,7 @@ import {
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { AuthResponseDto } from "src/auth/dto/auth-response.dto";
 import { LocationEmployeesDto } from "./dto/location-employees.dto";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -252,5 +253,72 @@ export class EmployeeController {
     @Param("location_id") locationId: string,
   ) {
     return this.employeeService.delete(userId, locationId);
+  }
+
+  /**
+    ==== ДОБАВЛЕНИE УСЛУГИ ДЛЯ СОТРУДНИКА ===== 
+  **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Добавление услуги для сотрудника" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Post("employee/services/:user_id/:service_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-users:update")
+  @HttpCode(HttpStatus.OK)
+  addedUsers(
+    @Param("user_id") userId: string,
+    @Param("service_id") serviceId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.employeeService.addServiceToUser(userId, serviceId, companyId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Удаление услуги для сотрудника" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Delete("employee/services/:user_id/:service_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service-users:update")
+  @HttpCode(HttpStatus.OK)
+  removeUsers(
+    @Param("user_id") userId: string,
+    @Param("service_id") serviceId: string,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.employeeService.removeServiceFromUser(
+      userId,
+      serviceId,
+      companyId,
+    );
   }
 }

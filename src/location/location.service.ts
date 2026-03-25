@@ -181,7 +181,7 @@ export class LocationService {
           newLocation.address?.house,
         ]
           .filter(Boolean)
-          .join("/"),
+          .join(", "),
         street: newLocation.address?.street,
         house: newLocation.address?.house,
         city: newLocation.address?.city,
@@ -325,7 +325,7 @@ export class LocationService {
           location.address?.house,
         ]
           .filter(Boolean)
-          .join("/"),
+          .join(", "),
         street: location.address?.street,
         house: location.address?.house,
         city: location.address?.city,
@@ -392,7 +392,7 @@ export class LocationService {
           location.address?.house,
         ]
           .filter(Boolean)
-          .join("/"),
+          .join(", "),
         street: location.address?.street,
         house: location.address?.house,
         city: location.address?.city,

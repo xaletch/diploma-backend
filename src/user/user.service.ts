@@ -115,8 +115,9 @@ export class UserService {
         firstName: true,
         lastName: true,
         avatar: true,
+        position: true,
         companyId: true,
-        role: { select: { name: true } },
+        role: { select: { name: true, id: true } },
       },
     });
 
@@ -148,9 +149,10 @@ export class UserService {
       email: user.email,
       phone: user.phone,
       avatar: buildFileUrl(user.avatar),
-      role: user.role?.name,
       first_name: user.firstName,
       last_name: user.lastName,
+      role: user.role,
+      position: user.position,
     };
   }
 

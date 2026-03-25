@@ -21,6 +21,7 @@ import {
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { DirectoryEmployee } from "./dto/employee.dto";
 import { DirectoryLocation } from "./dto/location.dto";
+import { DirectoryService } from "./dto/service.dto";
 
 @ApiTags("Директории")
 @Controller("directory")
@@ -69,5 +70,27 @@ export class DirectoriesController {
   getLocations(@Req() req) {
     const companyId = req.user.company.id;
     return this.directoriesService.locations(companyId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Список услуг компании" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Список услуг",
+    type: DirectoryService,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("services")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("directory:services")
+  @HttpCode(HttpStatus.OK)
+  getServices(@Req() req) {
+    const companyId = req.user.company.id;
+    return this.directoriesService.services(companyId);
   }
 }

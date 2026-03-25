@@ -44,9 +44,44 @@ export class DirectoriesService {
         name: true,
         avatar: true,
         active: true,
+        address: true,
       },
     });
 
-    return locations;
+    return locations.map((loc) => ({
+      id: loc.id,
+      name: loc.name,
+      avatar: buildFileUrl(loc.avatar),
+      active: loc.active,
+      address: [
+        loc.address?.country,
+        loc.address?.region,
+        loc.address?.city,
+        loc.address?.street,
+        loc.address?.house,
+      ]
+        .filter(Boolean)
+        .join(", "),
+    }));
+  }
+
+  async services(companyId: string) {
+    const services = await this.PrismaService.service.findMany({
+      where: { companyId },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        mark: true,
+        publicName: true,
+      },
+    });
+
+    return services.map((service) => ({
+      id: service.id,
+      name: service.name,
+      mark: service.mark,
+      public_name: service.publicName,
+    }));
   }
 }
