@@ -321,4 +321,35 @@ export class EmployeeController {
       companyId,
     );
   }
+
+  /**
+    ===== ПРОВЕРКА СУЩЕСТВУЕТ ЛИ СОТРУДНИК В ТЕКУЩЕЙ ЛОКАЦИИ ===== 
+  **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Проверка существует ли сотрудник в локации" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    type: NotFoundDto,
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("employee/check/:user_id/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
+  @Scopes("user-find:email")
+  @HttpCode(HttpStatus.OK)
+  checkEmployeeInLocation(
+    @Param("user_id") userId: string,
+    @Param("location_id") locationId: string,
+  ) {
+    return this.employeeService.checkEmployeeInLocation(userId, locationId);
+  }
 }
