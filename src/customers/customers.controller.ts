@@ -129,7 +129,7 @@ export class CustomersController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Post("customer/company")
+  @Post("company/customer")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customer:create")
   @HttpCode(HttpStatus.CREATED)
@@ -142,7 +142,7 @@ export class CustomersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Просмотр клиентов локации" })
   @ApiResponse({
-    status: HttpStatus.CREATED,
+    status: HttpStatus.OK,
     description: "success",
     type: undefined,
   })
@@ -151,10 +151,10 @@ export class CustomersController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("customer/company")
+  @Get("company/customer")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customers:read")
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   getCustomerForLocation(@Req() req) {
     const companyId = req.user.companyId;
     return this.customersService.getCustomerForLocation(companyId);
@@ -164,7 +164,7 @@ export class CustomersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Детальная информация о клиенте" })
   @ApiResponse({
-    status: HttpStatus.CREATED,
+    status: HttpStatus.OK,
     description: "success",
     type: undefined,
   })
@@ -173,10 +173,10 @@ export class CustomersController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("customer/company/:customer_id")
+  @Get("company/customer/:customer_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customer:read")
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   getCustomerDetailForLocation(
     @Param("customer_id") customerId: string,
 
@@ -193,7 +193,7 @@ export class CustomersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Информация о бронирований клиента" })
   @ApiResponse({
-    status: HttpStatus.CREATED,
+    status: HttpStatus.OK,
     description: "success",
     type: undefined,
   })
@@ -205,7 +205,7 @@ export class CustomersController {
   @Get("customer/bookings/:customer_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customer-bookings:read")
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   getCustomerBookingsForLocation(
     @Param("customer_id") customerId: string,
 
