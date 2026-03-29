@@ -130,7 +130,11 @@ export class CustomersService {
 
     ** ПОСЛЕ КАК КЛИЕНТ ЗАХОЧЕ ПОСМОТРЕТЬ СВОИ ЗАПИСИ ИЛИ ЗАПИСАТЬ САМОСТОЯТЕЛЬНО, ВОЙДЯ В АККАУНТ ВСЯ ИСТОРИЯ ЗАКАЗОВ БУДЕТ У НЕГО НА РУКАХ
   **/
-  async checkCreateCustomerForCompany(phone: string): Promise<string> {
+  async checkCreateCustomerForCompany(
+    phone: string,
+    firstName: string,
+    lastName?: string,
+  ): Promise<string> {
     try {
       const customer = await this.prismaService.customer.findUnique({
         where: { phone },
@@ -144,7 +148,7 @@ export class CustomersService {
       const createCustomer = await this.prismaService.$transaction(
         async (t) => {
           const customer = await t.customer.create({
-            data: { phone },
+            data: { phone, firstName, lastName },
             select: { id: true },
           });
           await t.customerAccount.create({
@@ -176,7 +180,11 @@ export class CustomersService {
     ===== СОЗДАНИЕ КЛИЕНТА ДЛЯ КОМПАНИИ =====
   **/
   async createForCompany(dto: CustomerCompanyDto, companyId: string) {
-    const customerId = await this.checkCreateCustomerForCompany(dto.phone);
+    const customerId = await this.checkCreateCustomerForCompany(
+      dto.phone,
+      dto.first_name,
+      dto.last_name,
+    );
 
     const findCustomer = await this.prismaService.customerCompany.findUnique({
       where: { customerId_companyId: { companyId, customerId } },
@@ -208,23 +216,11 @@ export class CustomersService {
   }
 
   /**
-    ===== ПОЛУЧИТЬ СПИСОК КЛИЕНТОВ В ЛОКАЦИИ =====
+    ===== ПОЛУЧИТЬ СПИСОК КЛИЕНТОВ КОМПАНИИ =====
   **/
-  async getCustomerForLocation(locationId: string, companyId: string) {
+  async getCustomerForLocation(companyId: string) {
     const customers = await this.prismaService.customerCompany.findMany({
-      where: {
-        companyId,
-        customer: {
-          bookings: {
-            some: {
-              locationId,
-              location: {
-                companyId,
-              },
-            },
-          },
-        },
-      },
+      where: { companyId },
       select: {
         id: true,
         isBanned: true,
@@ -255,13 +251,9 @@ export class CustomersService {
   /**
     ===== ПОЛУЧИТЬ ДЕТАЛЬНУЮ ИНФОРМАЦИЮ О КЛИЕНТЕ =====
   **/
-  async getCustomerDetailForLocation(
-    customerId: string,
-    locationId: string,
-    companyId: string,
-  ) {
+  async getCustomerDetailForLocation(customerId: string, companyId: string) {
     const customer = await this.prismaService.customerCompany.findUnique({
-      where: { id: customerId },
+      where: { id: customerId, companyId },
       select: {
         id: true,
         note: true,
@@ -277,7 +269,7 @@ export class CustomersService {
             birthday: true,
             _count: {
               select: {
-                bookings: { where: { locationId, location: { companyId } } },
+                bookings: { where: { companyId } },
               },
             },
           },
@@ -300,7 +292,7 @@ export class CustomersService {
       id: customer.id,
       note: customer.note,
       is_banned: customer.isBanned,
-      booking_count: customer.customer._count.bookings,
+      // booking_count: customer.customer._count.bookings,
       profile: {
         id: customer.customer.id,
         full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
@@ -314,13 +306,9 @@ export class CustomersService {
     };
   }
 
-  async getCustomerBookingsForLocation(
-    customerId: string,
-    locationId: string,
-    companyId: string,
-  ) {
+  async getCustomerBookingsForLocation(customerId: string, companyId: string) {
     const bookings = await this.prismaService.booking.findMany({
-      where: { customerId, locationId, location: { companyId } },
+      where: { customerId, location: { companyId } },
     });
 
     if (!bookings)
@@ -329,7 +317,7 @@ export class CustomersService {
           status: HttpStatus.NOT_FOUND,
           title: "Ошибка бронирования не найдены",
           detail: "Не удалось получить информацию о бронирований клиента",
-          meta: { customer_id: customerId, location_id: locationId },
+          meta: { customer_id: customerId },
         },
         HttpStatus.NOT_FOUND,
       );

@@ -15,7 +15,22 @@ export class CustomerCompanyDto {
   })
   @IsPhoneNumber("RU")
   @IsNotEmpty({ message: "Обязательное поле" })
-  phone: string;
+  phone!: string;
+
+  @ApiProperty({
+    example: "Имя",
+    description: "first_name",
+  })
+  @IsString()
+  first_name!: string;
+
+  @ApiProperty({
+    example: "Фамилия",
+    description: "last_name",
+  })
+  @IsString()
+  @IsOptional()
+  last_name?: string;
 
   @ApiProperty({
     example: "Толян - постоянный клиент",
@@ -41,13 +56,13 @@ export class CreateCustomerDataDto {
     example: "8c63a5f1-5648-4950-9507-04b9b81d71a8",
     description: "ID созданного клиента",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     example: false,
     description: "Заблокирован ли клиент",
   })
-  isBanned: boolean;
+  isBanned!: boolean;
 
   @ApiProperty({
     example: "bro you idiot",
@@ -62,11 +77,11 @@ export class CustomerCompanyResponseDto {
     example: true,
     description: "Статус операции",
   })
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({
     type: CreateCustomerDataDto,
     description: "Данные созданного клиента",
   })
-  create: CreateCustomerDataDto;
+  create!: CreateCustomerDataDto;
 }

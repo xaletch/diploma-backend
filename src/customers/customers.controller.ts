@@ -151,13 +151,13 @@ export class CustomersController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("customer/company/:location_id")
+  @Get("customer/company")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customers:read")
   @HttpCode(HttpStatus.CREATED)
-  getCustomerForLocation(@Param("location_id") locationId: string, @Req() req) {
+  getCustomerForLocation(@Req() req) {
     const companyId = req.user.companyId;
-    return this.customersService.getCustomerForLocation(locationId, companyId);
+    return this.customersService.getCustomerForLocation(companyId);
   }
 
   /** === ДЕТАЛЬНАЯ ИНФОРМАЦИЮ О КЛИЕНТЕ === **/
@@ -173,20 +173,18 @@ export class CustomersController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("customer/company/:customer_id/:location_id")
+  @Get("customer/company/:customer_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customer:read")
   @HttpCode(HttpStatus.CREATED)
   getCustomerDetailForLocation(
     @Param("customer_id") customerId: string,
-    @Param("location_id") locationId: string,
 
     @Req() req,
   ) {
     const companyId = req.user.companyId;
     return this.customersService.getCustomerDetailForLocation(
       customerId,
-      locationId,
       companyId,
     );
   }
@@ -204,20 +202,18 @@ export class CustomersController {
     description: "unauthorized",
     type: UnAuthorizedDto,
   })
-  @Get("customer/bookings/:customer_id/:location_id")
+  @Get("customer/bookings/:customer_id")
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customer-bookings:read")
   @HttpCode(HttpStatus.CREATED)
   getCustomerBookingsForLocation(
     @Param("customer_id") customerId: string,
-    @Param("location_id") locationId: string,
 
     @Req() req,
   ) {
     const companyId = req.user.companyId;
     return this.customersService.getCustomerBookingsForLocation(
       customerId,
-      locationId,
       companyId,
     );
   }
