@@ -763,8 +763,8 @@ export class EmployeeService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          title: "Ошибка: сотрудник уже привязан к локации",
-          detail: "Сотрудник уже привязан к локации",
+          title: "Ошибка: сотрудник уже привязан локации",
+          detail: "Сотрудник уже привязан к данной локации",
         },
         HttpStatus.BAD_REQUEST,
       );

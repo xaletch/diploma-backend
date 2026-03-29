@@ -172,6 +172,9 @@ export class CustomersService {
     }
   }
 
+  /**
+    ===== СОЗДАНИЕ КЛИЕНТА ДЛЯ КОМПАНИИ =====
+  **/
   async createForCompany(dto: CustomerCompanyDto, companyId: string) {
     const customerId = await this.checkCreateCustomerForCompany(dto.phone);
 
@@ -202,6 +205,127 @@ export class CustomersService {
     });
 
     return { success: true, create };
+  }
+
+  /**
+    ===== ПОЛУЧИТЬ СПИСОК КЛИЕНТОВ В ЛОКАЦИИ =====
+  **/
+  async getCustomerForLocation(locationId: string, companyId: string) {
+    const customers = await this.prismaService.customerCompany.findMany({
+      where: {
+        companyId,
+        customer: {
+          bookings: {
+            some: {
+              locationId,
+              location: {
+                companyId,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        isBanned: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phone: true,
+            avatar: true,
+            birthday: true,
+          },
+        },
+      },
+    });
+
+    return customers;
+  }
+
+  /**
+    ===== ПОЛУЧИТЬ ДЕТАЛЬНУЮ ИНФОРМАЦИЮ О КЛИЕНТЕ =====
+  **/
+  async getCustomerDetailForLocation(
+    customerId: string,
+    locationId: string,
+    companyId: string,
+  ) {
+    const customer = await this.prismaService.customerCompany.findUnique({
+      where: { id: customerId },
+      select: {
+        id: true,
+        note: true,
+        isBanned: true,
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            avatar: true,
+            birthday: true,
+            _count: {
+              select: {
+                bookings: { where: { locationId, location: { companyId } } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!customer)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка клиент не найдет",
+          detail: "Не удалось загрузить информацию о клиенте",
+          meta: { customer_id: customerId },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return {
+      id: customer.id,
+      note: customer.note,
+      is_banned: customer.isBanned,
+      booking_count: customer.customer._count.bookings,
+      profile: {
+        id: customer.customer.id,
+        full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
+        first_name: customer.customer.firstName,
+        last_name: customer.customer.lastName,
+        phone: customer.customer.phone,
+        email: customer.customer.email,
+        birthday: customer.customer.birthday,
+        avatar: buildFileUrl(customer.customer.avatar),
+      },
+    };
+  }
+
+  async getCustomerBookingsForLocation(
+    customerId: string,
+    locationId: string,
+    companyId: string,
+  ) {
+    const bookings = await this.prismaService.booking.findMany({
+      where: { customerId, locationId, location: { companyId } },
+    });
+
+    if (!bookings)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка бронирования не найдены",
+          detail: "Не удалось получить информацию о бронирований клиента",
+          meta: { customer_id: customerId, location_id: locationId },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return bookings;
   }
 
   async getMe(id: string) {

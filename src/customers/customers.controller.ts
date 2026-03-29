@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Ip,
+  Param,
   Post,
   Req,
   UseGuards,
@@ -34,6 +35,7 @@ import { AuthCustomerGuard } from "./guard/auth.guard";
 import { AuthorizationCustomer } from "./decorators/auth.decorator";
 import { AuthorizedCustomer } from "./decorators/authorized.decorator";
 import { CustomerMeDto } from "./dto/customer.dto";
+import { LocationGuard } from "src/access/guard/location.guard";
 
 @ApiTags("Клиенты")
 @Controller()
@@ -69,23 +71,6 @@ export class CustomersController {
   @HttpCode(HttpStatus.OK)
   verify(@Body() dto: VerifyCodeDto, @Ip() customerIp) {
     return this.customersService.verifyCode(dto, customerIp);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: "Создание клиента от лица компании" })
-  @ApiBody({ type: CustomerCompanyDto })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: "success",
-    type: CustomerCompanyResponseDto,
-  })
-  @Post("customer/company")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("company-customer:create")
-  @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CustomerCompanyDto, @Req() req) {
-    const companyId = req.user.companyId;
-    return this.customersService.createForCompany(dto, companyId);
   }
 
   @Get("customer/me")
@@ -124,5 +109,116 @@ export class CustomersController {
   @HttpCode(HttpStatus.OK)
   check() {
     return { success: true };
+  }
+
+  /**
+    ===== ОТ ЛИЦА КОМПАНИИ =====
+  **/
+
+  /** === СОЗДАНИЕ КЛИЕНТА === **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Создание клиента от лица компании" })
+  @ApiBody({ type: CustomerCompanyDto })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: CustomerCompanyResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Post("customer/company")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("company-customer:create")
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() dto: CustomerCompanyDto, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.customersService.createForCompany(dto, companyId);
+  }
+
+  /** === СПИСОК КЛИЕНТОВ === **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Просмотр клиентов локации" })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: undefined,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("customer/company/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("company-customers:read")
+  @HttpCode(HttpStatus.CREATED)
+  getCustomerForLocation(@Param("location_id") locationId: string, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.customersService.getCustomerForLocation(locationId, companyId);
+  }
+
+  /** === ДЕТАЛЬНАЯ ИНФОРМАЦИЮ О КЛИЕНТЕ === **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Детальная информация о клиенте" })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: undefined,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("customer/company/:customer_id/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, CompanyGuard, ScopeGuard)
+  @Scopes("company-customer:read")
+  @HttpCode(HttpStatus.CREATED)
+  getCustomerDetailForLocation(
+    @Param("customer_id") customerId: string,
+    @Param("location_id") locationId: string,
+
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.customersService.getCustomerDetailForLocation(
+      customerId,
+      locationId,
+      companyId,
+    );
+  }
+
+  /** === ИНФОРМАЦИЮ О БРОНИ КЛИЕНТА === **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Информация о бронирований клиента" })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: "success",
+    type: undefined,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("customer/bookings/:customer_id/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, CompanyGuard, ScopeGuard)
+  @Scopes("company-customer-bookings:read")
+  @HttpCode(HttpStatus.CREATED)
+  getCustomerBookingsForLocation(
+    @Param("customer_id") customerId: string,
+    @Param("location_id") locationId: string,
+
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.customersService.getCustomerBookingsForLocation(
+      customerId,
+      locationId,
+      companyId,
+    );
   }
 }
