@@ -544,9 +544,6 @@ model Booking {
   comment       String?
   status        BookingStatus @default(confirmed)
 
-  companyId String @map("company_id")
-  company   Company @relation(fields: [companyId], references: [id])
-
   location      Location      @relation("booking_locations", fields: [locationId], references: [id])
   locationId    String
 
