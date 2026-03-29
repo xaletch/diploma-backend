@@ -240,7 +240,16 @@ export class CustomersService {
       },
     });
 
-    return customers;
+    return customers.map((customer) => ({
+      id: customer.id,
+      is_banned: customer.isBanned,
+      full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
+      first_name: customer.customer.firstName,
+      last_name: customer.customer.lastName,
+      phone: customer.customer.phone,
+      avatar: buildFileUrl(customer.customer.avatar),
+      birthday: customer.customer.birthday,
+    }));
   }
 
   /**
