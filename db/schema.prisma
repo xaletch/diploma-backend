@@ -291,6 +291,8 @@ model Company {
 
   customers     CustomerCompany[]    @relation("company_customers")
 
+  bookings      Booking[]     @relation("company_bookings")
+
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
@@ -559,9 +561,14 @@ model Booking {
   order         Order?        @relation("booking_order", fields: [orderId], references: [id])
   orderId       String?
 
+  company       Company       @relation("company_bookings", fields: [companyId], references: [id])
+  companyId     String        @map("company_id")
+
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
+  @@index([companyId])
+  @@index([customerId])
   @@map("bookings")
 }
 

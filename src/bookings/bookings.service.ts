@@ -275,6 +275,7 @@ export class BookingsService {
           customerId: customerId,
           serviceId: dto.service_id,
           locationId: dto.location_id,
+          companyId: company_id,
         },
         select: {
           id: true,
