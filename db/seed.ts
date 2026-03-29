@@ -36,6 +36,9 @@ const permissions = [
   "user-check:location",
 
   "company-customer:create",
+  "company-customers:read",
+  "company-customer:read",
+  "company-customer-bookings:read",
   "company:create",
 
   "booking:create",
