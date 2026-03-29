@@ -209,10 +209,33 @@ export class CustomersService {
         note: dto.note,
         isBanned: dto.is_banned,
       },
-      select: { id: true, isBanned: true, note: true },
+      select: {
+        id: true,
+        isBanned: true,
+        note: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phone: true,
+            birthday: true,
+            avatar: true,
+          },
+        },
+      },
     });
 
-    return { success: true, create };
+    return {
+      id: create.id,
+      note: create.note,
+      is_banned: create.isBanned,
+      full_name: `${create.customer.firstName} ${create.customer.lastName}`,
+      first_name: create.customer.firstName,
+      last_name: create.customer.lastName,
+      phone: create.customer.phone,
+      avatar: buildFileUrl(create.customer.avatar),
+      birthday: create.customer.birthday,
+    };
   }
 
   /**
