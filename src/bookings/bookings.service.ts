@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { BookingCreateDto } from "./dto/booking-create.dto";
-import { IBookingDetails, IBookings } from "./type/bookings.type";
+import { IBookingDetails } from "./type/bookings.type";
 import { BookingCreate } from "./type/booking-create.type";
 import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingById } from "./type/booking-by-id.type";
@@ -382,7 +382,13 @@ export class BookingsService {
         date: true,
         comment: true,
         customer: {
-          select: { id: true, firstName: true, lastName: true, phone: true, avatar: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            avatar: true,
+          },
         },
         employee: {
           select: {
