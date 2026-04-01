@@ -382,7 +382,13 @@ export class BookingsService {
         date: true,
         comment: true,
         customer: {
-          select: { id: true, firstName: true, lastName: true, phone: true, avatar: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            avatar: true,
+          },
         },
         employee: {
           select: {
