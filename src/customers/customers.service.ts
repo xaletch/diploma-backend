@@ -315,7 +315,7 @@ export class CustomersService {
       id: customer.id,
       note: customer.note,
       is_banned: customer.isBanned,
-      // booking_count: customer.customer._count.bookings,
+      booking_count: customer.customer._count.bookings,
       profile: {
         id: customer.customer.id,
         full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
