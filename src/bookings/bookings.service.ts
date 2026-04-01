@@ -352,7 +352,7 @@ export class BookingsService {
     });
   }
 
-  async getAll(userId: string, locationId: string): Promise<IBookings[]> {
+  async getAll(userId: string, locationId: string) {
     const user = await this.prismaService.userLocation.findUnique({
       where: { userId_locationId: { userId, locationId } },
       select: { role: { select: { name: true } } },
@@ -382,7 +382,7 @@ export class BookingsService {
         date: true,
         comment: true,
         customer: {
-          select: { id: true, firstName: true, lastName: true, phone: true },
+          select: { id: true, firstName: true, lastName: true, phone: true, avatar: true },
         },
         employee: {
           select: {
@@ -391,13 +391,22 @@ export class BookingsService {
             firstName: true,
             lastName: true,
             position: true,
+            avatar: true,
+          },
+        },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+            price: { select: { price: true, costPrice: true } },
           },
         },
       },
       orderBy: { createdAt: "asc" },
     });
 
-    const res: IBookings[] = bookings.map((booking) => ({
+    const res = bookings.map((booking) => ({
       id: booking.id,
       name: booking.name,
       status: booking.status,
@@ -408,14 +417,28 @@ export class BookingsService {
       customer: {
         id: booking.customer.id,
         phone: booking.customer.phone,
-        name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+        full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+        first_name: booking.customer.firstName,
+        last_name: booking.customer.lastName,
+        avatar: booking.customer.avatar,
       },
       employee: {
         id: booking.employee.id,
+        full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
         first_name: booking.employee.firstName,
         last_name: booking.employee.lastName,
+        avatar: booking.employee.avatar,
         phone: booking.employee.phone,
         position: booking.employee.position,
+      },
+      service: {
+        id: booking.service.id,
+        name: booking.service.name,
+        duration: booking.service.duration,
+        prices: {
+          price: booking.service.price?.price,
+          cost_price: booking.service.price?.costPrice,
+        },
       },
     }));
 
