@@ -124,4 +124,32 @@ export class UserController {
   upload(@UploadedFile() file: BufferedFile, @Param("user_id") userId: string) {
     return this.userService.uploadAvatar(file, userId);
   }
+
+  /**
+    --- ПРАВА ДОСТУПА ---
+  **/
+  @Authorization()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Права доступа" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+    type: NotFoundDto,
+  })
+  @Get("me/permission")
+  // @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  getPermission(@Authorized("id") userId: string) {
+    return this.userService.permission(userId);
+  }
 }

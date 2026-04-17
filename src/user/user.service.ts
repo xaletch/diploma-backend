@@ -264,4 +264,48 @@ export class UserService {
     });
     return { success: true };
   }
+
+  /**
+    --- ПРАВА ДОСТУПА ---
+  **/
+  async permission(userId) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        role: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Пользователь не найден",
+          detail:
+            "Срок вашей сессии истек. Пожалуйста, войдите в систему снова",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const perm = await this.prismaService.role.findFirst({
+      where: {
+        id: user?.role?.id,
+      },
+      select: {
+        permissions: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return perm?.permissions;
+  }
 }
