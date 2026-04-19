@@ -25,11 +25,13 @@ const permissions = [
   "location:users",
   "location:user",
   "location:delete",
+  "location:services",
 
   "employee:invite",
   "employee/register",
   "employee:update",
   "employee:delete",
+  "employee:schedule",
   "employees:read",
 
   "user-find:email",
