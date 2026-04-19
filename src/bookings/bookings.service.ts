@@ -610,7 +610,7 @@ export class BookingsService {
     return { success: true };
   }
 
-  async details(bookingId: string): Promise<IBookingDetails> {
+  async details(bookingId: string) {
     const booking = await this.prismaService.booking.findUnique({
       where: { id: bookingId },
       select: {
@@ -621,7 +621,7 @@ export class BookingsService {
         endTime: true,
         date: true,
         comment: true,
-        location: { select: { id: true, name: true } },
+        location: { select: { id: true, name: true, avatar: true } },
         customer: {
           select: {
             id: true,
@@ -630,10 +630,18 @@ export class BookingsService {
             phone: true,
             email: true,
             birthday: true,
+            avatar: true,
           },
         },
         employee: {
-          select: { id: true, firstName: true, lastName: true, phone: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            avatar: true,
+          },
         },
         service: {
           select: {
@@ -641,6 +649,10 @@ export class BookingsService {
             name: true,
             duration: true,
             price: { select: { price: true, costPrice: true } },
+            publicName: true,
+            mark: true,
+            category: true,
+            type: true,
           },
         },
       },
@@ -657,7 +669,7 @@ export class BookingsService {
         HttpStatus.NOT_FOUND,
       );
 
-    const res: IBookingDetails = {
+    const res = {
       id: booking.id,
       name: booking.name,
       status: booking.status,
@@ -668,25 +680,35 @@ export class BookingsService {
       location: {
         id: booking.location.id,
         name: booking.location.name,
+        avatar: booking.location.avatar,
       },
       customer: {
         id: booking.customer.id,
         first_name: booking.customer.firstName,
         last_name: booking.customer.lastName,
+        full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
         phone: booking.customer.phone,
         email: booking.customer.email,
         birthday: booking.customer.birthday,
+        avatar: booking.customer.avatar,
       },
       employee: {
         id: booking.employee.id,
         first_name: booking.employee.firstName,
         last_name: booking.employee.lastName,
+        full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
         phone: booking.employee.phone,
+        email: booking.employee.email,
+        avatar: booking.employee.avatar,
       },
       service: {
         id: booking.service.id,
         name: booking.service.name,
         duration: booking.service.duration,
+        public_name: booking.service.publicName,
+        type: booking.service.type,
+        category: booking.service.category,
+        mark: booking.service.mark,
         prices: {
           price: booking.service.price?.price,
           cost_price: booking.service.price?.costPrice,
