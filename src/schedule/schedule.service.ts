@@ -50,18 +50,22 @@ export class ScheduleService {
     const schedule = await this.prismaService.$transaction(async (t) => {
       const sch = await t.schedule.create({
         data: { date: dto.date, userLocation: { connect: { id: user.id } } },
-        select: { id: true, date: true },
+        select: {
+          id: true,
+          date: true,
+        },
       });
 
-      await t.scheduleInterval.createMany({
+      const intervals = await t.scheduleInterval.createManyAndReturn({
         data: dto.intervals.map((i) => ({
           start: i.start,
           end: i.end,
           scheduleId: sch.id,
         })),
+        select: { start: true, end: true },
       });
 
-      return sch;
+      return { ...sch, intervals };
     });
 
     return schedule;

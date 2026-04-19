@@ -3,6 +3,7 @@ import { IInterval } from "./intervals.type";
 export type ScheduleRes = {
   id: number;
   date: string;
+  intervals: IInterval[];
 };
 
 export type ScheduleUser = {
