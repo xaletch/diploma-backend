@@ -163,7 +163,7 @@ export class CustomersService {
       );
 
       return createCustomer;
-    } catch (err) {
+    } catch (err: any) {
       if (err.code === "P2002") {
         const customer = await this.prismaService.customer.findUnique({
           where: { phone },
