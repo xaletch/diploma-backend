@@ -23,6 +23,7 @@ import { MinioModule } from "./minio/minio.module";
 import { OrdersModule } from "./orders/orders.module";
 import { HealthModule } from "./health/health.module";
 import { DirectoriesModule } from "./directories/directories.module";
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { DirectoriesModule } from "./directories/directories.module";
     OrdersModule,
     HealthModule,
     DirectoriesModule,
+    CatalogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

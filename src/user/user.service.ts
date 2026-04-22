@@ -40,6 +40,13 @@ export class UserService {
                 id: true,
                 name: true,
                 avatar: true,
+                address: {
+                  select: {
+                    city: true,
+                    country: true,
+                    region: true,
+                  },
+                },
               },
             },
           },
@@ -81,6 +88,13 @@ export class UserService {
       id: loc.location.id,
       name: loc.location.name,
       avatar: buildFileUrl(loc.location.avatar),
+      full_address: [
+        loc.location.address?.country,
+        loc.location.address?.region,
+        loc.location.address?.city,
+      ]
+        .filter(Boolean)
+        .join(", "),
     }));
 
     return {
