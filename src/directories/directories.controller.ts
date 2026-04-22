@@ -3,6 +3,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -22,6 +23,7 @@ import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { DirectoryEmployee } from "./dto/employee.dto";
 import { DirectoryLocation } from "./dto/location.dto";
 import { DirectoryService } from "./dto/service.dto";
+import { LocationGuard } from "src/access/guard/location.guard";
 
 @ApiTags("Директории")
 @Controller("directory")
@@ -48,6 +50,27 @@ export class DirectoriesController {
   getEmployees(@Req() req) {
     const companyId = req.user.company.id;
     return this.directoriesService.employees(companyId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Список всех сотрудников работающих в локации" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Список сотрудников работающих в локации",
+    type: DirectoryEmployee,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("employees/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
+  @Scopes("directory:location-employees")
+  @HttpCode(HttpStatus.OK)
+  getLocationEmployees(@Param("location_id") locationId: string) {
+    return this.directoriesService.locationEmployees(locationId);
   }
 
   @ApiBearerAuth()
@@ -92,5 +115,26 @@ export class DirectoriesController {
   getServices(@Req() req) {
     const companyId = req.user.company.id;
     return this.directoriesService.services(companyId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Список услуг локации" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Список услуг локации",
+    type: DirectoryService,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("services/:location_id")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
+  @Scopes("directory:location-services")
+  @HttpCode(HttpStatus.OK)
+  getLocationServices(@Param("location_id") locationId: string) {
+    return this.directoriesService.locationServices(locationId);
   }
 }

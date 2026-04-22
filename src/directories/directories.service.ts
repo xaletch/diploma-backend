@@ -36,6 +36,40 @@ export class DirectoriesService {
     }));
   }
 
+  async locationEmployees(locationId: string) {
+    const employees = await this.PrismaService.userLocation.findMany({
+      where: { locationId, isBanned: false },
+      select: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            position: true,
+          },
+        },
+      },
+    });
+
+    return employees.map((emp) => ({
+      id: emp.user.id,
+      email: emp.user.email,
+      first_name: emp.user.firstName,
+      last_name: emp.user.lastName,
+      avatar: buildFileUrl(emp.user.avatar),
+      position: emp.user.position,
+      role: emp.role,
+    }));
+  }
+
   async locations(companyId: string) {
     const locations = await this.PrismaService.location.findMany({
       where: { companyId },
@@ -82,6 +116,30 @@ export class DirectoriesService {
       name: service.name,
       mark: service.mark,
       public_name: service.publicName,
+    }));
+  }
+
+  async locationServices(locationId: string) {
+    const services = await this.PrismaService.locationService.findMany({
+      where: { locationId },
+      select: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            mark: true,
+            publicName: true,
+          },
+        },
+      },
+    });
+
+    return services.map((service) => ({
+      id: service.service.id,
+      name: service.service.name,
+      mark: service.service.mark,
+      public_name: service.service.publicName,
     }));
   }
 }
