@@ -89,9 +89,9 @@ export class UserService {
       name: loc.location.name,
       avatar: buildFileUrl(loc.location.avatar),
       full_address: [
-        loc.location.address?.country,
-        loc.location.address?.region,
         loc.location.address?.city,
+        loc.location.address?.region,
+        loc.location.address?.country,
       ]
         .filter(Boolean)
         .join(", "),
