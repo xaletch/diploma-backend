@@ -55,6 +55,7 @@ const permissions = [
   "directory:services",
   "directory:location-employees",
   "directory:location-services",
+  "directory:customers",
 ];
 
 const employeePermissions = [
@@ -73,6 +74,13 @@ const employeePermissions = [
   "booking-detail:read",
   "booking:update",
   "booking:status",
+  // test
+  "directory:employees",
+  "directory:locations",
+  "directory:services",
+  "directory:location-employees",
+  "directory:location-services",
+  "directory:customers",
 ];
 
 const ROLE_PRESETS: Record<string, string[]> = {

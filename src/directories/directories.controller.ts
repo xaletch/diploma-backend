@@ -74,6 +74,28 @@ export class DirectoriesController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: "Список всех клиентов компании" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Список клиентов",
+    type: undefined,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("customers")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("directory:customers")
+  @HttpCode(HttpStatus.OK)
+  customersCompany(@Req() req) {
+    const companyId = req.user.company.id;
+    return this.directoriesService.customersCompany(companyId);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Список всех локаций компании" })
   @ApiResponse({
     status: HttpStatus.OK,

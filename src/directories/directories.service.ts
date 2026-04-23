@@ -30,6 +30,7 @@ export class DirectoriesService {
       email: emp.email,
       first_name: emp.firstName,
       last_name: emp.lastName,
+      full_name: `${emp.firstName} ${emp.lastName}`,
       avatar: buildFileUrl(emp.avatar),
       position: emp.position,
       role: emp.role,
@@ -64,9 +65,48 @@ export class DirectoriesService {
       email: emp.user.email,
       first_name: emp.user.firstName,
       last_name: emp.user.lastName,
+      full_name: `${emp.user.firstName} ${emp.user.lastName}`,
       avatar: buildFileUrl(emp.user.avatar),
       position: emp.user.position,
       role: emp.role,
+    }));
+  }
+
+  async customersCompany(companyId: string) {
+    const customers = await this.PrismaService.customerCompany.findMany({
+      where: { companyId, isBanned: false },
+      select: {
+        id: true,
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            birthday: true,
+            phone: true,
+            email: true,
+            avatar: true,
+            _count: {
+              select: {
+                bookings: { where: { companyId } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return customers.map((customer) => ({
+      id: customer.id,
+      profile_id: customer.customer.id,
+      first_name: customer.customer.firstName,
+      last_name: customer.customer.lastName,
+      full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
+      birthday: customer.customer.birthday,
+      phone: customer.customer.phone,
+      email: customer.customer.email,
+      avatar: buildFileUrl(customer.customer.avatar),
+      bookings_count: customer.customer._count.bookings,
     }));
   }
 
