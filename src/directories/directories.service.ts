@@ -63,7 +63,7 @@ export class DirectoriesService {
             position: true,
             services: {
               select: {
-                id: true,
+                serviceId: true,
               },
             },
           },
@@ -80,7 +80,7 @@ export class DirectoriesService {
       avatar: buildFileUrl(emp.user.avatar),
       position: emp.user.position,
       role: emp.role,
-      services: emp.user.services,
+      services: emp.user.services.map((service) => ({ id: service.serviceId })),
     }));
   }
 
