@@ -6,6 +6,9 @@ import { buildFileUrl } from "src/shared/utils/build-url";
 export class DirectoriesService {
   constructor(private readonly PrismaService: PrismaService) {}
 
+  /**
+    !!!!! ОПТИМИЗИРОВАТЬ !!!!!
+  **/
   async employees(companyId: string) {
     const employees = await this.PrismaService.user.findMany({
       where: { companyId },
@@ -37,6 +40,9 @@ export class DirectoriesService {
     }));
   }
 
+  /**
+    !!!!! ОПТИМИЗИРОВАТЬ !!!!!
+  **/
   async locationEmployees(locationId: string) {
     const employees = await this.PrismaService.userLocation.findMany({
       where: { locationId, isBanned: false },
@@ -55,6 +61,11 @@ export class DirectoriesService {
             lastName: true,
             avatar: true,
             position: true,
+            services: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
@@ -69,9 +80,13 @@ export class DirectoriesService {
       avatar: buildFileUrl(emp.user.avatar),
       position: emp.user.position,
       role: emp.role,
+      services: emp.user.services,
     }));
   }
 
+  /**
+    !!!!! ОПТИМИЗИРОВАТЬ !!!!!
+  **/
   async customersCompany(companyId: string) {
     const customers = await this.PrismaService.customerCompany.findMany({
       where: { companyId, isBanned: false },
@@ -139,6 +154,9 @@ export class DirectoriesService {
     }));
   }
 
+  /**
+    !!!!! ОПТИМИЗИРОВАТЬ !!!!!
+  **/
   async services(companyId: string) {
     const services = await this.PrismaService.service.findMany({
       where: { companyId },
@@ -159,6 +177,9 @@ export class DirectoriesService {
     }));
   }
 
+  /**
+    !!!!! ОПТИМИЗИРОВАТЬ !!!!!
+  **/
   async locationServices(locationId: string) {
     const services = await this.PrismaService.locationService.findMany({
       where: { locationId },
@@ -170,6 +191,19 @@ export class DirectoriesService {
             type: true,
             mark: true,
             publicName: true,
+            duration: true,
+            category: true,
+            price: {
+              select: {
+                price: true,
+                costPrice: true,
+              },
+            },
+            users: {
+              select: {
+                userId: true,
+              },
+            },
           },
         },
       },
@@ -180,6 +214,15 @@ export class DirectoriesService {
       name: service.service.name,
       mark: service.service.mark,
       public_name: service.service.publicName,
+      duration: service.service.duration,
+      category: service.service.category,
+      prices: {
+        price: service.service.price?.price,
+        cost_price: service.service.price?.costPrice,
+      },
+      users: service.service.users.map((user) => ({
+        id: user.userId,
+      })),
     }));
   }
 }
