@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -69,8 +70,12 @@ export class DirectoriesController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
   @Scopes("directory:location-employees")
   @HttpCode(HttpStatus.OK)
-  getLocationEmployees(@Param("location_id") locationId: string) {
-    return this.directoriesService.locationEmployees(locationId);
+  getLocationEmployees(
+    @Param("location_id") locationId: string,
+    @Query("month") month?: string,
+    @Query("year") year?: string,
+  ) {
+    return this.directoriesService.locationEmployees(locationId, month, year);
   }
 
   @ApiBearerAuth()

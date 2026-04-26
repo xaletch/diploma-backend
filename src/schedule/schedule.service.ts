@@ -71,11 +71,26 @@ export class ScheduleService {
     return schedule;
   }
 
-  async findAll(userId: string, locationId: string): Promise<ISchedules[]> {
+  async findAll(
+    userId: string,
+    locationId: string,
+    month?: string,
+    year?: string,
+  ): Promise<ISchedules[]> {
     await this.userService.findByIdOptional(userId);
 
+    if (!month || !year) {
+      const now = new Date();
+      month = String(now.getMonth() + 1).padStart(2, "0");
+      year = String(now.getFullYear());
+    }
+
     const schedule = await this.prismaService.schedule.findMany({
-      where: { userLocation: { userId, locationId } },
+      take: 31,
+      where: {
+        userLocation: { userId, locationId },
+        date: { endsWith: `${month}-${year}` },
+      },
       select: {
         id: true,
         date: true,

@@ -43,7 +43,13 @@ export class DirectoriesService {
   /**
     !!!!! ОПТИМИЗИРОВАТЬ !!!!!
   **/
-  async locationEmployees(locationId: string) {
+  async locationEmployees(locationId: string, month?: string, year?: string) {
+    if (!month || !year) {
+      const now = new Date();
+      month = String(now.getMonth() + 1).padStart(2, "0");
+      year = String(now.getFullYear());
+    }
+
     const employees = await this.PrismaService.userLocation.findMany({
       where: { locationId, isBanned: false },
       select: {
@@ -68,6 +74,15 @@ export class DirectoriesService {
             },
           },
         },
+        schedules: {
+          take: 31,
+          where: {
+            date: { endsWith: `${month}-${year}` },
+          },
+          select: {
+            date: true,
+          },
+        },
       },
     });
 
@@ -81,6 +96,7 @@ export class DirectoriesService {
       position: emp.user.position,
       role: emp.role,
       services: emp.user.services.map((service) => ({ id: service.serviceId })),
+      schedule: emp.schedules,
     }));
   }
 
