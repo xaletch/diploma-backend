@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ScheduleService } from "./schedule.service";
@@ -103,8 +104,10 @@ export class ScheduleController {
   findAll(
     @Param("user_id") userId: string,
     @Param("location_id") locationId: string,
+    @Query("month") month?: string,
+    @Query("year") year?: string,
   ) {
-    return this.scheduleService.findAll(userId, locationId);
+    return this.scheduleService.findAll(userId, locationId, month, year);
   }
 
   @ApiBearerAuth()
