@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
 
@@ -53,6 +53,7 @@ export class DirectoriesService {
     const employees = await this.PrismaService.userLocation.findMany({
       where: { locationId, isBanned: false },
       select: {
+        id: true,
         role: {
           select: {
             id: true,
@@ -87,7 +88,8 @@ export class DirectoriesService {
     });
 
     return employees.map((emp) => ({
-      id: emp.user.id,
+      id: emp.id,
+      profile_id: emp.user.id,
       email: emp.user.email,
       first_name: emp.user.firstName,
       last_name: emp.user.lastName,
@@ -240,5 +242,115 @@ export class DirectoriesService {
         id: user.userId,
       })),
     }));
+  }
+
+  async employeeSchedule(
+    userId: string,
+    locationId: string,
+    date: string,
+    duration: number,
+  ) {
+    const user = await this.PrismaService.userLocation.findFirst({
+      where: {
+        userId,
+        locationId,
+        schedules: { some: { date } },
+      },
+      select: {
+        id: true,
+        schedules: {
+          where: { date },
+          select: {
+            id: true,
+            date: true,
+            intervals: {
+              select: {
+                start: true,
+                end: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Расписание не найдено",
+          meta: {
+            user_id: userId,
+            location_id: locationId,
+            date: date,
+          },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const bookings = await this.PrismaService.booking.findMany({
+      where: {
+        employeeId: userId,
+        date: date,
+        status: { not: "cancelled" },
+      },
+      select: {
+        date: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    function timeToMinutes(time: string) {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      return hours * 60 + minutes;
+    }
+
+    function minutesToTime(minutes: number) {
+      const hours = Math.floor(minutes / 60)
+        .toString()
+        .padStart(2, "0");
+
+      const mins = (minutes % 60).toString().padStart(2, "0");
+
+      return `${hours}:${mins}`;
+    }
+
+    function hasOverlap(start: number, end: number) {
+      return bookings.some((booking) => {
+        const bookingStart = timeToMinutes(booking.startTime);
+        const bookingEnd = timeToMinutes(booking.endTime);
+
+        return start < bookingEnd && end > bookingStart;
+      });
+    }
+
+    const slots: string[] = [];
+
+    for (const schedule of user.schedules) {
+      for (const interval of schedule.intervals) {
+        const intervalStart = timeToMinutes(interval.start);
+        const intervalEnd = timeToMinutes(interval.end);
+
+        for (
+          let current = intervalStart;
+          current + duration <= intervalEnd;
+          current += duration
+        ) {
+          const start = current;
+          const end = current + duration;
+
+          const busy = hasOverlap(start, end);
+
+          if (!busy) {
+            slots.push(minutesToTime(start));
+          }
+        }
+      }
+    }
+
+    return slots;
   }
 }
