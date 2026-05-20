@@ -55,7 +55,7 @@ export class CustomersService {
       customerPhone = customerAccount.phone;
     }
 
-    const code = Math.floor(Math.random() * 9000);
+    const code = Math.floor(100000 + Math.random() * 900000);
 
     await this.redisService.setEx(
       `auth:code:${customerPhone}`,
