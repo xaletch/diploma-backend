@@ -315,6 +315,8 @@ export class DirectoriesService {
 
       const mins = (minutes % 60).toString().padStart(2, "0");
 
+      console.log("{hours}{mins}", `${hours}:${mins}`);
+
       return `${hours}:${mins}`;
     }
 
@@ -322,6 +324,8 @@ export class DirectoriesService {
       return bookings.some((booking) => {
         const bookingStart = timeToMinutes(booking.startTime);
         const bookingEnd = timeToMinutes(booking.endTime);
+
+        console.log("bookingStart", bookingStart, "bookingEnd", bookingEnd);
 
         return start < bookingEnd && end > bookingStart;
       });
