@@ -241,9 +241,21 @@ export class CustomersService {
   /**
     ===== ПОЛУЧИТЬ СПИСОК КЛИЕНТОВ КОМПАНИИ =====
   **/
-  async getCustomerForLocation(companyId: string) {
+  async getCustomerForLocation(companyId: string, search?: string) {
     const customers = await this.prismaService.customerCompany.findMany({
-      where: { companyId },
+      where: {
+        companyId,
+        ...(search && {
+          customer: {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+              { phone: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+            ],
+          },
+        }),
+      },
       select: {
         id: true,
         isBanned: true,

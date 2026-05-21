@@ -25,7 +25,7 @@ import { CheckInviteResponse } from "./types/check-invite.type";
 import { EmployeeFirst } from "./types/employee.type";
 import { EmployeeBlockedDto } from "./dto/blocked.dto";
 import { SuccessResponse } from "./types/success.type";
-import { InviteAction } from "@prisma/client";
+import { InviteAction, Prisma, UserStatus } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
@@ -491,10 +491,29 @@ export class EmployeeService {
     };
   }
 
-  async getEmployees(locationId: string) {
+  async getEmployees(
+    locationId: string,
+    filters?: { search?: string; status?: UserStatus; role?: string },
+  ) {
+    const { search, status, role } = filters ?? {};
+
+    const userFilter: Prisma.UserWhereInput = {
+      ...(status && { status }),
+      ...(search && {
+        OR: [
+          { firstName: { contains: search, mode: "insensitive" as const } },
+          { lastName: { contains: search, mode: "insensitive" as const } },
+          { phone: { contains: search, mode: "insensitive" as const } },
+          { email: { contains: search, mode: "insensitive" as const } },
+        ],
+      }),
+    };
+
     const userLocations = await this.prismaService.userLocation.findMany({
       where: {
         locationId,
+        ...(role && { role: { name: { equals: role, mode: "insensitive" } } }),
+        ...(Object.keys(userFilter).length && { user: userFilter }),
       },
       select: {
         isBanned: true,

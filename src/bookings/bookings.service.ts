@@ -394,7 +394,18 @@ export class BookingsService {
     });
   }
 
-  async getAll(userId: string, locationId: string) {
+  async getAll(
+    userId: string,
+    locationId: string,
+    filters: {
+      customer?: string;
+      employee?: string;
+      service?: string;
+      status?: BookingStatus;
+    },
+  ) {
+    const { customer, employee, service, status } = filters;
+
     const user = await this.prismaService.userLocation.findUnique({
       where: { userId_locationId: { userId, locationId } },
       select: { role: { select: { name: true } } },
@@ -414,7 +425,32 @@ export class BookingsService {
     const isOwner = user.role?.name === "owner";
 
     const bookings = await this.prismaService.booking.findMany({
-      where: isOwner ? { locationId } : { locationId, employeeId: userId },
+      where: {
+        locationId,
+        ...(!isOwner && { employeeId: userId }),
+        ...(status && { status }),
+        ...(customer && {
+          customer: {
+            OR: [
+              { firstName: { contains: customer, mode: "insensitive" } },
+              { lastName: { contains: customer, mode: "insensitive" } },
+            ],
+          },
+        }),
+        ...(employee && {
+          employee: {
+            OR: [
+              { firstName: { contains: employee, mode: "insensitive" } },
+              { lastName: { contains: employee, mode: "insensitive" } },
+            ],
+          },
+        }),
+        ...(service && {
+          service: {
+            name: { contains: service, mode: "insensitive" },
+          },
+        }),
+      },
       select: {
         id: true,
         name: true,
@@ -450,6 +486,12 @@ export class BookingsService {
             price: { select: { price: true, costPrice: true } },
           },
         },
+        order: {
+          select: {
+            subtotal: true,
+            paymentMethod: true,
+          },
+        },
       },
       orderBy: { createdAt: "asc" },
     });
@@ -462,6 +504,8 @@ export class BookingsService {
       end_time: booking.endTime,
       date: booking.date,
       comment: booking.comment,
+      subtotal: booking.order?.subtotal,
+      payment_method: booking.order?.paymentMethod,
       customer: {
         id: booking.customer.id,
         phone: booking.customer.phone,

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -49,6 +50,7 @@ import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { AuthResponseDto } from "src/auth/dto/auth-response.dto";
 import { LocationEmployeesDto } from "./dto/location-employees.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
+import { UserStatus } from "@prisma/client";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -197,8 +199,17 @@ export class EmployeeController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("employees:read")
   @HttpCode(HttpStatus.OK)
-  getAll(@Param("location_id") locationId: string) {
-    return this.employeeService.getEmployees(locationId);
+  getAll(
+    @Query("search") search: string,
+    @Query("status") status: UserStatus,
+    @Query("role") role: string,
+    @Param("location_id") locationId: string,
+  ) {
+    return this.employeeService.getEmployees(locationId, {
+      search,
+      status,
+      role,
+    });
   }
 
   @ApiBearerAuth()
