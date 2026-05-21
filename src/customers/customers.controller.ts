@@ -7,6 +7,7 @@ import {
   Ip,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -155,9 +156,9 @@ export class CustomersController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customers:read")
   @HttpCode(HttpStatus.OK)
-  getCustomerForLocation(@Req() req) {
+  getCustomerForLocation(@Query("search") search: string, @Req() req) {
     const companyId = req.user.companyId;
-    return this.customersService.getCustomerForLocation(companyId);
+    return this.customersService.getCustomerForLocation(companyId, search);
   }
 
   /** === ДЕТАЛЬНАЯ ИНФОРМАЦИЮ О КЛИЕНТЕ === **/

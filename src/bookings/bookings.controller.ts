@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -42,6 +43,7 @@ import {
   SuccessResponseDto,
 } from "./dto/booking-response.dto";
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
+import { BookingStatus } from "@prisma/client";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -105,9 +107,21 @@ export class BookingsController {
   @UseGuards(AuthGuard, LoadUserGuard, LocationGuard, ScopeGuard)
   @Scopes("bookings:read")
   @HttpCode(HttpStatus.OK)
-  getAll(@Param("location_id") locationId: string, @Req() req) {
+  getAll(
+    @Param("location_id") locationId: string,
+    @Query("customer") customer: string,
+    @Query("employee") employee: string,
+    @Query("service") service: string,
+    @Query("status") status: BookingStatus,
+    @Req() req,
+  ) {
     const userId = req.user.id;
-    return this.bookingsService.getAll(userId, locationId);
+    return this.bookingsService.getAll(userId, locationId, {
+      customer,
+      employee,
+      service,
+      status,
+    });
   }
 
   @ApiBearerAuth()
