@@ -282,9 +282,26 @@ export class BookingsService {
           name: true,
           status: true,
           date: true,
-          location: { select: { id: true, name: true } },
+          startTime: true,
+          endTime: true,
+          comment: true,
           employee: {
-            select: { id: true, firstName: true, lastName: true, phone: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              avatar: true,
+            },
+          },
+          customer: {
+            select: {
+              id: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+            },
           },
           service: {
             select: {
@@ -331,13 +348,30 @@ export class BookingsService {
       });
 
       const res = {
-        ...booking,
+        id: booking.id,
+        name: booking.name,
+        status: booking.status,
+        start_time: booking.startTime,
+        end_time: booking.endTime,
+        date: booking.date,
+        comment: booking.comment,
+        customer: {
+          id: booking.customer.id,
+          phone: booking.customer.phone,
+          full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+          first_name: booking.customer.firstName,
+          last_name: booking.customer.lastName,
+          avatar: booking.customer.avatar,
+        },
         employee: {
           id: booking.employee.id,
           first_name: booking.employee.firstName,
           last_name: booking.employee.lastName,
+          full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
+          avatar: booking.employee.avatar,
           phone: booking.employee.phone,
         },
+
         order: {
           id: order.id,
           status: order.status,
