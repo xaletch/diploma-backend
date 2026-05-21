@@ -308,7 +308,7 @@ export class BookingsService {
               id: true,
               name: true,
               mark: true,
-              price: { select: { price: true } },
+              price: { select: { price: true, costPrice: true } },
               duration: true,
             },
           },
@@ -371,7 +371,15 @@ export class BookingsService {
           avatar: booking.employee.avatar,
           phone: booking.employee.phone,
         },
-
+        service: {
+          id: booking.service.id,
+          name: booking.service.name,
+          duration: booking.service.duration,
+          prices: {
+            price: booking.service.price?.price,
+            cost_price: booking.service.price?.costPrice,
+          },
+        },
         order: {
           id: order.id,
           status: order.status,
