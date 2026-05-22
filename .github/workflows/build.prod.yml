@@ -40,7 +40,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ env.REP_OWNER }}
-          password: ${{ env.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
