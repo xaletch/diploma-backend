@@ -1,12 +1,44 @@
 services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - backend
+
   backend:
     image: xaletch/diplome-backend-crm:${IMAGE_VERSION}
     platform: linux/amd64
     restart: always
     ports:
       - "8080:8080"
-    env_file:
-      - .env.development
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_ACCESS_CUSTOMER_SECRET=${JWT_ACCESS_CUSTOMER_SECRET}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_URI=${REDIS_URI}
+      - REDIS_DB=${REDIS_DB}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_USER=${MINIO_USER}
+      - MINIO_PASSWORD=${MINIO_PASSWORD}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - STORAGE_URL=${STORAGE_URL}
     depends_on:
       - postgres
       - redis
@@ -15,7 +47,7 @@ services:
 
   postgres:
     container_name: postgres-dev-container
-    image: postgres:18.0
+    image: postgres:17
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -25,7 +57,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - backend
 

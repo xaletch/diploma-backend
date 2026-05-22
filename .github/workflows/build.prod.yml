@@ -51,6 +51,7 @@ jobs:
             NODE_ENV=${{ vars.NODE_ENV }}
           tags: |
             ${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
+            ${{ env.REP_OWNER }}/${{ env.IMAGE_NAME }}:latest
   deploy:
     name: Deploy
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
