@@ -1,6 +1,7 @@
 services:
   nginx:
     build: ./nginx
+    restart: always
     ports:
       - "80:80"
     depends_on:
@@ -9,7 +10,7 @@ services:
       - backend
 
   backend:
-    image: xaletch/diplome-backend-crm:${IMAGE_VERSION}
+    image: xaletch/diplome-backend-crm:latest
     platform: linux/amd64
     restart: always
     ports:
@@ -46,7 +47,7 @@ services:
       - backend
 
   postgres:
-    container_name: postgres-dev-container
+    container_name: postgres-prod-container
     image: postgres:17
     restart: always
     environment:
@@ -62,7 +63,7 @@ services:
       - backend
 
   redis:
-    container_name: redis-dev-container
+    container_name: redis-prod-container
     image: redis:8.2.2
     restart: always
     ports:
@@ -75,7 +76,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: minio-dev
+    container_name: minio-prod
     restart: unless-stopped
     command: server --console-address ":9001" /data/
     ports:
@@ -88,6 +89,33 @@ services:
       - minio-storage:/data
     networks:
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  
+  minio-init:
+    image: minio/mc:latest
+    networks:
+      - backend
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_USER=${MINIO_USER}
+      - MINIO_PASSWORD=${MINIO_PASSWORD}
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      mc alias set minio http://minio:9000 $$MINIO_USER $$MINIO_PASSWORD &&
+      mc mb --ignore-existing minio/location-avatars &&
+      mc mb --ignore-existing minio/user-avatars &&
+      mc mb --ignore-existing minio/company-avatars &&
+      mc anonymous set public minio/location-avatars &&
+      mc anonymous set public minio/user-avatars &&
+      mc anonymous set public minio/company-avatars
+    restart: on-failure
 
 networks:
   backend:

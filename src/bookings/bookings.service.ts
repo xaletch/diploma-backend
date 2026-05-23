@@ -766,7 +766,7 @@ export class BookingsService {
       location: {
         id: booking.location.id,
         name: booking.location.name,
-        avatar: booking.location.avatar,
+        avatar: buildFileUrl(booking.location.avatar),
       },
       customer: {
         id: booking.customer.id,
@@ -776,7 +776,7 @@ export class BookingsService {
         phone: booking.customer.phone,
         email: booking.customer.email,
         birthday: booking.customer.birthday,
-        avatar: booking.customer.avatar,
+        avatar: buildFileUrl(booking.customer.avatar),
       },
       employee: {
         id: booking.employee.id,
@@ -785,7 +785,7 @@ export class BookingsService {
         full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
         phone: booking.employee.phone,
         email: booking.employee.email,
-        avatar: booking.employee.avatar,
+        avatar: buildFileUrl(booking.employee.avatar),
       },
       service: {
         id: booking.service.id,
