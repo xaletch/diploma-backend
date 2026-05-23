@@ -5,6 +5,7 @@ import { RedisModule } from "src/redis/redis.module";
 import { JwtModule } from "@nestjs/jwt";
 import { CustomerTokenService } from "./token/token.service";
 import { JwtCustomerStrategy } from "./strategies/jwt.strategy";
+import { SmsModule } from "src/sms/sms.module";
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { JwtCustomerStrategy } from "./strategies/jwt.strategy";
       signOptions: { expiresIn: "1h" },
     }),
     RedisModule,
+    SmsModule,
   ],
   controllers: [CustomersController],
   providers: [CustomersService, CustomerTokenService, JwtCustomerStrategy],

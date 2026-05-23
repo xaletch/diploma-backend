@@ -6,6 +6,7 @@ import { LocationModule } from "src/location/location.module";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthModule } from "src/auth/auth.module";
 import { RoleModule } from "src/role/role.module";
+import { MailModule } from "src/mail/mail.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RoleModule } from "src/role/role.module";
       secret: process.env.JWT_ACCESS_SECRET,
       signOptions: { expiresIn: "7d" },
     }),
+    MailModule,
   ],
   controllers: [EmployeeController],
   providers: [EmployeeService],

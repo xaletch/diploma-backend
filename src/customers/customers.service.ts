@@ -8,6 +8,7 @@ import { CustomerJwtPayload } from "./types/jwt.payload";
 import { CustomerTokenService } from "./token/token.service";
 import { JwtService } from "@nestjs/jwt";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { SmsService } from "src/sms/sms.service";
 
 @Injectable()
 export class CustomersService {
@@ -16,6 +17,7 @@ export class CustomersService {
     private readonly tokenService: CustomerTokenService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
+    private readonly smsService: SmsService,
   ) {}
   async firstByAccount(phone: string) {
     const customer = await this.prismaService.customerAccount.findUnique({
@@ -37,31 +39,38 @@ export class CustomersService {
 
   async sendCode(dto: SendCodeDto) {
     const { phone } = dto;
+
+    const ttl = await this.redisService.ttl(`auth:code:${phone}`);
+    if (ttl > 240) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          title: "Подождите",
+          message: `Повторная отправка через ${ttl - 240} сек.`,
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
     const account = await this.prismaService.customerAccount.findUnique({
       where: { phone },
     });
-
-    let customerPhone = account?.phone || null;
 
     if (!account) {
       const customer = await this.prismaService.customer.create({
         data: { phone },
       });
 
-      const customerAccount = await this.prismaService.customerAccount.create({
+      await this.prismaService.customerAccount.create({
         data: { phone, customerId: customer.id },
       });
-
-      customerPhone = customerAccount.phone;
     }
 
     const code = Math.floor(100000 + Math.random() * 900000);
 
-    await this.redisService.setEx(
-      `auth:code:${customerPhone}`,
-      300,
-      code.toString(),
-    );
+    await this.redisService.setEx(`auth:code:${phone}`, 300, code.toString());
+
+    // await this.smsService.sendSms(phone, `Ваш код ${code}`);
 
     return { success: true, code };
   }

@@ -27,6 +27,7 @@ import { EmployeeBlockedDto } from "./dto/blocked.dto";
 import { SuccessResponse } from "./types/success.type";
 import { InviteAction, Prisma, UserStatus } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class EmployeeService {
@@ -36,6 +37,7 @@ export class EmployeeService {
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
     private readonly roleService: RoleService,
+    private readonly mailService: MailService,
   ) {}
 
   async findById(id: string): Promise<EmployeeFirst> {
@@ -126,9 +128,20 @@ export class EmployeeService {
   /** 
       ДОБАВИТЬ ОТПРАВКУ ПИСЕМ НА EMAIL | УВЕДОМЛЕНИЯ В СИСТЕМЕ
   **/
-  sendInviteNotify(email: string, name: string, locationId: string) {
-    console.log({ email, name, locationId });
-  }
+  // async sendInviteNotify(email: string, name: string, inviteUrl: string) {
+  //   console.log({ email, name, inviteUrl });
+  // }
+
+  /** 
+      ОТПРАВКА УВЕДОМЛЕНИЯ НА ПОЧТНУ С ПРИГЛАШЕНИЕМ
+  **/
+  // async sendLocationAddedNotify(
+  //   email: string,
+  //   name: string,
+  //   locationId: string,
+  // ) {
+  //   console.log({ email, name, locationId });
+  // }
 
   async inviteCreate(dto: EmployeeDto, companyId: string) {
     await this.locationService.findById(dto.location_id);
@@ -194,10 +207,10 @@ export class EmployeeService {
         },
       });
 
-      this.sendInviteNotify(
+      await this.mailService.sendLocationAddedNotify(
         dto.email,
         `${dto.first_name} ${dto.last_name}`,
-        dto.location_id,
+        // dto.location_id,
       );
 
       return {
@@ -210,7 +223,7 @@ export class EmployeeService {
           full_name: `${user.user.firstName} ${user.user.lastName}`,
           first_name: user.user.firstName,
           last_name: user.user.lastName,
-          avatar: user.user.avatar,
+          avatar: buildFileUrl(user.user.avatar),
           status: user.user.status,
           position: user.user.position,
           role: user.user.role,
@@ -250,11 +263,17 @@ export class EmployeeService {
       role: dto.role,
     } satisfies InviteDto;
 
-    await this.invite(data, InviteAction.register);
-    this.sendInviteNotify(
+    const { url } = await this.invite(data, InviteAction.register);
+    // await this.mailService.sendLocationAddedNotify(
+    //   dto.email,
+    //   `${dto.first_name} ${dto.last_name}`,
+    //   dto.location_id,
+    // );
+
+    await this.mailService.sendInviteNotify(
       dto.email,
       `${dto.first_name} ${dto.last_name}`,
-      dto.location_id,
+      url,
     );
 
     return {
