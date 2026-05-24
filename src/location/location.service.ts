@@ -549,10 +549,7 @@ export class LocationService {
     return res;
   }
 
-  async uploadAvatar(
-    image: BufferedFile,
-    locationId: string,
-  ): Promise<GlobalSuccessDto> {
+  async uploadAvatar(image: BufferedFile, locationId: string) {
     const { avatar } = await this.findById(locationId);
     const upload = await this.minioService.uploadFile(
       "location-avatars",
@@ -566,6 +563,6 @@ export class LocationService {
       where: { id: locationId },
       data: { avatar: key },
     });
-    return { success: true };
+    return { success: true, avatar: buildFileUrl(key) };
   }
 }

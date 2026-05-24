@@ -259,10 +259,7 @@ export class UserService {
     return data;
   }
 
-  async uploadAvatar(
-    image: BufferedFile,
-    userId: string,
-  ): Promise<GlobalSuccessDto> {
+  async uploadAvatar(image: BufferedFile, userId: string) {
     const { avatar } = await this.findByIdOptional(userId);
     const upload = await this.minioService.uploadFile(
       "user-avatars",
@@ -276,7 +273,7 @@ export class UserService {
       where: { id: userId },
       data: { avatar: key },
     });
-    return { success: true };
+    return { success: true, avatar: buildFileUrl(key) };
   }
 
   /**
