@@ -210,7 +210,6 @@ export class EmployeeService {
       await this.mailService.sendLocationAddedNotify(
         dto.email,
         `${dto.first_name} ${dto.last_name}`,
-        // dto.location_id,
       );
 
       return {
@@ -232,7 +231,7 @@ export class EmployeeService {
       };
     }
 
-    await this.prismaService.$transaction(async (t) => {
+    const userLocation = await this.prismaService.$transaction(async (t) => {
       const user = await t.user.create({
         data: {
           email: dto.email,
@@ -246,13 +245,30 @@ export class EmployeeService {
         },
       });
 
-      await t.userLocation.create({
+      return await t.userLocation.create({
         data: {
           userId: user.id,
           locationId: dto.location_id,
           roleId: dto.role,
           birthday: dto.birthdate,
           note: dto.note,
+        },
+        select: {
+          id: true,
+          isBanned: true,
+          role: { select: { id: true, name: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              status: true,
+              position: true,
+            },
+          },
         },
       });
     });
@@ -281,6 +297,20 @@ export class EmployeeService {
       message: "Приглашение отправлено на почту",
       detail: {
         action: "invite",
+        user: {
+          id: userLocation.id,
+          profile_id: userLocation.user.id,
+          email: userLocation.user.email,
+          phone: userLocation.user.phone,
+          full_name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
+          first_name: userLocation.user.firstName,
+          last_name: userLocation.user.lastName,
+          avatar: buildFileUrl(userLocation.user.avatar),
+          status: userLocation.user.status,
+          position: userLocation.user.position,
+          role: userLocation.role,
+          is_banned: userLocation.isBanned,
+        },
       },
     };
   }
