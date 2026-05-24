@@ -9,7 +9,7 @@ export class LocationDto extends CreateAddressDto {
     description: "Название",
   })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({
     example:
@@ -28,7 +28,7 @@ export class LocationDto extends CreateAddressDto {
     description: "Номер телефона",
   })
   @IsPhoneNumber("RU")
-  phone: string;
+  phone!: string;
 
   @ApiProperty({
     example: ["WiFi", "Кофе", "Печеньки"],

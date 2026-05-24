@@ -142,9 +142,39 @@ export class LocationService {
   async update(dto: LocationUpdateDto, location_id: string) {
     await this.findById(location_id);
 
+    const {
+      country,
+      city,
+      region,
+      street,
+      house,
+      post_code,
+      lat,
+      lng,
+      timezone,
+      timezone_offset,
+      ...locationFields
+    } = dto;
+
     const newLocation = await this.prismaService.location.update({
       where: { id: location_id },
-      data: { ...dto },
+      data: {
+        ...locationFields,
+        address: {
+          update: {
+            country,
+            city,
+            region,
+            street,
+            house,
+            post_code,
+            timezone,
+            timezoneoffset: timezone_offset,
+            positionLat: lat,
+            positionLng: lng,
+          },
+        },
+      },
       select: {
         id: true,
         name: true,
