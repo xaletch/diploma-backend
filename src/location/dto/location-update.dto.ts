@@ -75,7 +75,7 @@ export class LocationUpdateResponseDto {
   })
   @IsUUID()
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({
     example: "Яндекс",
@@ -83,5 +83,5 @@ export class LocationUpdateResponseDto {
     description: "Название",
   })
   @IsString()
-  name: string;
+  name!: string;
 }
