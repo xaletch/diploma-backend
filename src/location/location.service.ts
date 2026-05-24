@@ -12,7 +12,6 @@ import { LocationUpdateDto } from "./dto/location-update.dto";
 import { Prisma } from "@prisma/client";
 import { ILocationUser } from "./types/location-user.type";
 import { BufferedFile } from "src/minio/file.model";
-import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { MinioService } from "src/minio/minio.service";
 import { LocationActivateDto } from "./dto/location-activate.dto";
 import { buildFileUrl } from "src/shared/utils/build-url";
