@@ -19,15 +19,6 @@ export class ServiceCreateDto {
   name!: string;
 
   @ApiProperty({
-    example: "dev",
-    description: "Публичное имя",
-    required: false,
-  })
-  @IsString()
-  @IsOptional({ each: true })
-  public_name?: string;
-
-  @ApiProperty({
     example: "red | orange | green | blue | purple | teal | pink",
     description: "цвет (обозначение)",
   })

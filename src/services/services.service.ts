@@ -6,6 +6,7 @@ import { ServiceCategoryDto } from "./dto/service-category.dto";
 import { AddedUsersDto } from "./dto/added-users.dto";
 import { AddedLocationsDto } from "./dto/added-locations.dto";
 import { ServiceUpdateDto } from "./dto/service-update.dto";
+import { slugify } from "transliteration";
 
 @Injectable()
 export class ServicesService {
@@ -187,7 +188,7 @@ export class ServicesService {
 
     const serviceDto = {
       name: dto.name,
-      publicName: dto.public_name,
+      publicName: slugify(dto.name, { lowercase: true, separator: "-" }),
       mark: dto.mark,
       duration: dto.duration,
       type: dto.type,

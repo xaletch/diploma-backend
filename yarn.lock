@@ -3781,6 +3781,7 @@ __metadata:
     rxjs: "npm:^7.8.2"
     source-map-support: "npm:^0.5.21"
     supertest: "npm:^7.0.0"
+    transliteration: "npm:^2.6.1"
     ts-jest: "npm:^29.2.5"
     ts-loader: "npm:^9.5.2"
     ts-node: "npm:^10.9.2"
@@ -11496,6 +11497,16 @@ __metadata:
     "@tokenizer/token": "npm:^0.3.0"
     ieee754: "npm:^1.2.1"
   checksum: 10/0c7811a2da5a0ca474c795d883d871a184d1d54f67058d66084110f0b246fff66151885dbcb91d66533e776478bf57f3b4fac69ce03b805a0e1060def87947de
+  languageName: node
+  linkType: hard
+
+"transliteration@npm:^2.6.1":
+  version: 2.6.1
+  resolution: "transliteration@npm:2.6.1"
+  bin:
+    slugify: dist/bin/slugify
+    transliterate: dist/bin/transliterate
+  checksum: 10/6eb9ec8438e1555d4792a06d5aafc135a273d35de36fd6b0d18efd9fd43621ecd226aac6894d025505bd728400c435f8c2ddb3fd62a94485f2c33ccd7701fc16
   languageName: node
   linkType: hard
 
