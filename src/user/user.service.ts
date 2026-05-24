@@ -12,7 +12,6 @@ import { IUser, UserPrivate } from "./types/user.type";
 import { UserStatus } from "@prisma/client";
 import { BufferedFile } from "src/minio/file.model";
 import { MinioService } from "src/minio/minio.service";
-import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
