@@ -49,9 +49,19 @@ export class LocationService {
           company: { connect: { id: companyId } },
           ...locationDTO,
         },
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          description: true,
+          phone: true,
+          category: true,
+          active: true,
+          comfort: true,
+        },
       });
 
-      await this.addressService.create(t, dto, location.id);
+      const address = await this.addressService.create(t, dto, location.id);
 
       await t.userLocation.create({
         data: {
@@ -61,7 +71,32 @@ export class LocationService {
         },
       });
 
-      return { location_id: location.id, name: location.name };
+      return {
+        id: location.id,
+        name: location.name,
+        avatar: buildFileUrl(location.avatar),
+        description: location.description,
+        phone: location.phone,
+        is_active: location.active,
+        category: location.category,
+        comfort: location.comfort,
+        address: {
+          full_address: [
+            address?.country,
+            address?.region,
+            address?.city,
+            address?.street,
+            address?.house,
+          ]
+            .filter(Boolean)
+            .join(", "),
+          street: address?.street,
+          house: address?.house,
+          city: address?.city,
+          region: address?.region,
+          country: address?.country,
+        },
+      };
     });
 
     return location;
