@@ -192,7 +192,7 @@ export class ServicesService {
       mark: dto.mark,
       duration: dto.duration,
       type: dto.type,
-      category: "",
+      category: dto.category,
       companyId,
     };
 

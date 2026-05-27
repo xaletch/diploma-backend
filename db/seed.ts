@@ -49,6 +49,7 @@ const permissions = [
   "booking:update",
   "booking:status",
   "booking:delete",
+  "bookings:write",
 
   "directory:employees",
   "directory:locations",

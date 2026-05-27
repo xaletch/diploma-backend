@@ -122,7 +122,7 @@ export class ServicesController {
     type: UnAuthorizedDto,
   })
   @Get("services")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard)
   @HttpCode(HttpStatus.OK)
   getAllServices(@Req() req) {
     const companyId = req.user.companyId;

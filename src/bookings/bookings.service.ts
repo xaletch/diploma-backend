@@ -9,6 +9,7 @@ import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
 import { BookingStatus, OrderStatus } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { generateBookingTag } from "./utils/generate-tag";
 
 @Injectable()
 export class BookingsService {
@@ -266,6 +267,7 @@ export class BookingsService {
       const booking = await t.booking.create({
         data: {
           name: dto.name,
+          tag: generateBookingTag(),
           date: dto.date,
           startTime: dto.start_time,
           endTime: dto.end_time,
@@ -280,6 +282,7 @@ export class BookingsService {
         select: {
           id: true,
           name: true,
+          tag: true,
           status: true,
           date: true,
           startTime: true,
@@ -351,6 +354,7 @@ export class BookingsService {
         id: booking.id,
         name: booking.name,
         status: booking.status,
+        tag: booking.tag,
         start_time: booking.startTime,
         end_time: booking.endTime,
         date: booking.date,
@@ -454,6 +458,7 @@ export class BookingsService {
       select: {
         id: true,
         name: true,
+        tag: true,
         status: true,
         startTime: true,
         endTime: true,
@@ -500,6 +505,7 @@ export class BookingsService {
       id: booking.id,
       name: booking.name,
       status: booking.status,
+      tag: booking.tag,
       start_time: booking.startTime,
       end_time: booking.endTime,
       date: booking.date,
@@ -702,6 +708,7 @@ export class BookingsService {
       select: {
         id: true,
         name: true,
+        tag: true,
         status: true,
         startTime: true,
         endTime: true,
@@ -759,6 +766,7 @@ export class BookingsService {
       id: booking.id,
       name: booking.name,
       status: booking.status,
+      tag: booking.tag,
       start_time: booking.startTime,
       end_time: booking.endTime,
       date: booking.date,
@@ -828,6 +836,7 @@ export class BookingsService {
         id: true,
         name: true,
         status: true,
+        tag: true,
         startTime: true,
         endTime: true,
         date: true,
@@ -874,6 +883,7 @@ export class BookingsService {
       id: booking.id,
       name: booking.name,
       status: booking.status,
+      tag: booking.tag,
       start_time: booking.startTime,
       end_time: booking.endTime,
       date: booking.date,
@@ -956,5 +966,80 @@ export class BookingsService {
     const res = this.create(createDto, company.id);
 
     return res;
+  }
+
+  async completeBooking(bookingId: string) {
+    return this.prismaService.$transaction(async (t) => {
+      const booking = await t.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          status: true,
+          orderId: true,
+          order: true,
+        },
+      });
+
+      if (!booking)
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            title: "Ошибка",
+            detail: "Бронирование не найдено.",
+            meta: { booking_id: bookingId },
+          },
+          HttpStatus.NOT_FOUND,
+        );
+
+      if (booking.status === "completed")
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            title: "Ошибка",
+            detail: "Уже завершен",
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+
+      if (booking.status === "cancelled")
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            title: "Ошибка",
+            detail: "Нельзя завершить отменённое бронирование.",
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+
+      await t.booking.update({
+        where: { id: bookingId },
+        data: { status: "completed" },
+      });
+
+      if (booking.order) {
+        if (booking.order.status === "paid")
+          throw new HttpException(
+            {
+              status: HttpStatus.BAD_REQUEST,
+              title: "Ошибка",
+              detail: "Заказ уже оплачен.",
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+
+        const discount = booking.order.discount ?? 0;
+        const total = booking.order.subtotal - discount;
+
+        await t.order.update({
+          where: { id: booking.order.id },
+          data: {
+            status: "paid",
+            total,
+            paidAt: new Date(),
+          },
+        });
+      }
+
+      return { success: true };
+    });
   }
 }

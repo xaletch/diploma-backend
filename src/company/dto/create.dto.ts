@@ -15,16 +15,7 @@ export class CreateCompanyDto {
     description: "Название компании",
   })
   @IsString()
-  name: string;
-
-  @ApiProperty({
-    example: "yandex",
-    required: true,
-    description:
-      "Публичное имя - береться из name. Если NAME на русском - преобразуем на англ буквы",
-  })
-  @IsString()
-  public_name: string;
+  name!: string;
 
   @ApiProperty({
     example: "RUB",
@@ -32,7 +23,7 @@ export class CreateCompanyDto {
     description: "Валюта",
   })
   @IsString()
-  currency: CURRENCY;
+  currency!: CURRENCY;
 
   @ApiProperty({
     example: "ул. Вайнера",
@@ -58,7 +49,7 @@ export class CreateCompanyDto {
     description: "Город",
   })
   @IsString()
-  city: string;
+  city!: string;
 
   @ApiProperty({
     example: "125075",
@@ -75,7 +66,7 @@ export class CreateCompanyDto {
     description: "Страна",
   })
   @IsString()
-  country: string;
+  country!: string;
 
   @ApiProperty({
     example: "Свердловская область",
@@ -83,7 +74,7 @@ export class CreateCompanyDto {
     description: "Регион/область",
   })
   @IsString()
-  region: string;
+  region!: string;
 
   @ApiProperty({
     example: "Asia/Yekaterinburg",
@@ -91,7 +82,7 @@ export class CreateCompanyDto {
     description: "Часовой пояс",
   })
   @IsString()
-  timezone: string;
+  timezone!: string;
 
   @ApiProperty({
     example: "Asia/Yekaterinburg",
@@ -99,7 +90,7 @@ export class CreateCompanyDto {
     description: "+05:00",
   })
   @IsString()
-  timezone_offset: string;
+  timezone_offset!: string;
 
   @ApiProperty({
     example: 56.838933,
@@ -107,7 +98,7 @@ export class CreateCompanyDto {
     description: "Широта",
   })
   @IsNumber({ maxDecimalPlaces: 6 })
-  lat: string;
+  lat!: string;
 
   @ApiProperty({
     example: 60.595278,
@@ -115,7 +106,7 @@ export class CreateCompanyDto {
     description: "Долгота",
   })
   @IsNumber({ maxDecimalPlaces: 6 })
-  lng: string;
+  lng!: string;
 
   @ApiProperty({
     example: 10,
@@ -123,7 +114,7 @@ export class CreateCompanyDto {
     description: "ID специализации",
   })
   @IsNumber()
-  specialization: number;
+  specialization!: number;
 
   @ApiProperty({
     example: 1,
@@ -131,7 +122,7 @@ export class CreateCompanyDto {
     description: "ID индустрии",
   })
   @IsNumber()
-  industry: number;
+  industry!: number;
 }
 
 export class CreateCompanyResponseDto {
@@ -141,14 +132,14 @@ export class CreateCompanyResponseDto {
   })
   @IsUUID()
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({
     example: "Яндекс",
     description: "Название компании",
   })
   @IsString()
-  name: string;
+  name!: string;
 
   @ApiProperty({
     example: "RUB",
@@ -156,5 +147,5 @@ export class CreateCompanyResponseDto {
     description: "Валюта",
   })
   @IsEnum(CURRENCY)
-  currency: CURRENCY;
+  currency!: CURRENCY;
 }

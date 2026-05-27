@@ -8,6 +8,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { UserService } from "src/user/user.service";
 import { CreateCompanyDto } from "./dto/create.dto";
 import { LocationService } from "src/location/location.service";
+import { slugify } from "transliteration";
 
 @Injectable()
 export class CompanyService {
@@ -47,7 +48,7 @@ export class CompanyService {
       const company = await t.company.create({
         data: {
           name: dto.name,
-          publicName: dto.public_name,
+          publicName: slugify(dto.name, { lowercase: true, separator: "-" }),
           currency: dto.currency,
           specialization: { connect: { id: dto.specialization } },
           industry: { connect: { id: dto.industry } },

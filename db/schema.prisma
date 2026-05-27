@@ -545,6 +545,7 @@ model Booking {
   date          String
   comment       String?
   status        BookingStatus @default(confirmed)
+  tag           String?       @unique
 
   location      Location      @relation("booking_locations", fields: [locationId], references: [id])
   locationId    String
