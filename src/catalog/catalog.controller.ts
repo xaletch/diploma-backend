@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, HttpStatus } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Query,
+} from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import {
   ApiOperation,
@@ -20,7 +27,28 @@ export class CatalogController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
-  getCatalog() {
-    return this.catalogService.getCatalog();
+  getCatalog(
+    @Query("city") city?: string,
+    @Query("cursor") cursor?: string,
+    @Query("take") take?: string,
+  ) {
+    return this.catalogService.getCatalog(city, cursor, take ? +take : 20);
+  }
+
+  @Get("search")
+  @HttpCode(HttpStatus.OK)
+  search(
+    @Query("q") query: string,
+    @Query("city") city?: string,
+    @Query("cursor") cursor?: string,
+    @Query("take") take?: string,
+  ) {
+    return this.catalogService.search(query, city, cursor, take ? +take : 20);
+  }
+
+  @Get(":public_name")
+  @HttpCode(HttpStatus.OK)
+  getCompany(@Param("public_name") publicName: string) {
+    return this.catalogService.getCompany(publicName);
   }
 }

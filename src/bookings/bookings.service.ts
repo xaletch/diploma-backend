@@ -9,6 +9,7 @@ import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
 import { BookingStatus, OrderStatus } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { generateBookingTag } from "./utils/generate-tag";
 
 @Injectable()
 export class BookingsService {
@@ -266,6 +267,7 @@ export class BookingsService {
       const booking = await t.booking.create({
         data: {
           name: dto.name,
+          tag: generateBookingTag(),
           date: dto.date,
           startTime: dto.start_time,
           endTime: dto.end_time,
@@ -280,6 +282,7 @@ export class BookingsService {
         select: {
           id: true,
           name: true,
+          tag: true,
           status: true,
           date: true,
           startTime: true,
@@ -351,6 +354,7 @@ export class BookingsService {
         id: booking.id,
         name: booking.name,
         status: booking.status,
+        tag: booking.tag,
         start_time: booking.startTime,
         end_time: booking.endTime,
         date: booking.date,
@@ -454,6 +458,7 @@ export class BookingsService {
       select: {
         id: true,
         name: true,
+        tag: true,
         status: true,
         startTime: true,
         endTime: true,
@@ -500,6 +505,7 @@ export class BookingsService {
       id: booking.id,
       name: booking.name,
       status: booking.status,
+      tag: booking.tag,
       start_time: booking.startTime,
       end_time: booking.endTime,
       date: booking.date,
@@ -702,6 +708,7 @@ export class BookingsService {
       select: {
         id: true,
         name: true,
+        tag: true,
         status: true,
         startTime: true,
         endTime: true,
@@ -759,6 +766,7 @@ export class BookingsService {
       id: booking.id,
       name: booking.name,
       status: booking.status,
+      tag: booking.tag,
       start_time: booking.startTime,
       end_time: booking.endTime,
       date: booking.date,
@@ -828,6 +836,7 @@ export class BookingsService {
         id: true,
         name: true,
         status: true,
+        tag: true,
         startTime: true,
         endTime: true,
         date: true,
@@ -874,6 +883,7 @@ export class BookingsService {
       id: booking.id,
       name: booking.name,
       status: booking.status,
+      tag: booking.tag,
       start_time: booking.startTime,
       end_time: booking.endTime,
       date: booking.date,
