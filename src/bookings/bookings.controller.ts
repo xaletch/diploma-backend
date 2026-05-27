@@ -318,4 +318,12 @@ export class BookingsController {
   ) {
     return this.bookingsService.createCustomerBooking(dto, customer.id);
   }
+
+  @Patch("booking/complete/:id")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("bookings:write")
+  @HttpCode(HttpStatus.OK)
+  completeBooking(@Param("id") id: string) {
+    return this.bookingsService.completeBooking(id);
+  }
 }

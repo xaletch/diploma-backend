@@ -957,4 +957,79 @@ export class BookingsService {
 
     return res;
   }
+
+  async completeBooking(bookingId: string) {
+    return this.prismaService.$transaction(async (t) => {
+      const booking = await t.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          status: true,
+          orderId: true,
+          order: true,
+        },
+      });
+
+      if (!booking)
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            title: "Ошибка",
+            detail: "Бронирование не найдено.",
+            meta: { booking_id: bookingId },
+          },
+          HttpStatus.NOT_FOUND,
+        );
+
+      if (booking.status === "completed")
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            title: "Ошибка",
+            detail: "Уже завершен",
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+
+      if (booking.status === "cancelled")
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            title: "Ошибка",
+            detail: "Нельзя завершить отменённое бронирование.",
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+
+      await t.booking.update({
+        where: { id: bookingId },
+        data: { status: "completed" },
+      });
+
+      if (booking.order) {
+        if (booking.order.status === "paid")
+          throw new HttpException(
+            {
+              status: HttpStatus.BAD_REQUEST,
+              title: "Ошибка",
+              detail: "Заказ уже оплачен.",
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+
+        const discount = booking.order.discount ?? 0;
+        const total = booking.order.subtotal - discount;
+
+        await t.order.update({
+          where: { id: booking.order.id },
+          data: {
+            status: "paid",
+            total,
+            paidAt: new Date(),
+          },
+        });
+      }
+
+      return { success: true };
+    });
+  }
 }
