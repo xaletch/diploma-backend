@@ -237,6 +237,7 @@ model Specialization {
   id            Int           @id               @default(autoincrement())
 
   name          String        @unique
+  tag           String?       @unique
   description   String
   icon          String
 

@@ -93,6 +93,7 @@ const ROLE_PRESETS: Record<string, string[]> = {
 const specializations = [
   {
     name: "Красота",
+    tag: "beauty",
     description:
       "Для салонов красоты, парикмахерских и косметологических служб.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-services.svg",
@@ -111,6 +112,7 @@ const specializations = [
   },
   {
     name: "Спорт",
+    tag: "sport",
     description: "Для тренажерных залов, студий йоги и фитнес-центров.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-sport.svg",
     industries: [
@@ -130,7 +132,8 @@ const specializations = [
     ],
   },
   {
-    name: "Услуга",
+    name: "Услуги",
+    tag: "services",
     description: "Для тренажерных залов, студий йоги и фитнес-центров.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-services.svg",
     industries: [
@@ -149,6 +152,7 @@ const specializations = [
   },
   {
     name: "Развлечение",
+    tag: "entertainment",
     description:
       "Для клубов виртуальной реальности, комнат отдыха и других мероприятий.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-entertainment.svg",
@@ -173,6 +177,7 @@ const specializations = [
   },
   {
     name: "Животные",
+    tag: "animals",
     description:
       "Для ветеринарных клиник, груминговых салонов и служб по уходу за домашними животными.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-animals.svg",
@@ -185,6 +190,7 @@ const specializations = [
   },
   {
     name: "Аренда",
+    tag: "rent",
     description: "Для фотостудий, коворкингов и мест проведения мероприятий.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-rent.svg",
     industries: [
@@ -201,6 +207,7 @@ const specializations = [
   },
   {
     name: "Авто",
+    tag: "auto",
     description: "Для автосервисов, автосалонов и моечных станций.",
     icon: "http://localhost:8080/v1/assets/specialization/specialization-auto.svg",
     industries: [
@@ -224,10 +231,12 @@ const main = async () => {
         where: { name: spec.name },
         update: {
           description: spec.description,
+          tag: spec.tag,
           icon: spec.icon,
         },
         create: {
           name: spec.name,
+          tag: spec.tag,
           description: spec.description,
           icon: spec.icon,
         },

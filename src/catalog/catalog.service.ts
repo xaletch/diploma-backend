@@ -83,7 +83,13 @@ export class CatalogService {
     };
   }
 
-  async search(query: string, city?: string, cursor?: string, take = 20) {
+  async search(
+    query: string,
+    city?: string,
+    cursor?: string,
+    category?: string,
+    take = 20,
+  ) {
     if (!query?.trim())
       return { items: [], next_cursor: null, has_next_page: false };
 
@@ -91,6 +97,13 @@ export class CatalogService {
       take: take + 1,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       where: {
+        ...(category
+          ? {
+              specialization: {
+                tag: { equals: category, mode: "insensitive" },
+              },
+            }
+          : {}),
         ...(city
           ? {
               locations: {

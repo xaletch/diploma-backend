@@ -41,9 +41,16 @@ export class CatalogController {
     @Query("q") query: string,
     @Query("city") city?: string,
     @Query("cursor") cursor?: string,
+    @Query("category") category?: string,
     @Query("take") take?: string,
   ) {
-    return this.catalogService.search(query, city, cursor, take ? +take : 20);
+    return this.catalogService.search(
+      query,
+      city,
+      cursor,
+      category,
+      take ? +take : 20,
+    );
   }
 
   @Get(":public_name")

@@ -363,7 +363,13 @@ export class DirectoriesService {
   */
   async getSpecialization() {
     const specializations = await this.PrismaService.specialization.findMany({
-      select: { id: true, name: true, description: true, icon: true },
+      select: {
+        id: true,
+        name: true,
+        tag: true,
+        description: true,
+        icon: true,
+      },
     });
 
     return specializations;
