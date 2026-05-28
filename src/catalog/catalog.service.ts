@@ -84,7 +84,7 @@ export class CatalogService {
   }
 
   async search(
-    query: string,
+    query?: string,
     city?: string,
     cursor?: string,
     category?: string,
@@ -114,19 +114,25 @@ export class CatalogService {
               },
             }
           : {}),
-        OR: [
-          { name: { contains: query, mode: "insensitive" } },
-          {
-            services: {
-              some: {
-                OR: [
-                  { name: { contains: query, mode: "insensitive" } },
-                  { publicName: { contains: query, mode: "insensitive" } },
-                ],
-              },
-            },
-          },
-        ],
+        ...(query?.trim()
+          ? {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                {
+                  services: {
+                    some: {
+                      OR: [
+                        { name: { contains: query, mode: "insensitive" } },
+                        {
+                          publicName: { contains: query, mode: "insensitive" },
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
       },
       select: {
         id: true,

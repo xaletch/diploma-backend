@@ -38,7 +38,7 @@ export class CatalogController {
   @Get("search")
   @HttpCode(HttpStatus.OK)
   search(
-    @Query("q") query: string,
+    @Query("q") query?: string,
     @Query("city") city?: string,
     @Query("cursor") cursor?: string,
     @Query("category") category?: string,
