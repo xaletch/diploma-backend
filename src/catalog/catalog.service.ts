@@ -90,8 +90,8 @@ export class CatalogService {
     category?: string,
     take = 20,
   ) {
-    if (!query?.trim())
-      return { items: [], next_cursor: null, has_next_page: false };
+    // if (!query?.trim())
+    //   return { data: [], next_cursor: null, has_next_page: false };
 
     const companies = await this.prismaService.company.findMany({
       take: take + 1,
