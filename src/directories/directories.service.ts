@@ -357,4 +357,28 @@ export class DirectoriesService {
 
     return slots;
   }
+
+  /*
+    ===== ПОЛУЧЕНИЕ СПЕЦИАЛИЗАЦИЙ =====
+  */
+  async getSpecialization() {
+    const specializations = await this.PrismaService.specialization.findMany({
+      select: { id: true, name: true, description: true, icon: true },
+    });
+
+    return specializations;
+  }
+
+  /*
+    ===== ПОЛУЧЕНИЯ СПИСКА ГОРОДОВ (ТЕСТ) =====
+  */
+  getCities() {
+    return [
+      "Москва",
+      "Таганрог",
+      "Ростов-на-Дону",
+      "Санкт-Петербург",
+      "Краснодар",
+    ];
+  }
 }

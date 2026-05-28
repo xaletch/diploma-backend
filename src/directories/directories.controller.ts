@@ -186,4 +186,24 @@ export class DirectoriesController {
       duration,
     );
   }
+
+  /**
+    ===== СПЕЦИАЛИЗАЦИИ =====
+  **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Специализации" })
+  @Get("specializations")
+  getSpecialization() {
+    return this.directoriesService.getSpecialization();
+  }
+
+  /**
+    ===== СПИСОК ГОРОДОВ =====
+  **/
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Список городов" })
+  @Get("cities")
+  getCities() {
+    return this.directoriesService.getCities();
+  }
 }
