@@ -65,7 +65,7 @@ export class CatalogService {
     const nextCursor = hasNextPage ? items[items.length - 1].id : null;
 
     return {
-      catalog: items.map((c) => ({
+      data: items.map((c) => ({
         id: c.id,
         name: c.name,
         public_name: c.publicName,
@@ -156,7 +156,7 @@ export class CatalogService {
     const nextCursor = hasNextPage ? items[items.length - 1].id : null;
 
     return {
-      items: items.map((c) => ({
+      data: items.map((c) => ({
         id: c.id,
         name: c.name,
         public_name: c.publicName,
