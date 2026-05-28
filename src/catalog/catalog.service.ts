@@ -180,7 +180,12 @@ export class CatalogService {
         name: c.name,
         public_name: c.publicName,
         specialization: c.specialization,
-        location: c.locations[0] ?? null,
+        location: c.locations[0]
+          ? {
+              ...c.locations[0],
+              avatar: buildFileUrl(c.locations[0].avatar),
+            }
+          : null,
         matched_services: c.services,
       })),
       next_cursor: nextCursor,
