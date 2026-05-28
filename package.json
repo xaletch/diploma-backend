@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:generate": "prisma generate --schema=./db/schema.prisma",
-    "db:push": "prisma db push --schema=./db/schema.prisma",
+    "db:push": "prisma db push --schema=./db/schema.prisma --accept-data-loss",
     "db:push-force": "prisma db push --schema=./db/schema.prisma --force-reset",
     "db:pull": "prisma db pull --schema=./db/schema.prisma",
     "db:studio": "prisma studio --schema=./db/schema.prisma",
