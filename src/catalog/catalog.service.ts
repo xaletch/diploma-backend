@@ -246,6 +246,16 @@ export class CatalogService {
             },
           },
         },
+        users: {
+          select: {
+            id: true,
+            phone: true,
+            avatar: true,
+            position: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
@@ -259,23 +269,6 @@ export class CatalogService {
         HttpStatus.NOT_FOUND,
       );
 
-    const servicesByCategory = company.services.reduce(
-      (acc, service) => {
-        const key = service.category ?? "Другое";
-        if (!acc[key]) acc[key] = [];
-        acc[key].push({
-          id: service.id,
-          name: service.publicName ?? service.name,
-          duration: service.duration,
-          mark: service.mark,
-          price: service.price?.price ?? null,
-          discount: service.discount?.price ?? null,
-        });
-        return acc;
-      },
-      {} as Record<string, object[]>,
-    );
-
     return {
       id: company.id,
       name: company.name,
@@ -286,8 +279,25 @@ export class CatalogService {
         ...l,
         avatar: buildFileUrl(l.avatar),
       })),
-      services_by_category: servicesByCategory,
-      services: company.services,
+      services: company.services.map((s) => ({
+        id: s.id,
+        name: s.name,
+        public_name: s.publicName,
+        duration: s.duration,
+        category: s.category,
+        mark: s.mark,
+        price: s.price?.price,
+        discount: s.discount?.price,
+      })),
+      employees: company.users.map((u) => ({
+        id: u.id,
+        phone: u.phone,
+        avatar: buildFileUrl(u.avatar),
+        full_name: `${u.firstName} ${u.lastName}`,
+        first_name: u.firstName,
+        last_name: u.lastName,
+        position: u.position,
+      })),
     };
   }
 }

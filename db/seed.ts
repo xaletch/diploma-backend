@@ -76,6 +76,7 @@ const employeePermissions = [
   "booking-detail:read",
   "booking:update",
   "booking:status",
+
   // test
   "directory:employees",
   "directory:locations",
