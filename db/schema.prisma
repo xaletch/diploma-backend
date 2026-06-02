@@ -275,6 +275,7 @@ model Company {
   currency      CURRENCY
 
   // address       Address?      @relation("company_address")
+  logo          String?
 
   users         User[]        @relation("company_user")
 

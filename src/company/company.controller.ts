@@ -6,13 +6,17 @@ import {
   HttpStatus,
   Param,
   Post,
+  Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { CompanyService } from "./company.service";
 import { CreateCompanyDto, CreateCompanyResponseDto } from "./dto/create.dto";
 import { Authorization } from "src/auth/decorators/auth.decorator";
 import { Authorized } from "src/auth/decorators/authorized.decorator";
 import { SpecializationService } from "./specialization.service";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   IndustryDto,
   SpecializationDto,
@@ -31,6 +35,9 @@ import {
   ApiTags,
 } from "@nestjs/swagger/dist/decorators";
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
+import { UploadAvatarDto } from "src/shared/dto/file-uploaddto";
+import { GlobalSuccessDto } from "src/shared/dto/global.dto";
+import { BufferedFile } from "src/minio/file.model";
 
 @ApiTags("Компании")
 @Controller("company")
@@ -121,5 +128,33 @@ export class CompanyController {
   @HttpCode(HttpStatus.OK)
   getWorkSpecializations(@Param("specialization_id") specializationId: number) {
     return this.specializationService.getIndustry(specializationId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Загрузить логотип компании" })
+  @ApiBody({ type: UploadAvatarDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+    type: NotFoundDto,
+  })
+  @Post("upload/logo")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("company-logo:upload")
+  @UseInterceptors(FileInterceptor("file"))
+  @HttpCode(HttpStatus.OK)
+  upload(@UploadedFile() file: BufferedFile, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.companyService.uploadLogo(file, companyId);
   }
 }

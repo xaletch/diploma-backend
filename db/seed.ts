@@ -42,6 +42,7 @@ const permissions = [
   "company-customer:read",
   "company-customer-bookings:read",
   "company:create",
+  "company-logo:upload",
 
   "booking:create",
   "bookings:read",

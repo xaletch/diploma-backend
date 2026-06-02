@@ -25,6 +25,7 @@ export class CatalogService {
       select: {
         id: true,
         name: true,
+        logo: true,
         publicName: true,
         specialization: {
           select: {
@@ -68,6 +69,7 @@ export class CatalogService {
       data: items.map((c) => ({
         id: c.id,
         name: c.name,
+        logo: buildFileUrl(c.logo),
         public_name: c.publicName,
         specialization: c.specialization,
         industry: c.industry,
@@ -90,9 +92,6 @@ export class CatalogService {
     category?: string,
     take = 20,
   ) {
-    // if (!query?.trim())
-    //   return { data: [], next_cursor: null, has_next_page: false };
-
     const companies = await this.prismaService.company.findMany({
       take: take + 1,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
@@ -137,6 +136,7 @@ export class CatalogService {
       select: {
         id: true,
         name: true,
+        logo: true,
         publicName: true,
         specialization: {
           select: { id: true, name: true, icon: true },
@@ -178,6 +178,7 @@ export class CatalogService {
       data: items.map((c) => ({
         id: c.id,
         name: c.name,
+        logo: buildFileUrl(c.logo),
         public_name: c.publicName,
         specialization: c.specialization,
         location: c.locations[0]
@@ -200,6 +201,7 @@ export class CatalogService {
         id: true,
         name: true,
         publicName: true,
+        logo: true,
         specialization: {
           select: { id: true, name: true, icon: true },
         },
@@ -272,12 +274,28 @@ export class CatalogService {
     return {
       id: company.id,
       name: company.name,
+      logo: buildFileUrl(company.logo),
       public_name: company.publicName,
       specialization: company.specialization,
       industry: company.industry,
       locations: company.locations.map((l) => ({
         ...l,
         avatar: buildFileUrl(l.avatar),
+        address: {
+          street: l.address?.street,
+          house: l.address?.house,
+          city: l.address?.city,
+          region: l.address?.region,
+          country: l.address?.country,
+          timezone: l.address?.timezone,
+          position: {
+            lat: l.address?.positionLat,
+            lng: l.address?.positionLng,
+          },
+          full_address: [l.address?.city, l.address?.street, l.address?.house]
+            .filter(Boolean)
+            .join(", "),
+        },
       })),
       services: company.services.map((s) => ({
         id: s.id,

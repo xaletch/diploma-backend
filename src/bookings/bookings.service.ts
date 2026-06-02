@@ -15,16 +15,6 @@ import { generateBookingTag } from "./utils/generate-tag";
 export class BookingsService {
   public constructor(private readonly prismaService: PrismaService) {}
 
-  private getDayShort(dayIndex: number): string {
-    const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-    return map[dayIndex];
-  }
-
-  private dateParse(date: string): Date {
-    const [day, month, year] = date.split("-");
-    return new Date(`${year}-${month}-${day}`);
-  }
-
   private async validateLocation(
     locationId: string,
     serviceId: string,

@@ -54,6 +54,7 @@ export class UserService {
           select: {
             id: true,
             name: true,
+            logo: true,
             currency: true,
             locations: {
               select: {
@@ -77,6 +78,7 @@ export class UserService {
       ? {
           id: user.company?.id,
           name: user.company?.name,
+          logo: buildFileUrl(user.company.logo),
           currency: user.company?.currency,
           industry: user.company?.industry,
           specialization: user.company?.specialization.name,

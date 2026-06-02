@@ -9,6 +9,9 @@ import { UserService } from "src/user/user.service";
 import { CreateCompanyDto } from "./dto/create.dto";
 import { LocationService } from "src/location/location.service";
 import { slugify } from "transliteration";
+import { BufferedFile } from "src/minio/file.model";
+import { MinioService } from "src/minio/minio.service";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class CompanyService {
@@ -16,6 +19,7 @@ export class CompanyService {
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly locationService: LocationService,
+    private readonly minioService: MinioService,
   ) {}
 
   // улучшить переписав на prisma.$transaction
@@ -89,5 +93,22 @@ export class CompanyService {
     if (!company) throw new NotFoundException("Компания не найдена");
 
     return company;
+  }
+
+  async uploadLogo(image: BufferedFile, companyId: string) {
+    const { logo } = await this.findById(companyId);
+    const upload = await this.minioService.uploadFile(
+      "company-avatars",
+      image,
+      logo || undefined,
+    );
+
+    const key = `company-avatars/${upload}`;
+
+    await this.prismaService.company.update({
+      where: { id: companyId },
+      data: { logo: key },
+    });
+    return { success: true, avatar: buildFileUrl(key) };
   }
 }
