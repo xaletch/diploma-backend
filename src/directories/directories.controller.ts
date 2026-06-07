@@ -24,6 +24,7 @@ import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { DirectoryEmployee } from "./dto/employee.dto";
 import { DirectoryLocation } from "./dto/location.dto";
 import { DirectoryService } from "./dto/service.dto";
+import { AuthorizationCustomer } from "src/customers/decorators/auth.decorator";
 // import { LocationGuard } from "src/access/guard/location.guard";
 
 @ApiTags("Директории")
@@ -92,8 +93,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("customers")
-  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  // @Scopes("directory:customers")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("directory:customers")
   @HttpCode(HttpStatus.OK)
   customersCompany(@Req() req) {
     const companyId = req.user.company.id;
@@ -114,12 +115,33 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("locations")
-  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  // @Scopes("directory:locations")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("directory:locations")
   @HttpCode(HttpStatus.OK)
   getLocations(@Req() req) {
     const companyId = req.user.company.id;
     return this.directoriesService.locations(companyId);
+  }
+
+  // ===== ДЛЯ СОТРУДНИКА =====
+  @AuthorizationCustomer()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Список всех локаций компании - для клиента" })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Список локаций",
+    type: DirectoryLocation,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @Get("locations/:company_name")
+  @HttpCode(HttpStatus.OK)
+  getBookingLocations(@Param("company_name") company_name: string) {
+    return this.directoriesService.bookingLocations(company_name);
   }
 
   @ApiBearerAuth()
