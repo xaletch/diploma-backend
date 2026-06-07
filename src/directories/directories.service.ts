@@ -172,6 +172,50 @@ export class DirectoriesService {
     }));
   }
 
+  async bookingLocations(publicName: string) {
+    const company = await this.PrismaService.company.findFirst({
+      where: { publicName },
+      select: { id: true },
+    });
+
+    if (!company)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Компания не найдена.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const locations = await this.PrismaService.location.findMany({
+      where: { companyId: company.id },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        active: true,
+        address: true,
+      },
+    });
+
+    return locations.map((loc) => ({
+      id: loc.id,
+      name: loc.name,
+      avatar: buildFileUrl(loc.avatar),
+      active: loc.active,
+      address: [
+        loc.address?.country,
+        loc.address?.region,
+        loc.address?.city,
+        loc.address?.street,
+        loc.address?.house,
+      ]
+        .filter(Boolean)
+        .join(", "),
+    }));
+  }
+
   /**
     !!!!! ОПТИМИЗИРОВАТЬ !!!!!
   **/
