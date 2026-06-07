@@ -11,7 +11,7 @@ import { SmsModule } from "src/sms/sms.module";
   imports: [
     JwtModule.register({
       secret: process.env.JWT_ACCESS_CUSTOMER_SECRET,
-      signOptions: { expiresIn: "360d" },
+      signOptions: { expiresIn: "30d" },
     }),
     RedisModule,
     SmsModule,
