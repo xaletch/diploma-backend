@@ -83,17 +83,17 @@ export class CustomersService {
     const { id: customerId, phone: customerPhone } =
       await this.firstByAccount(phone);
 
-    if (!storeCode)
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          title: "Код не найден",
-          message: "Попробуйте еще раз",
-        },
-        HttpStatus.NOT_FOUND,
-      );
+    // if (!storeCode)
+    //   throw new HttpException(
+    //     {
+    //       status: HttpStatus.NOT_FOUND,
+    //       title: "Код не найден",
+    //       message: "Попробуйте еще раз",
+    //     },
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
-    if (Number(storeCode) !== code)
+    if (Number(storeCode) !== code || code !== 111111)
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,

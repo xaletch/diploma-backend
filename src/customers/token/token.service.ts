@@ -78,7 +78,7 @@ export class CustomerTokenService {
   private async createAccessToken(
     payload: CustomerJwtPayload,
   ): Promise<string> {
-    return this.jwtService.sign(payload, { expiresIn: "1h" });
+    return this.jwtService.sign(payload, { expiresIn: "30d" });
   }
 
   private async validateToken(
