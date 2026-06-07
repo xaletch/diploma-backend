@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { ServicesService } from "./services.service";
 import { AuthGuard } from "src/auth/guard/auth.guard";
@@ -35,6 +37,10 @@ import {
 } from "./dto/service-category.dto";
 import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
+import { Authorization } from "src/auth/decorators/auth.decorator";
+import { UploadAvatarDto } from "src/shared/dto/file-uploaddto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { BufferedFile } from "src/minio/file.model";
 
 @ApiTags("Услуги")
 @Controller()
@@ -370,5 +376,39 @@ export class ServicesController {
   deleteCategory(@Param("category_id") categoryId: number, @Req() req) {
     const companyId = req.user.companyId;
     return this.servicesService.deleteCategory(categoryId, companyId);
+  }
+
+  /**
+    --- ЗАГРУЗКА ИЗОБРАЖЕНИЯ ---
+  **/
+  @Authorization()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Загрузить аватар" })
+  @ApiBody({ type: UploadAvatarDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "not found",
+    type: NotFoundDto,
+  })
+  @Post("service/avatar/:service_id")
+  @UseInterceptors(FileInterceptor("file"))
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("service:avatar")
+  @HttpCode(HttpStatus.OK)
+  upload(
+    @UploadedFile() file: BufferedFile,
+    @Param("service_id") serviceId: string,
+  ) {
+    return this.servicesService.uploadAvatar(file, serviceId);
   }
 }

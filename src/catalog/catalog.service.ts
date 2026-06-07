@@ -162,6 +162,7 @@ export class CatalogService {
           select: {
             id: true,
             name: true,
+            avatar: true,
             publicName: true,
             price: { select: { price: true } },
           },
@@ -238,6 +239,7 @@ export class CatalogService {
             name: true,
             publicName: true,
             duration: true,
+            avatar: true,
             category: true,
             mark: true,
             price: {
@@ -301,6 +303,7 @@ export class CatalogService {
         id: s.id,
         name: s.name,
         public_name: s.publicName,
+        avatar: buildFileUrl(s.avatar),
         duration: s.duration,
         category: s.category,
         mark: s.mark,

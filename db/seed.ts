@@ -11,6 +11,7 @@ const permissions = [
   "service-category:create",
   "service-category:update",
   "service-category:delete",
+  "service:avatar",
 
   "schedule:create",
   "schedule:all",
