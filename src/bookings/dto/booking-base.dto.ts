@@ -3,13 +3,13 @@ import { PaymentType } from "@prisma/client";
 import { IsEnum, IsOptional, IsString, IsUUID, Matches } from "class-validator";
 
 export class BookingBaseDto {
-  @ApiProperty({
-    example: "Customer API",
-    description: "Название бронирования",
-    required: true,
-  })
-  @IsString()
-  name!: string;
+  // @ApiProperty({
+  //   example: "Customer API",
+  //   description: "Название бронирования",
+  //   required: false,
+  // })
+  // @IsString()
+  // name!: string;
 
   @ApiProperty({
     example: "10:00",

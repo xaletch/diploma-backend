@@ -256,7 +256,7 @@ export class BookingsService {
 
       const booking = await t.booking.create({
         data: {
-          name: dto.name,
+          name: "",
           tag: generateBookingTag(),
           date: dto.date,
           startTime: dto.start_time,
@@ -595,7 +595,7 @@ export class BookingsService {
     const booking = await this.prismaService.booking.update({
       where: { id: bookingId },
       data: {
-        name: dto.name,
+        // name: dto.name,
         date: dto.date,
         startTime: dto.start_time,
         endTime: dto.end_time,
@@ -940,7 +940,7 @@ export class BookingsService {
       );
 
     const createDto = {
-      name: dto.name,
+      // name: dto.name,
       start_time: dto.start_time,
       end_time: dto.end_time,
       date: dto.date,
