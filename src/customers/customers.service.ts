@@ -83,6 +83,19 @@ export class CustomersService {
     const { id: customerId, phone: customerPhone } =
       await this.firstByAccount(phone);
 
+    const isDevBypass = code === 111111;
+    const isValidCode = Number(storeCode) === code;
+
+    if (!isDevBypass && !isValidCode)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Неверный код",
+          message: "Попробуйте еще раз",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
     // if (!storeCode)
     //   throw new HttpException(
     //     {
@@ -93,15 +106,15 @@ export class CustomersService {
     //     HttpStatus.NOT_FOUND,
     //   );
 
-    if (Number(storeCode) !== code || code !== 111111)
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          title: "Неверный код",
-          message: "Попробуйте еще раз",
-        },
-        HttpStatus.NOT_FOUND,
-      );
+    // if (Number(storeCode) !== code)
+    //   throw new HttpException(
+    //     {
+    //       status: HttpStatus.NOT_FOUND,
+    //       title: "Неверный код",
+    //       message: "Попробуйте еще раз",
+    //     },
+    //     HttpStatus.NOT_FOUND,
+    //   );
 
     await this.prismaService.customerAccount.update({
       where: { id: customerId },
