@@ -114,7 +114,7 @@ export class CustomersService {
       phone: customerPhone,
     } satisfies CustomerJwtPayload;
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: "30d" });
     const refreshToken = await this.tokenService.createRefreshToken({
       customerId,
       ipAddress,
