@@ -7,10 +7,16 @@ import { AddedUsersDto } from "./dto/added-users.dto";
 import { AddedLocationsDto } from "./dto/added-locations.dto";
 import { ServiceUpdateDto } from "./dto/service-update.dto";
 import { slugify } from "transliteration";
+import { BufferedFile } from "src/minio/file.model";
+import { MinioService } from "src/minio/minio.service";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class ServicesService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly minioService: MinioService,
+  ) {}
 
   async getAll(company_id: string) {
     const services = await this.prismaService.service.findMany({
@@ -24,6 +30,7 @@ export class ServicesService {
         mark: true,
         type: true,
         category: true,
+        avatar: true,
         price: {
           select: {
             id: true,
@@ -54,6 +61,7 @@ export class ServicesService {
         duration: s.duration,
         category: s.category,
         public_name: s.publicName,
+        avatar: buildFileUrl(s.avatar),
         price: s.price!.price ?? null,
         mark: s.mark,
         type: s.type,
@@ -81,6 +89,7 @@ export class ServicesService {
         // timeEnd: true,
         category: true,
         mark: true,
+        avatar: true,
         price: {
           select: {
             id: true,
@@ -130,6 +139,7 @@ export class ServicesService {
       public_name: s.publicName,
       category: s.category,
       mark: s.mark,
+      avatar: buildFileUrl(s.avatar),
       price: s.price!.price ?? null,
       prices: {
         price: s.price?.price ?? null,
@@ -222,6 +232,7 @@ export class ServicesService {
         select: {
           id: true,
           name: true,
+          avatar: true,
           mark: true,
           duration: true,
           type: true,
@@ -331,6 +342,7 @@ export class ServicesService {
         // timeStart: true,
         // timeEnd: true,
         category: true,
+        avatar: true,
         mark: true,
         price: {
           select: {
@@ -369,6 +381,7 @@ export class ServicesService {
       duration: newService.duration,
       public_name: newService.publicName,
       category: newService.category,
+      avatar: buildFileUrl(newService.avatar),
       mark: newService.mark,
       price: newService.price!.price ?? null,
       prices: {
@@ -785,5 +798,42 @@ export class ServicesService {
       );
 
     return { success: true };
+  }
+
+  private async findById(id: string) {
+    const service = await this.prismaService.service.findFirst({
+      where: { id },
+      select: { avatar: true },
+    });
+
+    if (!service)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка: услуга не обнаружена",
+          detail:
+            "Запрошенная услуга не была найдена. Это может произойти, если вы ранее не создавали никаких услуг. Рекомендуем начать с добавления первой услуги.",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return service;
+  }
+
+  async uploadAvatar(image: BufferedFile, serviceId: string) {
+    const { avatar } = await this.findById(serviceId);
+    const upload = await this.minioService.uploadFile(
+      "service-avatars",
+      image,
+      avatar || undefined,
+    );
+
+    const key = `service-avatars/${upload}`;
+
+    await this.prismaService.service.update({
+      where: { id: serviceId },
+      data: { avatar: key },
+    });
+    return { success: true, avatar: buildFileUrl(key) };
   }
 }

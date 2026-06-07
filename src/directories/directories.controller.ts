@@ -24,7 +24,7 @@ import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { DirectoryEmployee } from "./dto/employee.dto";
 import { DirectoryLocation } from "./dto/location.dto";
 import { DirectoryService } from "./dto/service.dto";
-import { LocationGuard } from "src/access/guard/location.guard";
+// import { LocationGuard } from "src/access/guard/location.guard";
 
 @ApiTags("Директории")
 @Controller("directory")
@@ -45,8 +45,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("employees")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("directory:employees")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  // @Scopes("directory:employees")
   @HttpCode(HttpStatus.OK)
   getEmployees(@Req() req) {
     const companyId = req.user.company.id;
@@ -67,8 +67,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("employees/:location_id")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
-  @Scopes("directory:location-employees")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
+  // @Scopes("directory:location-employees")
   @HttpCode(HttpStatus.OK)
   getLocationEmployees(
     @Param("location_id") locationId: string,
@@ -92,8 +92,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("customers")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("directory:customers")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  // @Scopes("directory:customers")
   @HttpCode(HttpStatus.OK)
   customersCompany(@Req() req) {
     const companyId = req.user.company.id;
@@ -114,8 +114,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("locations")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("directory:locations")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  // @Scopes("directory:locations")
   @HttpCode(HttpStatus.OK)
   getLocations(@Req() req) {
     const companyId = req.user.company.id;
@@ -136,8 +136,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("services")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("directory:services")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  // @Scopes("directory:services")
   @HttpCode(HttpStatus.OK)
   getServices(@Req() req) {
     const companyId = req.user.company.id;
@@ -158,8 +158,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("services/:location_id")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
-  @Scopes("directory:location-services")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, LocationGuard, ScopeGuard)
+  // @Scopes("directory:location-services")
   @HttpCode(HttpStatus.OK)
   getLocationServices(@Param("location_id") locationId: string) {
     return this.directoriesService.locationServices(locationId);
@@ -171,8 +171,8 @@ export class DirectoriesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Расписание сотрудника и свободные слоты" })
   @Get("employee/schedule/:user_id/:location_id")
-  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  @Scopes("directory:employee-schedule")
+  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  // @Scopes("directory:employee-schedule")
   getCustomerSchedule(
     @Param("user_id") userId: string,
     @Param("location_id") locationId: string,
