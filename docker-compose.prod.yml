@@ -40,6 +40,10 @@ services:
       - MINIO_PORT=${MINIO_PORT}
       - MINIO_USE_SSL=${MINIO_USE_SSL}
       - STORAGE_URL=${STORAGE_URL}
+      - RUSENDER_API_KEY=${RUSENDER_API_KEY}
+      - MAIL_FROM=${MAIL_FROM}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME}
+      - FRONTEND_URL=${FRONTEND_URL}
     depends_on:
       - postgres
       - redis

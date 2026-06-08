@@ -81,7 +81,7 @@ export class EmployeeService {
     });
 
     return {
-      url: `${baseUrl}/${action}/${token}?email=${dto.email}`,
+      url: `${baseUrl}/${action}?token=${token}&email=${dto.email}`,
     };
   }
 
@@ -279,7 +279,7 @@ export class EmployeeService {
       role: dto.role,
     } satisfies InviteDto;
 
-    const { url } = await this.invite(data, InviteAction.register);
+    const { url } = await this.invite(data, InviteAction.invite);
     // await this.mailService.sendLocationAddedNotify(
     //   dto.email,
     //   `${dto.first_name} ${dto.last_name}`,
