@@ -189,7 +189,7 @@ export class DirectoriesService {
       );
 
     const locations = await this.PrismaService.location.findMany({
-      where: { companyId: company.id },
+      where: { companyId: company.id, active: true },
       select: {
         id: true,
         name: true,

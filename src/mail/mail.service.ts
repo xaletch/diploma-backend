@@ -7,7 +7,7 @@ import { firstValueFrom } from "rxjs";
 export class MailService {
   private readonly logger = new Logger(MailService.name);
   private readonly apiUrl =
-    "https://beta.rusender.ru/api/v1/external-mails/send";
+    "https://api.rusender.ru/api/v1/external-mails/send";
 
   constructor(
     private readonly httpService: HttpService,
@@ -53,7 +53,9 @@ export class MailService {
         "Вас добавили в новую локацию",
         this.locationAddedTemplate(name),
       );
+      console.log("Вас добавили в новую локацию:", email, name);
     } catch (err) {
+      console.log(" Вас добавили в новую локацию err", err);
       this.logger.error(`Ошибка отправки уведомления ${email}`, err);
     }
   }
@@ -66,7 +68,9 @@ export class MailService {
         "Приглашение на регистрацию",
         this.inviteTemplate(name, url),
       );
+      console.log("Приглашение на регистрацию:", email, name, url);
     } catch (err) {
+      console.log("Приглашение на регистрацию err", err);
       this.logger.error(`Ошибка отправки приглашения ${email}`, err);
     }
   }

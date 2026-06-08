@@ -1,13 +1,13 @@
 services:
-  nginx:
-    build: ./nginx
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - backend
+  # nginx:
+  #   build: ./nginx
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - backend
 
   backend:
     image: xaletch/diplome-backend-crm:latest
