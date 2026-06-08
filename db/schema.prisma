@@ -91,6 +91,7 @@ enum MarkEnum {
 enum InviteAction {
   accept
   register
+  invite
   notify
 }
 
