@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -35,6 +36,7 @@ import { CompanyGuard } from "src/access/guard/company.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
 import { LoadUserGuard } from "./guard/user.guard";
+import { ChangePasswordDto } from "./dto/change-password.dto";
 
 @Controller()
 export class UserController {
@@ -151,5 +153,14 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   getPermission(@Authorized("id") userId: string) {
     return this.userService.permission(userId);
+  }
+
+  @Post("me/change-password")
+  @ApiOperation({ summary: "Изменение пароля" })
+  @ApiBody({ type: ChangePasswordDto })
+  @UseGuards(AuthGuard, LoadUserGuard)
+  @HttpCode(HttpStatus.OK)
+  login(@Body() dto: ChangePasswordDto, @Authorized("id") userId: string) {
+    return this.userService.changePassword(dto, userId);
   }
 }

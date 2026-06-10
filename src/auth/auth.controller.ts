@@ -26,6 +26,9 @@ import { AuthGuard } from "./guard/auth.guard";
 import { AuthResponseDto } from "./dto/auth-response.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
+import { LogoutDto } from "./dto/logout.dto";
+import { LoadUserGuard } from "src/user/guard/user.guard";
+import { Authorized } from "./decorators/authorized.decorator";
 
 @ApiTags("Authorization")
 @Controller()
@@ -106,5 +109,19 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   checkAuth() {
     return { success: true };
+  }
+
+  @Post("auth/logout")
+  @ApiOperation({ summary: "Выход" })
+  @ApiBody({ type: LogoutDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "success",
+    type: GlobalSuccessDto,
+  })
+  @UseGuards(AuthGuard, LoadUserGuard)
+  @HttpCode(HttpStatus.OK)
+  logout(@Body() dto: LogoutDto, @Authorized("id") userId: string) {
+    return this.authService.logout(dto.token, userId);
   }
 }

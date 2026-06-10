@@ -11,6 +11,7 @@ import { RegisterDto } from "./dto/register.dto";
 import { JwtPayload } from "./jwt.payload";
 import { LoginDto } from "./dto/login.dto";
 import { AuthResponseDto } from "./dto/auth-response.dto";
+import { SettingsService } from "src/settings/settings.service";
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly jwtService: JwtService,
+    private readonly settingService: SettingsService,
   ) {}
   async register(
     dto: RegisterDto,
@@ -37,6 +39,8 @@ export class AuthService {
 
     const user = await this.userService.create({ ...dto }, "active");
     const payload = { sub: user.id, email: user.email } satisfies JwtPayload;
+
+    await this.settingService.createSetting(user.id);
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: "1h" });
     const refreshToken = await this.tokenService.createRefreshToken({
@@ -93,5 +97,10 @@ export class AuthService {
       console.error(`Не удалось обновить токен ${err}`);
       throw new UnauthorizedException("Не удалось обновить токен");
     }
+  }
+
+  async logout(token: string, userId: string) {
+    const session = await this.tokenService.logout(token, userId);
+    return session;
   }
 }

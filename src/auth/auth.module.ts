@@ -5,6 +5,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { UserModule } from "src/user/user.module";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { TokenService } from "./token/token.service";
+import { SettingsModule } from "src/settings/settings.module";
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TokenService } from "./token/token.service";
       signOptions: { expiresIn: "7d" },
     }),
     UserModule,
+    SettingsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, TokenService],

@@ -15,6 +15,12 @@ import { BufferedFile } from "src/minio/file.model";
 import { MinioService } from "src/minio/minio.service";
 import { LocationActivateDto } from "./dto/location-activate.dto";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { GetLocationsDto } from "./dto/get-locations.dto";
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+} from "src/shared/common/pagination/pagination";
+import { normalizePhone } from "src/shared/utils/phone";
 
 @Injectable()
 export class LocationService {
@@ -39,6 +45,7 @@ export class LocationService {
     const locationDTO = {
       name: dto.name,
       phone: dto.phone,
+      phoneNormalized: normalizePhone(dto.phone),
       comfort: dto.comfort,
     };
 
@@ -109,7 +116,12 @@ export class LocationService {
     companyId: string,
   ) {
     const { name, phone, comfort } = dto;
-    const locationDto = { name, phone, comfort };
+    const locationDto = {
+      name,
+      phone,
+      comfort,
+      phoneNormalized: normalizePhone(phone),
+    };
 
     const location = await t.location.create({
       data: {
@@ -160,6 +172,7 @@ export class LocationService {
       where: { id: location_id },
       data: {
         ...locationFields,
+        ...(dto.phone && { phoneNormalized: normalizePhone(dto.phone) }),
         address: {
           update: {
             country,
@@ -409,34 +422,88 @@ export class LocationService {
     };
   }
 
-  async getAll(companyId: string) {
+  async getAll(companyId: string, query: GetLocationsDto) {
     if (!companyId) throw new BadRequestException("Выберите компанию");
 
-    const locations = await this.prismaService.location.findMany({
-      where: { company: { id: companyId } },
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-        description: true,
-        phone: true,
-        active: true,
-        category: true,
-        comfort: true,
-        address: {
-          select: {
-            street: true,
-            region: true,
-            country: true,
-            city: true,
-            house: true,
+    const { active, name, category, search, ...pagination } = query;
+
+    const { page, limit, skip } = getPaginationParams(pagination);
+
+    const where = {
+      company: { id: companyId },
+      ...(active && { active }),
+      ...(name && { name }),
+      ...(category && { category: { has: category } }),
+      ...(search && {
+        OR: [
+          {
+            phoneNormalized: {
+              contains: normalizePhone(search),
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            address: {
+              OR: [
+                {
+                  city: {
+                    contains: search,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  country: {
+                    contains: search,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  street: {
+                    contains: search,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  region: {
+                    contains: search,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    };
+
+    const [locations, total] = await Promise.all([
+      this.prismaService.location.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+          description: true,
+          phone: true,
+          active: true,
+          category: true,
+          comfort: true,
+          address: {
+            select: {
+              street: true,
+              region: true,
+              country: true,
+              city: true,
+              house: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "asc" },
-    });
-
-    if (!locations.length) throw new NotFoundException("Локации не найдены");
+        orderBy: { createdAt: "asc" },
+        skip,
+        take: limit,
+      }),
+      this.prismaService.location.count({ where }),
+    ]);
 
     const data = locations.map((location) => ({
       id: location.id,
@@ -465,7 +532,7 @@ export class LocationService {
       },
     }));
 
-    return data;
+    return buildPaginatedResponse(data, total, page, limit);
   }
 
   async findUsers(location_id: string): Promise<ILocationUser[]> {

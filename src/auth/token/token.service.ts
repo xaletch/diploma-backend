@@ -129,4 +129,17 @@ export class TokenService {
 
     return { id: user.id, email: user.email };
   }
+
+  async logout(token: string, userId: string) {
+    const session = await this.prismaService.session.findFirst({
+      where: { userId, token },
+      select: { id: true },
+    });
+
+    if (session) {
+      await this.prismaService.session.delete({ where: { id: session.id } });
+    }
+
+    return { success: true };
+  }
 }

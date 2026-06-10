@@ -28,6 +28,14 @@ import { SuccessResponse } from "./types/success.type";
 import { InviteAction, Prisma, UserStatus } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
 import { MailService } from "src/mail/mail.service";
+import { SettingsService } from "src/settings/settings.service";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+  PaginationQuery,
+} from "src/shared/common/pagination/pagination";
+import { normalizePhone } from "src/shared/utils/phone";
 
 @Injectable()
 export class EmployeeService {
@@ -38,6 +46,7 @@ export class EmployeeService {
     private readonly tokenService: TokenService,
     private readonly roleService: RoleService,
     private readonly mailService: MailService,
+    private readonly settingService: SettingsService,
   ) {}
 
   async findById(id: string): Promise<EmployeeFirst> {
@@ -238,6 +247,7 @@ export class EmployeeService {
           lastName: dto.last_name,
           firstName: dto.first_name,
           phone: dto.phone,
+          phoneNormalized: normalizePhone(dto.phone),
           status: "invited",
           companyId: companyId,
           roleId: dto.role,
@@ -332,6 +342,7 @@ export class EmployeeService {
         data: {
           lastName: dto.last_name,
           phone: dto.phone,
+          phoneNormalized: normalizePhone(dto.phone),
           passwordHash: pass,
           status: "active",
           position: dto.position,
@@ -342,6 +353,8 @@ export class EmployeeService {
 
       return user;
     });
+
+    await this.settingService.createSetting(user.id);
 
     const payload = { sub: user.id, email: user.email } satisfies JwtPayload;
 
@@ -378,6 +391,7 @@ export class EmployeeService {
           firstName: dto.first_name,
           lastName: dto.last_name,
           phone: dto.phone,
+          phoneNormalized: normalizePhone(dto.phone),
           position: dto.position,
           roleId: dto.role,
         },
@@ -479,6 +493,42 @@ export class EmployeeService {
     };
   }
 
+  async changePassword(dto: ChangePasswordDto, userId: string) {
+    const { new_password, confirm_password } = dto;
+
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Сотрудник не найден",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (new_password !== confirm_password)
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Пароли не совпадают",
+          detail: "Пароли не совпадают",
+        },
+        HttpStatus.CONFLICT,
+      );
+
+    const passwordHash = await bcrypt.hash(new_password, 8);
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { success: true };
+  }
+
   async blocked(
     dto: EmployeeBlockedDto,
     userId: string,
@@ -540,63 +590,83 @@ export class EmployeeService {
 
   async getEmployees(
     locationId: string,
+    pagination: PaginationQuery,
     filters?: { search?: string; status?: UserStatus; role?: string },
   ) {
     const { search, status, role } = filters ?? {};
+    const { page, limit, skip } = getPaginationParams(pagination);
 
     const userFilter: Prisma.UserWhereInput = {
       ...(status && { status }),
       ...(search && {
         OR: [
-          { firstName: { contains: search, mode: "insensitive" as const } },
-          { lastName: { contains: search, mode: "insensitive" as const } },
-          { phone: { contains: search, mode: "insensitive" as const } },
-          { email: { contains: search, mode: "insensitive" as const } },
+          {
+            firstName: { contains: search, mode: Prisma.QueryMode.insensitive },
+          },
+          {
+            lastName: { contains: search, mode: Prisma.QueryMode.insensitive },
+          },
+          {
+            phoneNormalized: {
+              contains: normalizePhone(search),
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
         ],
       }),
     };
 
-    const userLocations = await this.prismaService.userLocation.findMany({
-      where: {
-        locationId,
-        ...(role && { role: { name: { equals: role, mode: "insensitive" } } }),
-        ...(Object.keys(userFilter).length && { user: userFilter }),
-      },
-      select: {
-        isBanned: true,
-        role: {
-          select: {
-            id: true,
-            name: true,
+    const where = {
+      locationId,
+      ...(role && {
+        role: { name: { equals: role, mode: Prisma.QueryMode.insensitive } },
+      }),
+      ...(Object.keys(userFilter).length && { user: userFilter }),
+    };
+
+    const [userLocations, total] = await Promise.all([
+      this.prismaService.userLocation.findMany({
+        where,
+        select: {
+          isBanned: true,
+          role: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
-        },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            phone: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            status: true,
-            position: true,
-            role: {
-              select: {
-                id: true,
-                name: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              status: true,
+              position: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: {
-        user: {
-          createdAt: "desc",
+        orderBy: {
+          user: {
+            createdAt: "desc",
+          },
         },
-      },
-    });
+        skip,
+        take: limit,
+      }),
+      this.prismaService.userLocation.count({ where }),
+    ]);
 
-    return userLocations.map((userLocation) => ({
+    const data = userLocations.map((userLocation) => ({
       id: userLocation.user.id,
       email: userLocation.user.email,
       phone: userLocation.user.phone,
@@ -609,6 +679,8 @@ export class EmployeeService {
       role: userLocation.role,
       is_banned: userLocation.isBanned,
     }));
+
+    return buildPaginatedResponse(data, total, page, limit);
   }
 
   /**

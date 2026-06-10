@@ -7,9 +7,15 @@ import { BookingStatusDto } from "./dto/booking-status.dto";
 import { BookingById } from "./type/booking-by-id.type";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
-import { BookingStatus, OrderStatus } from "@prisma/client";
+import { BookingStatus, OrderStatus, Prisma } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
 import { generateBookingTag } from "./utils/generate-tag";
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+} from "src/shared/common/pagination/pagination";
+import { BookingSortOrder, GetBookingsDto } from "./dto/get-bookings.dto";
+import { normalizePhone } from "src/shared/utils/phone";
 
 @Injectable()
 export class BookingsService {
@@ -388,17 +394,10 @@ export class BookingsService {
     });
   }
 
-  async getAll(
-    userId: string,
-    locationId: string,
-    filters: {
-      customer?: string;
-      employee?: string;
-      service?: string;
-      status?: BookingStatus;
-    },
-  ) {
-    const { customer, employee, service, status } = filters;
+  async getAll(userId: string, locationId: string, query: GetBookingsDto) {
+    const { customer, employee, service, status, tag, sort, ...pagination } =
+      query;
+    const { page, limit, skip } = getPaginationParams(pagination);
 
     const user = await this.prismaService.userLocation.findUnique({
       where: { userId_locationId: { userId, locationId } },
@@ -418,80 +417,123 @@ export class BookingsService {
 
     const isOwner = user.role?.name === "owner";
 
-    const bookings = await this.prismaService.booking.findMany({
-      where: {
-        locationId,
-        ...(!isOwner && { employeeId: userId }),
-        ...(status && { status }),
-        ...(customer && {
-          customer: {
-            OR: [
-              { firstName: { contains: customer, mode: "insensitive" } },
-              { lastName: { contains: customer, mode: "insensitive" } },
-            ],
-          },
-        }),
-        ...(employee && {
-          employee: {
-            OR: [
-              { firstName: { contains: employee, mode: "insensitive" } },
-              { lastName: { contains: employee, mode: "insensitive" } },
-            ],
-          },
-        }),
-        ...(service && {
-          service: {
-            name: { contains: service, mode: "insensitive" },
-          },
-        }),
-      },
-      select: {
-        id: true,
-        name: true,
-        tag: true,
-        status: true,
-        startTime: true,
-        endTime: true,
-        date: true,
-        comment: true,
+    const where = {
+      locationId,
+      ...(!isOwner && { employeeId: userId }),
+      ...(status && { status }),
+      ...(tag && {
+        tag: { contains: tag, mode: Prisma.QueryMode.insensitive },
+      }),
+      ...(customer && {
         customer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
-            avatar: true,
-          },
+          OR: [
+            {
+              firstName: {
+                contains: customer,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              lastName: {
+                contains: customer,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              phoneNormalized: { contains: normalizePhone(customer) },
+            },
+          ],
         },
+      }),
+      ...(employee && {
         employee: {
-          select: {
-            id: true,
-            phone: true,
-            firstName: true,
-            lastName: true,
-            position: true,
-            avatar: true,
-          },
+          OR: [
+            {
+              firstName: {
+                contains: employee,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              lastName: {
+                contains: employee,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            { phoneNormalized: { contains: normalizePhone(employee) } },
+          ],
         },
+      }),
+      ...(service && {
         service: {
-          select: {
-            id: true,
-            name: true,
-            duration: true,
-            price: { select: { price: true, costPrice: true } },
-          },
+          name: { contains: service, mode: Prisma.QueryMode.insensitive },
         },
-        order: {
-          select: {
-            subtotal: true,
-            paymentMethod: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "asc" },
-    });
+      }),
+    };
 
-    const res = bookings.map((booking) => ({
+    const orderBy: Prisma.BookingOrderByWithRelationInput =
+      sort === BookingSortOrder.OLDEST
+        ? { createdAt: "asc" }
+        : sort === BookingSortOrder.PRICE_ASC
+          ? { order: { subtotal: "asc" } }
+          : sort === BookingSortOrder.PRICE_DESC
+            ? { order: { subtotal: "desc" } }
+            : { createdAt: "desc" };
+
+    const [bookings, total] = await Promise.all([
+      this.prismaService.booking.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          tag: true,
+          status: true,
+          startTime: true,
+          endTime: true,
+          date: true,
+          comment: true,
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              avatar: true,
+            },
+          },
+          employee: {
+            select: {
+              id: true,
+              phone: true,
+              firstName: true,
+              lastName: true,
+              position: true,
+              avatar: true,
+            },
+          },
+          service: {
+            select: {
+              id: true,
+              name: true,
+              duration: true,
+              price: { select: { price: true, costPrice: true } },
+            },
+          },
+          order: {
+            select: {
+              subtotal: true,
+              paymentMethod: true,
+            },
+          },
+        },
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.prismaService.booking.count({ where }),
+    ]);
+
+    const data = bookings.map((booking) => ({
       id: booking.id,
       name: booking.name,
       status: booking.status,
@@ -530,7 +572,7 @@ export class BookingsService {
       },
     }));
 
-    return res;
+    return buildPaginatedResponse(data, total, page, limit);
   }
 
   async getById(bookingId: string): Promise<BookingById> {

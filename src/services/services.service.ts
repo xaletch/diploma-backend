@@ -10,6 +10,12 @@ import { slugify } from "transliteration";
 import { BufferedFile } from "src/minio/file.model";
 import { MinioService } from "src/minio/minio.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { GetServicesDto } from "./dto/get-services.dto";
+import { Prisma } from "@prisma/client";
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+} from "src/shared/common/pagination/pagination";
 
 @Injectable()
 export class ServicesService {
@@ -18,43 +24,73 @@ export class ServicesService {
     private readonly minioService: MinioService,
   ) {}
 
-  async getAll(company_id: string) {
-    const services = await this.prismaService.service.findMany({
-      where: { companyId: company_id },
-      select: {
-        id: true,
-        name: true,
-        duration: true,
-        // timeStart: true,
-        // timeEnd: true,
-        mark: true,
-        type: true,
-        category: true,
-        avatar: true,
-        price: {
-          select: {
-            id: true,
-            price: true,
-            costPrice: true,
-          },
-        },
-        publicName: true,
-        users: {
-          select: {
-            user: { select: { id: true, firstName: true, lastName: true } },
-          },
-        },
-        locations: {
-          select: {
-            location: { select: { id: true, name: true } },
-          },
-        },
-      },
-    });
+  async getAll(company_id: string, query: GetServicesDto) {
+    const { search, type, mark, price_sort, ...pagination } = query;
 
-    if (!services.length) return { data: [] };
+    const { page, limit, skip } = getPaginationParams(pagination);
 
-    const response: IServices[] = services.map((s) => {
+    const where = {
+      companyId: company_id,
+      ...(type && { type }),
+      ...(mark && { mark }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          {
+            publicName: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            category: { contains: search, mode: Prisma.QueryMode.insensitive },
+          },
+        ],
+      }),
+    };
+
+    const orderBy: Prisma.ServiceOrderByWithRelationInput = price_sort
+      ? { price: { price: price_sort } }
+      : { createdAt: "asc" };
+
+    const [services, total] = await Promise.all([
+      this.prismaService.service.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          duration: true,
+          mark: true,
+          type: true,
+          category: true,
+          avatar: true,
+          price: {
+            select: {
+              id: true,
+              price: true,
+              costPrice: true,
+            },
+          },
+          publicName: true,
+          users: {
+            select: {
+              user: { select: { id: true, firstName: true, lastName: true } },
+            },
+          },
+          locations: {
+            select: {
+              location: { select: { id: true, name: true } },
+            },
+          },
+        },
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.prismaService.service.count({ where }),
+    ]);
+
+    const data: IServices[] = services.map((s) => {
       return {
         id: s.id,
         name: s.name,
@@ -74,7 +110,7 @@ export class ServicesService {
       };
     });
 
-    return response;
+    return buildPaginatedResponse(data, total, page, limit);
   }
 
   async getFirst(service_id: string, company_id: string) {

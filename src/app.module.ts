@@ -27,6 +27,7 @@ import { CatalogModule } from "./catalog/catalog.module";
 import { MailModule } from "./mail/mail.module";
 import { SmsModule } from "./sms/sms.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
+import { SettingsModule } from "./settings/settings.module";
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
     MailModule,
     SmsModule,
     DashboardModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

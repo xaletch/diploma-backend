@@ -13,6 +13,8 @@ import { UserStatus } from "@prisma/client";
 import { BufferedFile } from "src/minio/file.model";
 import { MinioService } from "src/minio/minio.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { normalizePhone } from "src/shared/utils/phone";
 
 @Injectable()
 export class UserService {
@@ -50,10 +52,21 @@ export class UserService {
             },
           },
         },
+        settings: {
+          select: {
+            pages: {
+              select: {
+                page: true,
+                isVisible: true,
+              },
+            },
+          },
+        },
         company: {
           select: {
             id: true,
             name: true,
+            publicName: true,
             logo: true,
             currency: true,
             locations: {
@@ -79,6 +92,7 @@ export class UserService {
           id: user.company?.id,
           name: user.company?.name,
           logo: buildFileUrl(user.company.logo),
+          site_url: `http://app.fast-day.ru/${user.company.publicName}`,
           currency: user.company?.currency,
           industry: user.company?.industry,
           specialization: user.company?.specialization.name,
@@ -110,8 +124,56 @@ export class UserService {
       avatar: buildFileUrl(user.avatar),
       locations: locationArr.length ? locationArr : null,
       company: company,
+      settings: {
+        pages: user.settings?.pages.map((p) => ({
+          page: p.page,
+          is_visible: p.isVisible,
+        })),
+      },
     };
     // return user;
+  }
+
+  public async checkBanned(locationId: string, userId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Пользователь не найден",
+          meta: {
+            user_id: userId,
+          },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const currentLocation = await this.prismaService.userLocation.findFirst({
+      where: { userId, locationId },
+      select: { isBanned: true },
+    });
+
+    if (!currentLocation)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Локация не найдена",
+          meta: {
+            user_id: userId,
+            location_id: locationId,
+          },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (currentLocation.isBanned) return { success: false };
+
+    return { success: true };
   }
 
   public async findByEmail(email: string): Promise<IUser | null> {
@@ -210,6 +272,7 @@ export class UserService {
       data: {
         email: dto.email,
         phone: dto.phone,
+        phoneNormalized: normalizePhone(dto.phone),
         firstName: dto.first_name,
         lastName: dto.last_name,
         passwordHash: pass,
@@ -319,5 +382,46 @@ export class UserService {
     });
 
     return perm?.permissions;
+  }
+
+  async changePassword(dto: ChangePasswordDto, userId: string) {
+    const { old_password, new_password } = dto;
+
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+
+    if (!user)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Пользователь не найден",
+          detail:
+            "Срок вашей сессии истек. Пожалуйста, войдите в систему снова",
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    const isValid = await this.comparePassword(old_password, user.passwordHash);
+
+    if (!isValid)
+      throw new HttpException(
+        {
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          title: "Неверный пароль",
+          detail: "Текущий пароль введен неверно",
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+
+    const passwordHash = await bcrypt.hash(new_password, 8);
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { success: true };
   }
 }
