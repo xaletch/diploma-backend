@@ -43,7 +43,7 @@ import {
   SuccessResponseDto,
 } from "./dto/booking-response.dto";
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
-import { BookingStatus } from "@prisma/client";
+import { GetBookingsDto } from "./dto/get-bookings.dto";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -109,19 +109,11 @@ export class BookingsController {
   @HttpCode(HttpStatus.OK)
   getAll(
     @Param("location_id") locationId: string,
-    @Query("customer") customer: string,
-    @Query("employee") employee: string,
-    @Query("service") service: string,
-    @Query("status") status: BookingStatus,
+    @Query() query: GetBookingsDto,
     @Req() req,
   ) {
     const userId = req.user.id;
-    return this.bookingsService.getAll(userId, locationId, {
-      customer,
-      employee,
-      service,
-      status,
-    });
+    return this.bookingsService.getAll(userId, locationId, query);
   }
 
   @ApiBearerAuth()

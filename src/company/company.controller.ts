@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   UploadedFile,
@@ -38,6 +39,8 @@ import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { UploadAvatarDto } from "src/shared/dto/file-uploaddto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
 import { BufferedFile } from "src/minio/file.model";
+import { UpdateCompanyDto } from "./dto/update.dto";
+import { CompanyGuard } from "src/access/guard/company.guard";
 
 @ApiTags("Компании")
 @Controller("company")
@@ -69,6 +72,23 @@ export class CompanyController {
     @Authorized("id") userId: string,
   ) {
     return this.companyService.create(dto, userId);
+  }
+
+  @Patch()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Редактирование компании" })
+  @ApiBody({ type: UpdateCompanyDto })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: "unauthorized",
+    type: UnAuthorizedDto,
+  })
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("company:update")
+  @HttpCode(HttpStatus.OK)
+  async update(@Body() dto: UpdateCompanyDto, @Req() req) {
+    const companyId = req.user.companyId;
+    return this.companyService.update(companyId, dto);
   }
 
   // specializations

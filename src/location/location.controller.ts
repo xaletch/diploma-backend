@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -44,6 +45,7 @@ import {
   LocationActivateDto,
   LocationActivateResponseDto,
 } from "./dto/location-activate.dto";
+import { GetLocationsDto } from "./dto/get-locations.dto";
 
 @ApiTags("Локации")
 @Controller()
@@ -89,9 +91,9 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("locations:read")
   @HttpCode(HttpStatus.OK)
-  getLocations(@Req() req) {
+  getLocations(@Req() req, @Query() query: GetLocationsDto) {
     const companyId = req.user.companyId;
-    return this.locationService.getAll(companyId);
+    return this.locationService.getAll(companyId, query);
   }
 
   @ApiBearerAuth()

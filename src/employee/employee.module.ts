@@ -7,6 +7,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { AuthModule } from "src/auth/auth.module";
 import { RoleModule } from "src/role/role.module";
 import { MailModule } from "src/mail/mail.module";
+import { SettingsModule } from "src/settings/settings.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MailModule } from "src/mail/mail.module";
       signOptions: { expiresIn: "7d" },
     }),
     MailModule,
+    SettingsModule,
   ],
   controllers: [EmployeeController],
   providers: [EmployeeService],

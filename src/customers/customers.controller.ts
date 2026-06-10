@@ -37,6 +37,7 @@ import { AuthorizationCustomer } from "./decorators/auth.decorator";
 import { AuthorizedCustomer } from "./decorators/authorized.decorator";
 import { CustomerMeDto } from "./dto/customer.dto";
 import { LocationGuard } from "src/access/guard/location.guard";
+import { GetCustomersDto } from "./dto/get-customers.dto";
 
 @ApiTags("Клиенты")
 @Controller()
@@ -156,9 +157,9 @@ export class CustomersController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("company-customers:read")
   @HttpCode(HttpStatus.OK)
-  getCustomerForLocation(@Query("search") search: string, @Req() req) {
+  getCustomerForLocation(@Query() query: GetCustomersDto, @Req() req) {
     const companyId = req.user.companyId;
-    return this.customersService.getCustomerForLocation(companyId, search);
+    return this.customersService.getCustomerForLocation(companyId, query);
   }
 
   /** === ДЕТАЛЬНАЯ ИНФОРМАЦИЮ О КЛИЕНТЕ === **/

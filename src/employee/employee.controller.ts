@@ -50,7 +50,8 @@ import { NotFoundDto, UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { AuthResponseDto } from "src/auth/dto/auth-response.dto";
 import { LocationEmployeesDto } from "./dto/location-employees.dto";
 import { GlobalSuccessDto } from "src/shared/dto/global.dto";
-import { UserStatus } from "@prisma/client";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { GetEmployeesDto } from "./dto/get-employees.dto";
 
 @ApiTags("Сотрудники")
 @Controller()
@@ -200,12 +201,11 @@ export class EmployeeController {
   @Scopes("employees:read")
   @HttpCode(HttpStatus.OK)
   getAll(
-    @Query("search") search: string,
-    @Query("status") status: UserStatus,
-    @Query("role") role: string,
+    @Query() query: GetEmployeesDto,
     @Param("location_id") locationId: string,
   ) {
-    return this.employeeService.getEmployees(locationId, {
+    const { search, status, role, ...pagination } = query;
+    return this.employeeService.getEmployees(locationId, pagination, {
       search,
       status,
       role,
@@ -362,5 +362,18 @@ export class EmployeeController {
     @Param("location_id") locationId: string,
   ) {
     return this.employeeService.checkEmployeeInLocation(userId, locationId);
+  }
+
+  /**
+    ===== ИЗМЕНЕНИЕ ПАРОЛЯ =====
+  **/
+  @Post("employee/change-password/:employee_id")
+  @ApiOperation({ summary: "Изменение пароля" })
+  @ApiBody({ type: ChangePasswordDto })
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("employee:change-password")
+  @HttpCode(HttpStatus.OK)
+  login(@Body() dto: ChangePasswordDto, @Param("employee_id") userId: string) {
+    return this.employeeService.changePassword(dto, userId);
   }
 }

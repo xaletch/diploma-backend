@@ -34,6 +34,7 @@ const permissions = [
   "employee:delete",
   "employee:schedule",
   "employees:read",
+  "employee:change-password",
 
   "user-find:email",
   "user-check:location",
@@ -44,6 +45,7 @@ const permissions = [
   "company-customer-bookings:read",
   "company:create",
   "company-logo:upload",
+  "company:update",
 
   "booking:create",
   "bookings:read",

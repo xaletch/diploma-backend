@@ -95,6 +95,16 @@ enum InviteAction {
   notify
 }
 
+enum AppPage {
+  CALENDAR
+  BOOKINGS
+  CLIENTS
+  SERVICES
+  EMPLOYEES
+  ANALYTICS
+  SETTINGS
+}
+
 model Session {
   id            String        @id               @default(uuid())
 
@@ -156,7 +166,9 @@ model User {
 
   email         String        @unique
   passwordHash  String?       @map("password_hash")
+
   phone         String        // @unique
+  phoneNormalized String?     @map("phone_normalized")
 
   firstName     String        @map("first_name")
   lastName      String?       @map("last_name")
@@ -174,14 +186,42 @@ model User {
 
   locations     UserLocation[] @relation("user_location")
   services      UserService[]  @relation("user_service")
-  bookings      Booking[]     @relation("booking_employee")
+  bookings      Booking[]      @relation("booking_employee")
+  settings      Settings?      @relation("user_setting")
 
-  sessions      Session[]     @relation("user_session")
+  sessions      Session[]      @relation("user_session")
 
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
   @@map("users")
+}
+
+model PageVisibility {
+  id            String        @id               @default(uuid())
+
+  settings      Settings      @relation("settings_pages", fields: [settingsId], references: [id], onDelete: Cascade)
+  settingsId    String        @map("settings_id")
+
+  page          AppPage
+  isVisible     Boolean       @default(true)    @map("is_visible")
+
+  @@unique([settingsId, page])
+  @@map("page_visibility")
+}
+
+model Settings {
+  id            String        @id               @default(uuid())
+
+  user          User          @relation("user_setting", fields: [userId], references: [id], onDelete: Cascade)
+  userId        String        @unique           @map("user_id")
+
+  pages         PageVisibility[]                @relation("settings_pages")
+
+  createdAt     DateTime      @default(now())   @map("created_at")
+  updatedAt     DateTime      @updatedAt        @map("updated_at")
+
+  @@map("settings")
 }
 
 model UserLocation {
@@ -328,6 +368,7 @@ model Customer {
   lastName      String?       @map("last_name")
   email         String?       @unique
   phone         String        @unique
+  phoneNormalized String?     @map("phone_normalized")
   birthday      String?
   avatar        String?
 
@@ -383,6 +424,7 @@ model Location {
   name          String
   description   String?
   phone         String
+  phoneNormalized String?     @map("phone_normalized")
   comfort       String[]
   category      String[]
   avatar        String?

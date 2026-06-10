@@ -9,6 +9,13 @@ import { CustomerTokenService } from "./token/token.service";
 import { JwtService } from "@nestjs/jwt";
 import { buildFileUrl } from "src/shared/utils/build-url";
 import { SmsService } from "src/sms/sms.service";
+import {
+  buildPaginatedResponse,
+  getPaginationParams,
+} from "src/shared/common/pagination/pagination";
+import { Prisma } from "@prisma/client";
+import { normalizePhone } from "src/shared/utils/phone";
+import { CustomerSortOrder, GetCustomersDto } from "./dto/get-customers.dto";
 
 @Injectable()
 export class CustomersService {
@@ -58,7 +65,7 @@ export class CustomersService {
 
     if (!account) {
       const customer = await this.prismaService.customer.create({
-        data: { phone },
+        data: { phone, phoneNormalized: normalizePhone(phone) },
       });
 
       await this.prismaService.customerAccount.create({
@@ -170,7 +177,12 @@ export class CustomersService {
       const createCustomer = await this.prismaService.$transaction(
         async (t) => {
           const customer = await t.customer.create({
-            data: { phone, firstName, lastName },
+            data: {
+              phone,
+              firstName,
+              lastName,
+              phoneNormalized: normalizePhone(phone),
+            },
             select: { id: true },
           });
           await t.customerAccount.create({
@@ -263,37 +275,68 @@ export class CustomersService {
   /**
     ===== ПОЛУЧИТЬ СПИСОК КЛИЕНТОВ КОМПАНИИ =====
   **/
-  async getCustomerForLocation(companyId: string, search?: string) {
-    const customers = await this.prismaService.customerCompany.findMany({
-      where: {
-        companyId,
-        ...(search && {
-          customer: {
-            OR: [
-              { firstName: { contains: search, mode: "insensitive" } },
-              { lastName: { contains: search, mode: "insensitive" } },
-              { phone: { contains: search, mode: "insensitive" } },
-              { email: { contains: search, mode: "insensitive" } },
-            ],
-          },
-        }),
-      },
-      select: {
-        id: true,
-        isBanned: true,
+  async getCustomerForLocation(companyId: string, query: GetCustomersDto) {
+    const { search, sort, ...pagination } = query;
+    const { page, limit, skip } = getPaginationParams(pagination);
+
+    const orderBy: Prisma.CustomerCompanyOrderByWithRelationInput =
+      sort === CustomerSortOrder.OLDEST
+        ? { createdAt: "asc" }
+        : { createdAt: "desc" };
+
+    const where = {
+      companyId,
+      ...(search && {
         customer: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phone: true,
-            avatar: true,
-            birthday: true,
+          OR: [
+            {
+              firstName: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              lastName: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              phoneNormalized: {
+                contains: normalizePhone(search),
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          ],
+        },
+      }),
+    };
+
+    const [customers, total] = await Promise.all([
+      this.prismaService.customerCompany.findMany({
+        where,
+        select: {
+          id: true,
+          isBanned: true,
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+              phone: true,
+              avatar: true,
+              birthday: true,
+            },
           },
         },
-      },
-    });
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.prismaService.customerCompany.count({ where }),
+    ]);
 
-    return customers.map((customer) => ({
+    const data = customers.map((customer) => ({
       id: customer.id,
       is_banned: customer.isBanned,
       full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
@@ -303,6 +346,8 @@ export class CustomersService {
       avatar: buildFileUrl(customer.customer.avatar),
       birthday: customer.customer.birthday,
     }));
+
+    return buildPaginatedResponse(data, total, page, limit);
   }
 
   /**

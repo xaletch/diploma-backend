@@ -12,6 +12,7 @@ import { slugify } from "transliteration";
 import { BufferedFile } from "src/minio/file.model";
 import { MinioService } from "src/minio/minio.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { UpdateCompanyDto } from "./dto/update.dto";
 
 @Injectable()
 export class CompanyService {
@@ -46,6 +47,24 @@ export class CompanyService {
         },
         HttpStatus.CONFLICT,
         { cause: new Error() },
+      );
+
+    const companyIsExist = await this.prismaService.company.findUnique({
+      where: {
+        publicName: slugify(dto.name, { lowercase: true, separator: "-" }),
+      },
+    });
+
+    if (companyIsExist)
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          title: "Данное имя компании уже занято",
+          recommendations: [
+            "Если возникли трудности, обратитесь в службу поддержки.",
+          ],
+        },
+        HttpStatus.CONFLICT,
       );
 
     const company = await this.prismaService.$transaction(async (t) => {
@@ -110,5 +129,54 @@ export class CompanyService {
       data: { logo: key },
     });
     return { success: true, avatar: buildFileUrl(key) };
+  }
+
+  async update(companyId: string, dto: UpdateCompanyDto) {
+    const { id } = await this.findById(companyId);
+
+    const { name, currency } = dto;
+
+    const company = await this.prismaService.company.update({
+      where: { id },
+      data: {
+        name,
+        currency,
+        /**
+          =====!! ДОБАВИТЬ СМЕНУ ПУБЛИЧНОГО ИМЕНИ !!=====
+        **/
+        // publicName: slugify(name, { lowercase: true, separator: "-" }),
+      },
+      select: {
+        id: true,
+        name: true,
+        publicName: true,
+        logo: true,
+        currency: true,
+        industry: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        specialization: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: company.id,
+      name: company.name,
+      logo: buildFileUrl(company.logo),
+      site_url: `http://app.fast-day.ru/${company.publicName}`,
+      currency: company.currency,
+      industry: {
+        id: company.industry.id,
+        name: company.industry.name,
+      },
+      specialization: company.specialization.name,
+    };
   }
 }

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -41,6 +42,7 @@ import { Authorization } from "src/auth/decorators/auth.decorator";
 import { UploadAvatarDto } from "src/shared/dto/file-uploaddto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { BufferedFile } from "src/minio/file.model";
+import { GetServicesDto } from "./dto/get-services.dto";
 
 @ApiTags("Услуги")
 @Controller()
@@ -130,9 +132,9 @@ export class ServicesController {
   @Get("services")
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard)
   @HttpCode(HttpStatus.OK)
-  getAllServices(@Req() req) {
+  getAllServices(@Query() query: GetServicesDto, @Req() req) {
     const companyId = req.user.companyId;
-    return this.servicesService.getAll(companyId);
+    return this.servicesService.getAll(companyId, query);
   }
 
   @ApiBearerAuth()
