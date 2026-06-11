@@ -367,6 +367,7 @@ export class LocationService {
                 id: true,
                 name: true,
                 mark: true,
+                avatar: true,
               },
             },
           },
@@ -418,6 +419,7 @@ export class LocationService {
         id: service.service.id,
         name: service.service.name,
         mark: service.service.mark,
+        avatar: buildFileUrl(service.service.avatar),
       })),
     };
   }
