@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { PrismaService } from "src/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
@@ -47,7 +47,15 @@ export class CustomerTokenService {
       return { access_token: accessToken, refresh_token: newRefreshToken };
     } catch (err) {
       console.error(`Не удалось обновить токен ${err}`);
-      throw new UnauthorizedException("Не удалось обновить токен");
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          title: "Не удалось обновить сессию",
+          detail:
+            "Срок вашей сессии истек. Пожалуйста, войдите в систему снова",
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
   }
 

@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserService } from "src/user/user.service";
 import { TokenService } from "./token/token.service";
 import { JwtService } from "@nestjs/jwt";
@@ -95,7 +90,15 @@ export class AuthService {
       );
     } catch (err) {
       console.error(`Не удалось обновить токен ${err}`);
-      throw new UnauthorizedException("Не удалось обновить токен");
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          title: "Не удалось обновить сессию",
+          detail:
+            "Срок вашей сессии истек. Пожалуйста, войдите в систему снова",
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
   }
 
