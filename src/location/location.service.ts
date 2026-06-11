@@ -441,6 +441,8 @@ export class LocationService {
               contains: normalizePhone(search),
               mode: Prisma.QueryMode.insensitive,
             },
+          },
+          {
             name: { contains: search, mode: Prisma.QueryMode.insensitive },
           },
           {
