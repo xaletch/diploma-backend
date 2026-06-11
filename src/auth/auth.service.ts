@@ -60,11 +60,11 @@ export class AuthService {
     if (!user || !isValidate)
       throw new HttpException(
         {
-          status: HttpStatus.UNAUTHORIZED,
+          status: HttpStatus.BAD_REQUEST,
           title: "Ошибка авторизации",
           detail: "Неверный логин или пароль",
         },
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.BAD_REQUEST,
       );
 
     const payload = { sub: user.id, email: user.email } satisfies JwtPayload;
