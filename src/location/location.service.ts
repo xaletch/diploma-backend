@@ -431,7 +431,7 @@ export class LocationService {
 
     const where = {
       company: { id: companyId },
-      ...(active && { active }),
+      ...(active && { active: active === 0 ? true : false }),
       ...(name && { name }),
       ...(category && { category: { has: category } }),
       ...(search && {
