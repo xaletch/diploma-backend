@@ -64,3 +64,23 @@ backups
 BACKUPS.MD
 MINIO.MD
 PROD.MD
+
+# SSL certificates
+nginx/ssl/*.pem
+nginx/ssl/*.key
+*.crt
+*.key
+
+# Docker
+volumes/
+data/
+docker-compose.override.local.yml
+
+# Backups
+*.backup
+*.sql
+
+# Secrets
+*.pem
+*.key
+*.secret

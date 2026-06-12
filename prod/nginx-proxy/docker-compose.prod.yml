@@ -1,0 +1,13 @@
+services:
+  nginx-proxy:
+    build: .
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - shared
+
+networks:
+  shared:
+    external: true
+
