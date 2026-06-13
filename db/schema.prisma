@@ -96,6 +96,7 @@ enum InviteAction {
 }
 
 enum AppPage {
+  DASHBOARD
   CALENDAR
   BOOKINGS
   CLIENTS
