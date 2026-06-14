@@ -433,6 +433,7 @@ export class EmployeeService {
                   service: {
                     select: {
                       id: true,
+                      avatar: true,
                       name: true,
                     },
                   },
@@ -484,6 +485,7 @@ export class EmployeeService {
       services: newUser.user.services.map((s) => ({
         id: s.service.id,
         name: s.service.name,
+        avatar: buildFileUrl(s.service.avatar),
       })),
       locations: newUser.user.locations.map((l) => ({
         id: l.location.id,
@@ -717,6 +719,7 @@ export class EmployeeService {
                 service: {
                   select: {
                     id: true,
+                    avatar: true,
                     name: true,
                   },
                 },
@@ -775,6 +778,7 @@ export class EmployeeService {
       },
       services: employee.user.services.map((s) => ({
         id: s.service.id,
+        avatar: buildFileUrl(s.service.avatar),
         name: s.service.name,
       })),
       locations: employee.user.locations.map((l) => ({
