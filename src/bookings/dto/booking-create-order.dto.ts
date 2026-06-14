@@ -1,5 +1,5 @@
 import { OrderStatus, PaymentType } from "@prisma/client";
-import { IsEnum } from "class-validator";
+import { IsEnum, IsOptional } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class BookingCreateOrderDto {
@@ -10,7 +10,8 @@ export class BookingCreateOrderDto {
     required: true,
   })
   @IsEnum(PaymentType)
-  payment_method!: PaymentType;
+  @IsOptional()
+  payment_method?: PaymentType;
 
   @ApiProperty({
     enum: OrderStatus,
