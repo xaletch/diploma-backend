@@ -1120,7 +1120,7 @@ export class BookingsService {
 
     const order = await this.orderService.create(
       {
-        status: "pending",
+        status: dto.status ?? "pending",
         payment_method,
         booking_ids: [id],
       },

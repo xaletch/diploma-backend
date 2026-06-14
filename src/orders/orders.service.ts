@@ -37,11 +37,11 @@ export class OrdersService {
       
       const order = await t.order.create({
         data: {
-          status: "pending",
+          status: dto.status ?? "pending",
           subtotal,
           tag: generateOrderTag(),
           companyId,
-          paymentMethod: dto.payment_method,
+          paymentMethod: dto.payment_method ?? null,
           bookings: { connect: bookings.map(b => ({ id: b.id })) }
         },
         select: {
