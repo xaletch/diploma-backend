@@ -61,6 +61,7 @@ enum OrderStatus {
   open
   closed
   paid
+  unpaid
 }
 
 enum PaymentType {
@@ -631,7 +632,7 @@ model Order {
   subtotal      Int
   total         Int?
   discount      Int?
-  paymentMethod PaymentType   @map("payment_method")
+  paymentMethod PaymentType?   @map("payment_method")
   paidAt        DateTime?     @map("paid_at")
   comment       String?
 
