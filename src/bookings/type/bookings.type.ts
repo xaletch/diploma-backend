@@ -38,6 +38,7 @@ interface IBookingDetailsService {
   id: string;
   name: string;
   duration: number;
+  avatar: string | null;
   prices: {
     price?: number | null;
     cost_price?: number | null;

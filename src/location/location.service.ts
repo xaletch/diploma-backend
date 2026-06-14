@@ -223,6 +223,7 @@ export class LocationService {
             service: {
               select: {
                 id: true,
+                avatar: true,
                 name: true,
                 mark: true,
               },
@@ -272,6 +273,7 @@ export class LocationService {
       },
       services: newLocation.services.map((service) => ({
         id: service.service.id,
+        avatar: buildFileUrl(service.service.avatar),
         name: service.service.name,
         mark: service.service.mark,
       })),

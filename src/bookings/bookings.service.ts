@@ -310,6 +310,7 @@ export class BookingsService {
             select: {
               id: true,
               name: true,
+              avatar: true,
               mark: true,
               price: { select: { price: true, costPrice: true } },
               duration: true,
@@ -379,6 +380,7 @@ export class BookingsService {
           id: booking.service.id,
           name: booking.service.name,
           duration: booking.service.duration,
+          avatar: buildFileUrl(booking.service.avatar),
           prices: {
             price: booking.service.price?.price,
             cost_price: booking.service.price?.costPrice,
@@ -510,6 +512,7 @@ export class BookingsService {
             select: {
               id: true,
               name: true,
+              avatar: true,
               duration: true,
               price: { select: { price: true, costPrice: true } },
             },
@@ -559,6 +562,7 @@ export class BookingsService {
         id: booking.service.id,
         name: booking.service.name,
         duration: booking.service.duration,
+        avatar: buildFileUrl(booking.service.avatar),
         prices: {
           price: booking.service.price?.price,
           cost_price: booking.service.price?.costPrice,
@@ -661,6 +665,7 @@ export class BookingsService {
           select: {
             id: true,
             name: true,
+            avatar: true,
             duration: true,
             price: { select: { price: true, costPrice: true } },
           },
@@ -697,6 +702,7 @@ export class BookingsService {
         id: booking.service.id,
         name: booking.service.name,
         duration: booking.service.duration,
+        avatar: buildFileUrl(booking.service.avatar),
         prices: {
           price: booking.service.price?.price,
           cost_price: booking.service.price?.costPrice,
@@ -757,6 +763,7 @@ export class BookingsService {
             id: true,
             name: true,
             duration: true,
+            avatar: true,
             price: { select: { price: true, costPrice: true } },
             publicName: true,
             mark: true,
@@ -829,6 +836,7 @@ export class BookingsService {
         public_name: booking.service.publicName,
         type: booking.service.type,
         category: booking.service.category,
+        avatar: buildFileUrl(booking.service.avatar),
         mark: booking.service.mark,
         prices: {
           price: booking.service.price?.price,
@@ -905,6 +913,7 @@ export class BookingsService {
           select: {
             name: true,
             publicName: true,
+            avatar: true,
             mark: true,
             duration: true,
             category: true,
@@ -939,6 +948,7 @@ export class BookingsService {
       service: {
         name: booking.service.name,
         public_name: booking.service.publicName,
+        avatar: buildFileUrl(booking.service.avatar),
         mark: booking.service.mark,
         duration: booking.service.duration,
         category: booking.service.category || null,
