@@ -2,13 +2,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrderCreateDto } from './dto/order-create.dto';
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, Prisma } from '@prisma/client';
+import { generateOrderTag } from './utils/generate-order-tag';
+import { buildPaginatedResponse, getPaginationParams } from 'src/shared/common/pagination/pagination';
+import { GetOrdersDto, OrderSortOrder } from './dto/get-orders.dto';
 
 @Injectable()
 export class OrdersService {
   public constructor(private readonly prismaService: PrismaService) {}
 
-  async create(dto: OrderCreateDto) {
+  async create(dto: OrderCreateDto, companyId: string) {
     return await this.prismaService.$transaction(async (t) => {
       const bookings = await t.booking.findMany({
         where: {
@@ -32,18 +35,21 @@ export class OrdersService {
       
       const subtotal = bookings.reduce((s, b) => s + (b.service.price?.price ?? 0), 0);
       
-      
       const order = await t.order.create({
         data: {
           status: "pending",
           subtotal,
+          tag: generateOrderTag(),
+          companyId,
           paymentMethod: dto.payment_method,
           bookings: { connect: bookings.map(b => ({ id: b.id })) }
         },
         select: {
           id: true,
+          tag: true,
           paymentMethod: true,
           status: true,
+          total: true,
           subtotal: true,
           comment: true,
         }
@@ -54,8 +60,98 @@ export class OrdersService {
         data: { orderId: order.id },
       });
 
-      return order;
+      return {
+        id: order.id,
+        tag: order.tag,
+        status: order.status,
+        payment_method: order.paymentMethod,
+        total: order.total,
+        subtotal: order.subtotal,
+        comment: order.comment ?? null,
+      };
     });
+  }
+
+  async getAll(companyId: string,  query: GetOrdersDto) {
+    const { status, sort, ...pagination } = query;
+    const { page, limit, skip } = getPaginationParams(pagination);
+
+    const where = {
+      companyId,
+      ...(status && { status }),
+    }
+
+  const orderBy: Prisma.OrderOrderByWithRelationInput =
+    sort === OrderSortOrder.OLDEST
+      ? { createdAt: "asc" }
+      : sort === OrderSortOrder.PRICE_ASC
+        ? { total: "asc" }
+        : sort === OrderSortOrder.PRICE_DESC
+          ? { total: "desc" }
+          : { createdAt: "desc" };
+
+    const [orders, total] = await Promise.all([
+      this.prismaService.order.findMany({
+        where,
+        select: {
+          id: true,
+          status: true,
+          subtotal: true,
+          total: true,
+          paymentMethod: true,
+          paidAt: true,
+        },
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.prismaService.order.count({ where }),
+    ]);
+
+    const data = orders.map((ord) => ({
+      id: ord.id,
+      status: ord.status,
+      subtotal: ord.subtotal,
+      total: ord.total,
+      payment_method: ord.paymentMethod,
+      is_payment: !ord.paidAt,
+    }));
+
+    return buildPaginatedResponse(data, total, page, limit);
+  }
+
+  async details(orderId: string) {
+    const order = await this.prismaService.order.findFirst({
+      where: { id: orderId },
+      select: {
+        id: true,
+        status: true,
+        subtotal: true,
+        total: true,
+        paymentMethod: true,
+        paidAt: true,
+      }
+    });
+
+    if (!order)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          title: "Ошибка",
+          detail: "Заказ не найден.",
+          meta: { order_id: orderId },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+
+    return {
+      id: order.id,
+      status: order.status,
+      subtotal: order.subtotal,
+      total: order.total,
+      payment_method: order.paymentMethod,
+      is_payment: order.paidAt,
+    }
   }
 
 }

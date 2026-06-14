@@ -46,8 +46,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("employees")
-  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  // @Scopes("directory:employees")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("directory:employees")
   @HttpCode(HttpStatus.OK)
   getEmployees(@Req() req) {
     const companyId = req.user.company.id;
@@ -158,8 +158,8 @@ export class DirectoriesController {
     type: UnAuthorizedDto,
   })
   @Get("services")
-  // @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
-  // @Scopes("directory:services")
+  @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
+  @Scopes("directory:services")
   @HttpCode(HttpStatus.OK)
   getServices(@Req() req) {
     const companyId = req.user.company.id;

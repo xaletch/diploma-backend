@@ -190,8 +190,8 @@ export class EmployeeService {
           userId: isExistUser.id,
           locationId: dto.location_id,
           roleId: dto.role,
-          birthday: dto.birthdate,
-          note: dto.note,
+          birthday: dto.birthdate ?? null,
+          note: dto.note ?? null,
         },
         select: {
           isBanned: true,
@@ -260,8 +260,8 @@ export class EmployeeService {
           userId: user.id,
           locationId: dto.location_id,
           roleId: dto.role,
-          birthday: dto.birthdate,
-          note: dto.note,
+          birthday: dto.birthdate ?? null,
+          note: dto.note ?? null,
         },
         select: {
           id: true,
@@ -400,9 +400,9 @@ export class EmployeeService {
       const update = await t.userLocation.update({
         where: { id: employee.id },
         data: {
-          note: dto.note,
           isBanned: dto.is_banned ?? false,
-          birthday: dto.birthdate,
+          birthday: dto.birthdate ?? null,
+          note: dto.note ?? null,
           roleId: dto.role,
         },
         select: {

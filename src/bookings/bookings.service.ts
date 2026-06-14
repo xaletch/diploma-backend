@@ -2,12 +2,10 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { BookingCreateDto } from "./dto/booking-create.dto";
 import { IBookingDetails } from "./type/bookings.type";
-import { BookingCreate } from "./type/booking-create.type";
 import { BookingStatusDto } from "./dto/booking-status.dto";
-import { BookingById } from "./type/booking-by-id.type";
 import { BookingUpdateDto } from "./dto/booking-update.dto";
 import { BookingCreateCustomerDto } from "./dto/booking-create-customer.dto";
-import { BookingStatus, OrderStatus, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { buildFileUrl } from "src/shared/utils/build-url";
 import { generateBookingTag } from "./utils/generate-tag";
 import {
@@ -16,10 +14,17 @@ import {
 } from "src/shared/common/pagination/pagination";
 import { BookingSortOrder, GetBookingsDto } from "./dto/get-bookings.dto";
 import { normalizePhone } from "src/shared/utils/phone";
+import { OrdersService } from "src/orders/orders.service";
+import { BookingCreateOrderDto } from "./dto/booking-create-order.dto";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class BookingsService {
-  public constructor(private readonly prismaService: PrismaService) {}
+  public constructor(
+    private readonly prismaService: PrismaService,
+    private readonly orderService: OrdersService,
+    private readonly mailService: MailService,
+  ) {}
 
   private async validateLocation(
     locationId: string,
@@ -262,13 +267,12 @@ export class BookingsService {
 
       const booking = await t.booking.create({
         data: {
-          name: "",
           tag: generateBookingTag(),
           date: dto.date,
           startTime: dto.start_time,
           endTime: dto.end_time,
-          comment: dto.comment,
-          status: dto.status,
+          comment: dto.comment ?? null,
+          status: dto.status ?? "pending",
           employeeId: dto.employee_id,
           customerId: customerId,
           serviceId: dto.service_id,
@@ -277,7 +281,6 @@ export class BookingsService {
         },
         select: {
           id: true,
-          name: true,
           tag: true,
           status: true,
           date: true,
@@ -289,6 +292,7 @@ export class BookingsService {
               id: true,
               firstName: true,
               lastName: true,
+              email: true,
               phone: true,
               avatar: true,
             },
@@ -315,40 +319,39 @@ export class BookingsService {
       });
 
       /** СОЗДАНИЕ ЗАКАЗА V1 **/
-      const bookings = await t.booking.findMany({
-        where: {
-          id: { in: [booking.id] },
-          orderId: null,
-          status: BookingStatus.confirmed,
-        },
-        include: { service: { select: { price: true } } },
-      });
+      // const bookings = await t.booking.findMany({
+      //   where: {
+      //     id: { in: [booking.id] },
+      //     orderId: null,
+      //     status: BookingStatus.confirmed,
+      //   },
+      //   include: { service: { select: { price: true } } },
+      // });
 
-      const subtotal = bookings.reduce(
-        (s, b) => s + (b.service.price?.price ?? 0),
-        0,
-      );
+      // const subtotal = bookings.reduce(
+      //   (s, b) => s + (b.service.price?.price ?? 0),
+      //   0,
+      // );
 
-      const order = await t.order.create({
-        data: {
-          status: OrderStatus.pending,
-          subtotal,
-          paymentMethod: dto.payment_method,
-          bookings: { connect: bookings.map((b) => ({ id: b.id })) },
-        },
-        select: {
-          id: true,
-          paymentMethod: true,
-          status: true,
-          subtotal: true,
-          comment: true,
-          discount: true,
-        },
-      });
+      // const order = await t.order.create({
+      //   data: {
+      //     status: OrderStatus.pending,
+      //     subtotal,
+      //     paymentMethod: dto.payment_method,
+      //     bookings: { connect: bookings.map((b) => ({ id: b.id })) },
+      //   },
+      //   select: {
+      //     id: true,
+      //     paymentMethod: true,
+      //     status: true,
+      //     subtotal: true,
+      //     comment: true,
+      //     discount: true,
+      //   },
+      // });
 
       const res = {
         id: booking.id,
-        name: booking.name,
         status: booking.status,
         tag: booking.tag,
         start_time: booking.startTime,
@@ -369,6 +372,7 @@ export class BookingsService {
           last_name: booking.employee.lastName,
           full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
           avatar: buildFileUrl(booking.employee.avatar),
+          email: booking.employee.email,
           phone: booking.employee.phone,
         },
         service: {
@@ -379,14 +383,6 @@ export class BookingsService {
             price: booking.service.price?.price,
             cost_price: booking.service.price?.costPrice,
           },
-        },
-        order: {
-          id: order.id,
-          status: order.status,
-          subtotal: order.subtotal,
-          comment: order.comment,
-          discount: order.discount,
-          payment_method: order.paymentMethod,
         },
       };
 
@@ -485,7 +481,6 @@ export class BookingsService {
         where,
         select: {
           id: true,
-          name: true,
           tag: true,
           status: true,
           startTime: true,
@@ -535,7 +530,6 @@ export class BookingsService {
 
     const data = bookings.map((booking) => ({
       id: booking.id,
-      name: booking.name,
       status: booking.status,
       tag: booking.tag,
       start_time: booking.startTime,
@@ -575,10 +569,10 @@ export class BookingsService {
     return buildPaginatedResponse(data, total, page, limit);
   }
 
-  async getById(bookingId: string): Promise<BookingById> {
+  async getById(bookingId: string) {
     const booking = await this.prismaService.booking.findUnique({
       where: { id: bookingId },
-      select: { id: true, name: true, status: true },
+      select: { id: true, status: true },
     });
 
     if (!booking)
@@ -606,11 +600,7 @@ export class BookingsService {
     return { success: true, booking_id: booking.id };
   }
 
-  async update(
-    dto: BookingUpdateDto,
-    bookingId: string,
-    company_id: string,
-  ): Promise<BookingCreate> {
+  async update(dto: BookingUpdateDto, bookingId: string, company_id: string) {
     await this.getById(bookingId);
     await this.validateLocation(dto.location_id, dto.service_id);
     const locationId = await this.validateEmployeeLocation(
@@ -637,7 +627,6 @@ export class BookingsService {
     const booking = await this.prismaService.booking.update({
       where: { id: bookingId },
       data: {
-        // name: dto.name,
         date: dto.date,
         startTime: dto.start_time,
         endTime: dto.end_time,
@@ -649,7 +638,6 @@ export class BookingsService {
       },
       select: {
         id: true,
-        name: true,
         status: true,
         startTime: true,
         endTime: true,
@@ -682,7 +670,6 @@ export class BookingsService {
 
     const res: IBookingDetails = {
       id: booking.id,
-      name: booking.name,
       status: booking.status,
       start_time: booking.startTime,
       end_time: booking.endTime,
@@ -720,18 +707,16 @@ export class BookingsService {
     return res;
   }
 
-  async statusUpdate(
-    dto: BookingStatusDto,
-    bookingId: string,
-  ): Promise<SuccessResponse> {
+  async statusUpdate(dto: BookingStatusDto, bookingId: string) {
     await this.getById(bookingId);
 
-    await this.prismaService.booking.update({
+    const booking = await this.prismaService.booking.update({
       where: { id: bookingId },
       data: { status: dto.status },
+      select: { status: true },
     });
 
-    return { success: true };
+    return { success: true, booking };
   }
 
   async details(bookingId: string) {
@@ -739,7 +724,6 @@ export class BookingsService {
       where: { id: bookingId },
       select: {
         id: true,
-        name: true,
         tag: true,
         status: true,
         startTime: true,
@@ -780,6 +764,18 @@ export class BookingsService {
             type: true,
           },
         },
+        order: {
+          select: {
+            id: true,
+            status: true,
+            tag: true,
+            subtotal: true,
+            total: true,
+            discount: true,
+            paymentMethod: true,
+            paidAt: true,
+          },
+        },
       },
     });
 
@@ -796,7 +792,6 @@ export class BookingsService {
 
     const res = {
       id: booking.id,
-      name: booking.name,
       status: booking.status,
       tag: booking.tag,
       start_time: booking.startTime,
@@ -840,6 +835,16 @@ export class BookingsService {
           cost_price: booking.service.price?.costPrice,
         },
       },
+      order: {
+        id: booking.order?.id,
+        status: booking.order?.status,
+        tag: booking.order?.tag,
+        subtotal: booking.order?.subtotal,
+        total: booking.order?.total,
+        discount: booking.order?.discount,
+        payment_method: booking.order?.paymentMethod,
+        paid_at: booking.order?.paidAt,
+      },
     };
 
     return res;
@@ -866,7 +871,6 @@ export class BookingsService {
       where: { customerId: customer.customerId },
       select: {
         id: true,
-        name: true,
         status: true,
         tag: true,
         startTime: true,
@@ -913,7 +917,6 @@ export class BookingsService {
 
     const res = bookings.map((booking) => ({
       id: booking.id,
-      name: booking.name,
       status: booking.status,
       tag: booking.tag,
       start_time: booking.startTime,
@@ -945,6 +948,9 @@ export class BookingsService {
     return res;
   }
 
+  /*
+    ===== СОЗДАНИЕ БРОНИРОВАНИЯ И ОФОРМЛЕНИЕ ЗАКАЗА СО СТОРОНЫ КЛИЕНТА =====
+  */
   async createCustomerBooking(
     dto: BookingCreateCustomerDto,
     customerId: string,
@@ -982,7 +988,6 @@ export class BookingsService {
       );
 
     const createDto = {
-      // name: dto.name,
       start_time: dto.start_time,
       end_time: dto.end_time,
       date: dto.date,
@@ -995,11 +1000,131 @@ export class BookingsService {
       payment_method: dto.payment_method,
     } satisfies BookingCreateDto;
 
-    const res = this.create(createDto, company.id);
+    return this.prismaService.$transaction(async (t) => {
+      const booking = await this.create(createDto, company.id);
 
-    return res;
+      const subtotal = booking.service.prices.price ?? 0;
+
+      const order = await t.order.create({
+        data: {
+          status: "pending",
+          subtotal,
+          companyId: company.id,
+          total: subtotal,
+          paymentMethod: dto.payment_method,
+          bookings: { connect: { id: booking.id } },
+        },
+        select: {
+          id: true,
+          tag: true,
+          paymentMethod: true,
+          status: true,
+          total: true,
+          subtotal: true,
+          comment: true,
+        },
+      });
+
+      await t.booking.update({
+        where: { id: booking.id },
+        data: { orderId: order.id, status: "new" },
+      });
+
+      await this.mailService.sendNewBookingNotify(
+        booking.employee.email,
+        booking,
+      );
+
+      return {
+        id: booking.id,
+        date: booking.date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status,
+        tag: booking.tag,
+        order: {
+          id: order.id,
+          tag: order.tag,
+          status: order.status,
+          payment_method: order.paymentMethod,
+          total: order.total,
+          subtotal: order.subtotal,
+        },
+      };
+    });
+
+    // await this.orderService.create();
+
+    // return res;
   }
 
+  /*
+    ===== ПОДТВЕРЖДЕНИЕ БРОНИРОВАНИЯ И СОЗДАНИЕ ЗАКАЗА =====
+  */
+  async confirmBooking(
+    bookingId: string,
+    dto: BookingCreateOrderDto,
+    companyId: string,
+  ) {
+    const { id } = await this.getById(bookingId);
+
+    const { payment_method } = dto;
+
+    const booking = await this.prismaService.booking.update({
+      where: { id },
+      data: { status: "confirmed" },
+      select: {
+        id: true,
+        status: true,
+        tag: true,
+        order: {
+          select: {
+            id: true,
+            tag: true,
+            paymentMethod: true,
+            status: true,
+            total: true,
+            subtotal: true,
+            comment: true,
+          },
+        },
+      },
+    });
+
+    if (booking.order) {
+      return {
+        id: booking.id,
+        status: booking.status,
+        tag: booking.tag,
+        order: {
+          id: booking.order.id,
+          tag: booking.order.tag,
+          status: booking.order.status,
+          payment_method: booking.order.paymentMethod,
+          total: booking.order.total,
+          subtotal: booking.order.subtotal,
+          comment: booking.order.comment,
+        },
+      };
+    }
+
+    const order = await this.orderService.create(
+      {
+        status: "pending",
+        payment_method,
+        booking_ids: [id],
+      },
+      companyId,
+    );
+
+    return {
+      order,
+    };
+  }
+
+  /*
+    ===== ЗАВЕРШЕНИЕ БРОНИРОВАНИЯ =====
+  */
   async completeBooking(bookingId: string) {
     return this.prismaService.$transaction(async (t) => {
       const booking = await t.booking.findUnique({

@@ -48,7 +48,9 @@ enum SEX {
 
 // можно дополнить - "pending" | "approved" | "rejected" | "canceled" | "completed" | "expired" | "error";
 enum BookingStatus {
+  new
   pending
+  expired
   confirmed
   cancelled
   completed
@@ -337,6 +339,8 @@ model Company {
 
   bookings      Booking[]     @relation("company_bookings")
 
+  orders        Order[]
+
   createdAt     DateTime      @default(now())   @map("created_at")
   updatedAt     DateTime      @updatedAt        @map("updated_at")
 
@@ -586,7 +590,6 @@ model DiscountPrice {
 model Booking {
   id            String        @id               @default(uuid())
 
-  name          String
   startTime     String        @map("start_time")
   endTime       String        @map("end_time")
   date          String
@@ -623,6 +626,7 @@ model Booking {
 model Order {
   id            String        @id               @default(uuid())
 
+  tag           String?       @unique
   status        OrderStatus   @default(pending)
   subtotal      Int
   total         Int?
@@ -630,6 +634,9 @@ model Order {
   paymentMethod PaymentType   @map("payment_method")
   paidAt        DateTime?     @map("paid_at")
   comment       String?
+
+  companyId     String        @map("company_id")
+  company       Company       @relation(fields: [companyId], references: [id])
 
   bookings      Booking[]     @relation("booking_order")
 
