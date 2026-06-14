@@ -44,6 +44,7 @@ import {
 } from "./dto/booking-response.dto";
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { GetBookingsDto } from "./dto/get-bookings.dto";
+import { BookingCreateOrderDto } from "./dto/booking-create-order.dto";
 
 @ApiTags("Бронирование")
 @Controller()
@@ -311,7 +312,26 @@ export class BookingsController {
     return this.bookingsService.createCustomerBooking(dto, customer.id);
   }
 
-  @Patch("booking/complete/:id")
+  /*
+    ===== ПОДТВЕРЖДЕНИЕ ЗАКАЗА =====
+  */
+  @Patch("booking/:id/confirm")
+  @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
+  @Scopes("bookings:write")
+  @HttpCode(HttpStatus.OK)
+  confirmBooking(
+    @Param("id") id: string,
+    @Body() dto: BookingCreateOrderDto,
+    @Req() req,
+  ) {
+    const companyId = req.user.companyId;
+    return this.bookingsService.confirmBooking(id, dto, companyId);
+  }
+
+  /*
+    ===== ЗАВЕРШЕНИЕ БРОНИРОВАНИЯ =====
+  */
+  @Patch("booking/:id/complete")
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
   @Scopes("bookings:write")
   @HttpCode(HttpStatus.OK)

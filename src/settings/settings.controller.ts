@@ -7,13 +7,19 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { SettingsService } from "./settings.service";
-import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { UnAuthorizedDto } from "src/shared/dto/errors.dto";
 import { Authorized } from "src/auth/decorators/authorized.decorator";
 import { AuthGuard } from "src/auth/guard/auth.guard";
 import { LoadUserGuard } from "src/user/guard/user.guard";
 import { UpdatePagesDto } from "./dto/page.dto";
 
+@ApiTags("Настройки системы")
 @Controller("settings")
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}

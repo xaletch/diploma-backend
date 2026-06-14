@@ -46,7 +46,6 @@ interface IBookingDetailsService {
 
 export type IBookingDetails = {
   id: string;
-  name: string;
   status: BookingStatus;
   start_time: string;
   end_time: string;
