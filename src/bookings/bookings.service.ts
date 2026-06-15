@@ -886,6 +886,11 @@ export class BookingsService {
       where: { customerId: customer.customerId },
       select: {
         id: true,
+        company: {
+          select: {
+            publicName: true,
+          },
+        },
         status: true,
         tag: true,
         startTime: true,
@@ -918,6 +923,7 @@ export class BookingsService {
         },
         service: {
           select: {
+            id: true,
             name: true,
             publicName: true,
             avatar: true,
@@ -933,6 +939,7 @@ export class BookingsService {
 
     const res = bookings.map((booking) => ({
       id: booking.id,
+      company_name: booking.company.publicName,
       status: booking.status,
       tag: booking.tag,
       start_time: booking.startTime,
@@ -953,6 +960,7 @@ export class BookingsService {
         address: booking.location.address,
       },
       service: {
+        id: booking.service.id,
         name: booking.service.name,
         public_name: booking.service.publicName,
         avatar: buildFileUrl(booking.service.avatar),
