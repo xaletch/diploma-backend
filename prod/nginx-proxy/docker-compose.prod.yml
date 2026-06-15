@@ -10,4 +10,3 @@ services:
 networks:
   shared:
     external: true
-

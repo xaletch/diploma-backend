@@ -130,6 +130,51 @@ export class OrdersService {
         total: true,
         paymentMethod: true,
         paidAt: true,
+        comment: true,
+        bookings: {
+          select: {
+            id: true,
+            status: true,
+            startTime: true,
+            endTime: true,
+            tag: true,
+            date: true,
+            comment: true,
+            employee: {
+              select: {
+                id: true,
+                firstName: true,
+                avatar: true,
+                email: true,
+                lastName: true,
+                phone: true,
+              }
+            },
+            service: {
+              select: {
+                id: true,
+                name: true,
+                category: true,
+                avatar: true,
+              },
+            },
+            customer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                email: true,
+                avatar: true,
+                account: {
+                  select: {
+                    id: true,
+                  }
+                }
+              },
+            },
+          },
+        },
       }
     });
 
@@ -151,6 +196,7 @@ export class OrdersService {
       total: order.total,
       payment_method: order.paymentMethod,
       is_payment: order.paidAt,
+      bookings: order.bookings,
     }
   }
 
