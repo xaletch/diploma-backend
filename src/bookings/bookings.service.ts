@@ -17,6 +17,7 @@ import { normalizePhone } from "src/shared/utils/phone";
 import { OrdersService } from "src/orders/orders.service";
 import { BookingCreateOrderDto } from "./dto/booking-create-order.dto";
 import { MailService } from "src/mail/mail.service";
+import { generateOrderTag } from "src/orders/utils/generate-order-tag";
 
 @Injectable()
 export class BookingsService {
@@ -1017,8 +1018,9 @@ export class BookingsService {
 
       const order = await t.order.create({
         data: {
-          status: "pending",
+          status: "open",
           subtotal,
+          tag: generateOrderTag(),
           companyId: company.id,
           total: subtotal,
           paymentMethod: dto.payment_method,
