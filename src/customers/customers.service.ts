@@ -65,7 +65,11 @@ export class CustomersService {
 
     if (!account) {
       const customer = await this.prismaService.customer.create({
-        data: { phone, phoneNormalized: normalizePhone(phone) },
+        data: {
+          phone,
+          phoneNormalized: normalizePhone(phone),
+          firstName: "Боб", // TEST
+        },
       });
 
       await this.prismaService.customerAccount.create({
