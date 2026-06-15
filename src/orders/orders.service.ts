@@ -95,11 +95,17 @@ export class OrdersService {
         where,
         select: {
           id: true,
+          tag: true,
           status: true,
           subtotal: true,
           total: true,
           paymentMethod: true,
           paidAt: true,
+          bookings: {
+            select: {
+              id: true,
+            }
+          }
         },
         orderBy,
         skip,
@@ -110,11 +116,13 @@ export class OrdersService {
 
     const data = orders.map((ord) => ({
       id: ord.id,
+      tag: ord.tag,
       status: ord.status,
       subtotal: ord.subtotal,
       total: ord.total,
       payment_method: ord.paymentMethod,
       is_payment: !ord.paidAt,
+      booking_ids: ord.bookings.map((b) => b.id),
     }));
 
     return buildPaginatedResponse(data, total, page, limit);
