@@ -747,6 +747,11 @@ export class BookingsService {
             email: true,
             birthday: true,
             avatar: true,
+            account: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
         employee: {
@@ -813,6 +818,7 @@ export class BookingsService {
       },
       customer: {
         id: booking.customer.id,
+        profile_id: booking.customer.account?.id,
         first_name: booking.customer.firstName,
         last_name: booking.customer.lastName,
         full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
