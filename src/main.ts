@@ -2,16 +2,11 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as express from "express";
-import { join } from "path";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
-
-  // ВРЕМЕННАЯ СТАТИКА //
-  app.use("/v1/assets", express.static(join(process.cwd(), "assets")));
 
   app.enableVersioning({
     type: VersioningType.URI,
@@ -32,6 +27,7 @@ async function bootstrap() {
     .setDescription("")
     .setVersion("1.0")
     .addBearerAuth()
+    .addServer(config.getOrThrow<string>("BACKEND_BASE_URL"))
     .build();
   const document = SwaggerModule.createDocument(app, confSwagger);
   SwaggerModule.setup("docs", app, document);
