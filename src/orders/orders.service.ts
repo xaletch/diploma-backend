@@ -6,6 +6,8 @@ import { BookingStatus, Prisma } from '@prisma/client';
 import { generateOrderTag } from './utils/generate-order-tag';
 import { buildPaginatedResponse, getPaginationParams } from 'src/shared/common/pagination/pagination';
 import { GetOrdersDto, OrderSortOrder } from './dto/get-orders.dto';
+import { getFullName } from 'src/shared/utils/get-full-name.util';
+import { buildFileUrl } from 'src/shared/utils/build-url';
 
 @Injectable()
 export class OrdersService {
@@ -104,6 +106,15 @@ export class OrdersService {
           bookings: {
             select: {
               id: true,
+              customer: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  phone: true,
+                  avatar: true,
+                }
+              }
             }
           }
         },
@@ -123,6 +134,14 @@ export class OrdersService {
       payment_method: ord.paymentMethod,
       is_payment: !ord.paidAt,
       booking_ids: ord.bookings.map((b) => b.id),
+      customer: {
+        id: ord.bookings[0].customer.id,
+        first_name: ord.bookings[0].customer.firstName,
+        last_name: ord.bookings[0].customer.lastName,
+        full_name: getFullName(ord.bookings[0].customer.firstName, ord.bookings[0].customer.lastName),
+        phone: ord.bookings[0].customer.phone,
+        avatar: buildFileUrl(ord.bookings[0].customer.avatar),
+      }
     }));
 
     return buildPaginatedResponse(data, total, page, limit);

@@ -18,6 +18,7 @@ import { OrdersService } from "src/orders/orders.service";
 import { BookingCreateOrderDto } from "./dto/booking-create-order.dto";
 import { MailService } from "src/mail/mail.service";
 import { generateOrderTag } from "src/orders/utils/generate-order-tag";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class BookingsService {
@@ -118,14 +119,10 @@ export class BookingsService {
     return true;
   }
 
-  private async validateCustomer(id: string): Promise<string> {
-    // const customer = await this.prismaService.customerCompany.findUnique({
-    //   where: { id, companyId },
-    //   select: { id: true, customerId: true },
-    // });
-    /** 
-      ТЕПЕРЬ ПРОВЕРЯЕМ КЛИЕНТА НЕ В CUSTOMER_COMPANY А НАПРЯМУЮ В CUSTOMER
-    **/
+  private async validateCustomer(
+    id: string,
+    companyId: string,
+  ): Promise<string> {
     const customer = await this.prismaService.customer.findUnique({
       where: { id },
       select: { id: true },
@@ -141,6 +138,23 @@ export class BookingsService {
         },
         HttpStatus.NOT_FOUND,
       );
+
+    console.log("customer", companyId);
+
+    const isCustomerCompany =
+      await this.prismaService.customerCompany.findFirst({
+        where: { customerId: customer.id, companyId },
+        select: { id: true, customerId: true },
+      });
+
+    if (!isCustomerCompany) {
+      await this.prismaService.customerCompany.create({
+        data: {
+          companyId,
+          customerId: customer.id,
+        },
+      });
+    }
 
     return customer.id;
   }
@@ -245,7 +259,10 @@ export class BookingsService {
         dto.location_id,
       );
       await this.validateEmployeeService(dto.employee_id, dto.service_id);
-      const customerId = await this.validateCustomer(dto.customer_id);
+      const customerId = await this.validateCustomer(
+        dto.customer_id,
+        company_id,
+      );
       await this.validateService(dto.service_id, company_id);
       await this.validateCustomerWorked(
         dto.date,
@@ -320,38 +337,6 @@ export class BookingsService {
         },
       });
 
-      /** СОЗДАНИЕ ЗАКАЗА V1 **/
-      // const bookings = await t.booking.findMany({
-      //   where: {
-      //     id: { in: [booking.id] },
-      //     orderId: null,
-      //     status: BookingStatus.confirmed,
-      //   },
-      //   include: { service: { select: { price: true } } },
-      // });
-
-      // const subtotal = bookings.reduce(
-      //   (s, b) => s + (b.service.price?.price ?? 0),
-      //   0,
-      // );
-
-      // const order = await t.order.create({
-      //   data: {
-      //     status: OrderStatus.pending,
-      //     subtotal,
-      //     paymentMethod: dto.payment_method,
-      //     bookings: { connect: bookings.map((b) => ({ id: b.id })) },
-      //   },
-      //   select: {
-      //     id: true,
-      //     paymentMethod: true,
-      //     status: true,
-      //     subtotal: true,
-      //     comment: true,
-      //     discount: true,
-      //   },
-      // });
-
       const res = {
         id: booking.id,
         status: booking.status,
@@ -363,7 +348,10 @@ export class BookingsService {
         customer: {
           id: booking.customer.id,
           phone: booking.customer.phone,
-          full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+          full_name: getFullName(
+            booking.customer.firstName,
+            booking.customer.lastName,
+          ),
           first_name: booking.customer.firstName,
           last_name: booking.customer.lastName,
           avatar: buildFileUrl(booking.customer.avatar),
@@ -372,7 +360,10 @@ export class BookingsService {
           id: booking.employee.id,
           first_name: booking.employee.firstName,
           last_name: booking.employee.lastName,
-          full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
+          full_name: getFullName(
+            booking.employee.firstName,
+            booking.employee.lastName,
+          ),
           avatar: buildFileUrl(booking.employee.avatar),
           email: booking.employee.email,
           phone: booking.employee.phone,
@@ -545,14 +536,20 @@ export class BookingsService {
       customer: {
         id: booking.customer.id,
         phone: booking.customer.phone,
-        full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+        full_name: getFullName(
+          booking.customer.firstName,
+          booking.customer.lastName,
+        ),
         first_name: booking.customer.firstName,
         last_name: booking.customer.lastName,
         avatar: buildFileUrl(booking.customer.avatar),
       },
       employee: {
         id: booking.employee.id,
-        full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
+        full_name: getFullName(
+          booking.employee.firstName,
+          booking.employee.lastName,
+        ),
         first_name: booking.employee.firstName,
         last_name: booking.employee.lastName,
         avatar: buildFileUrl(booking.employee.avatar),
@@ -613,7 +610,7 @@ export class BookingsService {
       dto.location_id,
     );
     await this.validateEmployeeService(dto.employee_id, dto.service_id);
-    const customerId = await this.validateCustomer(dto.customer_id);
+    const customerId = await this.validateCustomer(dto.customer_id, bookingId);
     await this.validateService(dto.service_id, company_id);
     await this.validateCustomerWorked(
       dto.date,
@@ -821,7 +818,10 @@ export class BookingsService {
         profile_id: booking.customer.account?.id,
         first_name: booking.customer.firstName,
         last_name: booking.customer.lastName,
-        full_name: `${booking.customer.firstName} ${booking.customer.lastName}`,
+        full_name: getFullName(
+          booking.customer.firstName,
+          booking.customer.lastName,
+        ),
         phone: booking.customer.phone,
         email: booking.customer.email,
         birthday: booking.customer.birthday,
@@ -831,7 +831,10 @@ export class BookingsService {
         id: booking.employee.id,
         first_name: booking.employee.firstName,
         last_name: booking.employee.lastName,
-        full_name: `${booking.employee.firstName} ${booking.employee.lastName}`,
+        full_name: getFullName(
+          booking.employee.firstName,
+          booking.employee.lastName,
+        ),
         phone: booking.employee.phone,
         email: booking.employee.email,
         avatar: buildFileUrl(booking.employee.avatar),

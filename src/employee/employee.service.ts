@@ -36,6 +36,7 @@ import {
   PaginationQuery,
 } from "src/shared/common/pagination/pagination";
 import { normalizePhone } from "src/shared/utils/phone";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class EmployeeService {
@@ -228,7 +229,7 @@ export class EmployeeService {
           id: user.user.id,
           email: user.user.email,
           phone: user.user.phone,
-          full_name: `${user.user.firstName} ${user.user.lastName}`,
+          full_name: getFullName(user.user.firstName, user.user.lastName),
           first_name: user.user.firstName,
           last_name: user.user.lastName,
           avatar: buildFileUrl(user.user.avatar),
@@ -311,7 +312,10 @@ export class EmployeeService {
         profile_id: userLocation.user.id,
         email: userLocation.user.email,
         phone: userLocation.user.phone,
-        full_name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
+        full_name: getFullName(
+          userLocation.user.firstName,
+          userLocation.user.lastName,
+        ),
         first_name: userLocation.user.firstName,
         last_name: userLocation.user.lastName,
         avatar: buildFileUrl(userLocation.user.avatar),
@@ -475,7 +479,7 @@ export class EmployeeService {
         phone: newUser.user.phone,
         first_name: newUser.user.firstName,
         last_name: newUser.user.lastName,
-        full_name: `${newUser.user.firstName} ${newUser.user.lastName}`,
+        full_name: getFullName(newUser.user.firstName, newUser.user.lastName),
         avatar: buildFileUrl(newUser.user.avatar),
         status: newUser.user.status,
         position: newUser.user.position,
@@ -672,7 +676,10 @@ export class EmployeeService {
       id: userLocation.user.id,
       email: userLocation.user.email,
       phone: userLocation.user.phone,
-      full_name: `${userLocation.user.firstName} ${userLocation.user.lastName}`,
+      full_name: getFullName(
+        userLocation.user.firstName,
+        userLocation.user.lastName,
+      ),
       first_name: userLocation.user.firstName,
       last_name: userLocation.user.lastName,
       avatar: buildFileUrl(userLocation.user.avatar),
@@ -769,7 +776,7 @@ export class EmployeeService {
         phone: employee.user.phone,
         first_name: employee.user.firstName,
         last_name: employee.user.lastName,
-        full_name: `${employee.user.firstName} ${employee.user.lastName}`,
+        full_name: getFullName(employee.user.firstName, employee.user.lastName),
         avatar: buildFileUrl(employee.user.avatar),
         status: employee.user.status,
         position: employee.user.position,

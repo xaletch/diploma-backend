@@ -16,6 +16,7 @@ import {
 import { Prisma } from "@prisma/client";
 import { normalizePhone } from "src/shared/utils/phone";
 import { CustomerSortOrder, GetCustomersDto } from "./dto/get-customers.dto";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class CustomersService {
@@ -267,7 +268,10 @@ export class CustomersService {
       id: create.id,
       note: create.note,
       is_banned: create.isBanned,
-      full_name: `${create.customer.firstName} ${create.customer.lastName}`,
+      full_name: getFullName(
+        create.customer.firstName,
+        create.customer.lastName,
+      ),
       first_name: create.customer.firstName,
       last_name: create.customer.lastName,
       phone: create.customer.phone,
@@ -343,7 +347,10 @@ export class CustomersService {
     const data = customers.map((customer) => ({
       id: customer.id,
       is_banned: customer.isBanned,
-      full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
+      full_name: getFullName(
+        customer.customer.firstName,
+        customer.customer.lastName,
+      ),
       first_name: customer.customer.firstName,
       last_name: customer.customer.lastName,
       phone: customer.customer.phone,
@@ -401,7 +408,10 @@ export class CustomersService {
       booking_count: customer.customer._count.bookings,
       profile: {
         id: customer.customer.id,
-        full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
+        full_name: getFullName(
+          customer.customer.firstName,
+          customer.customer.lastName,
+        ),
         first_name: customer.customer.firstName,
         last_name: customer.customer.lastName,
         phone: customer.customer.phone,

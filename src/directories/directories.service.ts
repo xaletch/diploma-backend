@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class DirectoriesService {
@@ -33,7 +34,7 @@ export class DirectoriesService {
       email: emp.email,
       first_name: emp.firstName,
       last_name: emp.lastName,
-      full_name: `${emp.firstName} ${emp.lastName}`,
+      full_name: getFullName(emp.firstName, emp.lastName),
       avatar: buildFileUrl(emp.avatar),
       position: emp.position,
       role: emp.role,
@@ -93,7 +94,7 @@ export class DirectoriesService {
       email: emp.user.email,
       first_name: emp.user.firstName,
       last_name: emp.user.lastName,
-      full_name: `${emp.user.firstName} ${emp.user.lastName}`,
+      full_name: getFullName(emp.user.firstName, emp.user.lastName),
       avatar: buildFileUrl(emp.user.avatar),
       position: emp.user.position,
       role: emp.role,
@@ -134,7 +135,10 @@ export class DirectoriesService {
       profile_id: customer.customer.id,
       first_name: customer.customer.firstName,
       last_name: customer.customer.lastName,
-      full_name: `${customer.customer.firstName} ${customer.customer.lastName}`,
+      full_name: getFullName(
+        customer.customer.firstName,
+        customer.customer.lastName,
+      ),
       birthday: customer.customer.birthday,
       phone: customer.customer.phone,
       email: customer.customer.email,

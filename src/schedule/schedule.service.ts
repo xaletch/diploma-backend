@@ -4,6 +4,7 @@ import { ScheduleDto } from "./dto/schedule.dto";
 import { UserService } from "src/user/user.service";
 import { ISchedules } from "./types/schedules.type";
 import { ISchedule, ScheduleRes } from "./types/schedule.type";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class ScheduleService {
@@ -205,7 +206,10 @@ export class ScheduleService {
       location_id: schedule!.userLocation.locationId,
       user: {
         id: schedule!.userLocation.id,
-        full_name: `${schedule!.userLocation.user.firstName} ${schedule!.userLocation.user.lastName}`,
+        full_name: getFullName(
+          schedule!.userLocation.user.firstName,
+          schedule!.userLocation.user.lastName,
+        ),
         first_name: schedule!.userLocation.user.firstName,
         last_name: schedule!.userLocation.user.lastName,
         phone: schedule!.userLocation.user.phone,
@@ -334,7 +338,10 @@ export class ScheduleService {
       location_id: schedule.userLocation.locationId,
       user: {
         id: schedule.userLocation.id,
-        full_name: `${schedule.userLocation.user.firstName} ${schedule.userLocation.user.lastName}`,
+        full_name: getFullName(
+          schedule.userLocation.user.firstName,
+          schedule.userLocation.user.lastName,
+        ),
         first_name: schedule.userLocation.user.firstName,
         last_name: schedule.userLocation.user.lastName,
         phone: schedule.userLocation.user.phone,

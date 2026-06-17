@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class CatalogService {
@@ -314,7 +315,7 @@ export class CatalogService {
         id: u.id,
         phone: u.phone,
         avatar: buildFileUrl(u.avatar),
-        full_name: `${u.firstName} ${u.lastName}`,
+        full_name: getFullName(u.firstName, u.lastName),
         first_name: u.firstName,
         last_name: u.lastName,
         position: u.position,
