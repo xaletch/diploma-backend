@@ -64,6 +64,7 @@ backups
 BACKUPS.MD
 MINIO.MD
 PROD.MD
+PROD_DOCS.MD
 
 # SSL certificates
 nginx/ssl/*.pem
