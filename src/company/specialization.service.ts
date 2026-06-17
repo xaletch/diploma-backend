@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { SpecializationDto } from "./dto/specialization/specialization.dto";
+import { buildFileUrl } from "src/shared/utils/build-url";
 
 @Injectable()
 export class SpecializationService {
@@ -34,7 +35,10 @@ export class SpecializationService {
       select: { id: true, name: true, description: true, icon: true },
     });
 
-    return specializations;
+    return specializations.map((s) => ({
+      ...s,
+      icon: buildFileUrl(s.icon),
+    }));
   }
 
   async getIndustry(specializationId: number) {

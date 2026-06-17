@@ -21,6 +21,8 @@ async function bootstrap() {
     }),
   );
 
+  console.log("WWWWW", config.getOrThrow<string>("NODE_ENV"));
+
   // СВАГА //
   const confSwagger = new DocumentBuilder()
     .setTitle("API")
