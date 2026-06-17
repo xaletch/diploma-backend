@@ -27,7 +27,9 @@ async function bootstrap() {
     .setDescription("")
     .setVersion("1.0")
     .addBearerAuth()
-    .addServer(config.getOrThrow<string>("BACKEND_BASE_URL"))
+    .addServer(
+      config.getOrThrow<string>("BACKEND_BASE_URL") ?? "http://api.fast-day.ru",
+    )
     .build();
   const document = SwaggerModule.createDocument(app, confSwagger);
   SwaggerModule.setup("docs", app, document);
