@@ -15,6 +15,7 @@ import { MinioService } from "src/minio/minio.service";
 import { buildFileUrl } from "src/shared/utils/build-url";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { normalizePhone } from "src/shared/utils/phone";
+import { getFullName } from "src/shared/utils/get-full-name.util";
 
 @Injectable()
 export class UserService {
@@ -120,7 +121,7 @@ export class UserService {
       role_id: { id: user.role?.id },
       first_name: user.firstName,
       last_name: user.lastName,
-      full_name: `${user.firstName} ${user.lastName}`,
+      full_name: getFullName(user.firstName, user.lastName),
       avatar: buildFileUrl(user.avatar),
       locations: locationArr.length ? locationArr : null,
       company: company,
