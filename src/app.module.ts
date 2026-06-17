@@ -34,6 +34,7 @@ import { SettingsModule } from "./settings/settings.module";
     ConfigModule.forRoot({
       ignoreEnvFile: !IS_DEV_ENV,
       isGlobal: true,
+      envFilePath: ".env",
     }),
     PrismaModule,
     AuthModule,
