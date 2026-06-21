@@ -426,15 +426,24 @@ export class LocationService {
     };
   }
 
-  async getAll(companyId: string, query: GetLocationsDto) {
-    if (!companyId) throw new BadRequestException("Выберите компанию");
+  /*
+    ===== ИЗМЕНЕН СПОСОБ ПОЛУЧЕНИЯ ЛОКАЦИЙ ПОЛЬЗОВАТЕЛЯ =====
+    РАНЕЕ ПОЛЬЗОВАТЕЛЮ ВЫДАВАЛИСЬ ВСЕ ЛОКАЦИИ ДОСТУПНЫЕ В КОМПАНИИ
+    ТЕПЕРЬ ПОЛЬЗОВАТЕЛЮ ВЫДАЮТСЯ ТОЛЬКО ТЕ ЛОКАЦИИ В КОТОРЫХ ОН РАБОТАЕТ
+    СООТВЕТСВЕННО КОНФЛИКТОВ НЕ ДОЛЖНО БЫТЬ. ПОТОМУ ЧТО ОДИН ПОЛЬЗОВАТЕЛЬ МОЖЕТ БЫТЬ ТОЛЬКО В ОДНОЙ КОМПАНИИ
+
+    ----- ЗАМЕНИЛ COMPANY_ID НА USER_ID
+  */
+  async getAll(userId: string, query: GetLocationsDto) {
+    if (!userId) throw new BadRequestException("Пользователь не найден");
 
     const { active, name, category, search, ...pagination } = query;
 
     const { page, limit, skip } = getPaginationParams(pagination);
 
     const where = {
-      company: { id: companyId },
+      // company: { id: companyId },
+      users: { some: { userId } },
       ...(active && { active: active === 1 ? true : false }),
       ...(name && { name }),
       ...(category && { category: { has: category } }),
@@ -442,7 +451,7 @@ export class LocationService {
         OR: [
           {
             phoneNormalized: {
-              contains: normalizePhone(search),
+              // contains: normalizePhone(search),
               mode: Prisma.QueryMode.insensitive,
             },
           },
