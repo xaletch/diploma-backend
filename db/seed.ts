@@ -90,7 +90,6 @@ const employeePermissions = [
   "directory:services",
   "directory:location-employees",
   "directory:location-services",
-  "directory:customers",
 ];
 
 const ROLE_PRESETS: Record<string, string[]> = {

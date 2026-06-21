@@ -123,7 +123,7 @@ export class DirectoriesController {
     return this.directoriesService.locations(companyId);
   }
 
-  // ===== ДЛЯ СОТРУДНИКА =====
+  // ===== ДЛЯ КЛИЕНТА =====
   @AuthorizationCustomer()
   @ApiBearerAuth()
   @ApiOperation({ summary: "Список всех локаций компании - для клиента" })

@@ -91,9 +91,11 @@ export class LocationController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("locations:read")
   @HttpCode(HttpStatus.OK)
-  getLocations(@Req() req, @Query() query: GetLocationsDto) {
-    const companyId = req.user.companyId;
-    return this.locationService.getAll(companyId, query);
+  getLocations(
+    @Authorized("id") userId: string,
+    @Query() query: GetLocationsDto,
+  ) {
+    return this.locationService.getAll(userId, query);
   }
 
   @ApiBearerAuth()

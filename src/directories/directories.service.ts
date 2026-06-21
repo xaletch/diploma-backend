@@ -231,6 +231,7 @@ export class DirectoriesService {
         name: true,
         type: true,
         mark: true,
+        avatar: true,
         publicName: true,
       },
     });
@@ -239,6 +240,7 @@ export class DirectoriesService {
       id: service.id,
       name: service.name,
       mark: service.mark,
+      avatar: buildFileUrl(service.avatar),
       public_name: service.publicName,
     }));
   }
