@@ -694,6 +694,8 @@ export class EmployeeService {
 
   /**
     ===== ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О СОТРУДНИКЕ =====
+
+    УБРАЛ ИНФОРМАЦИЮ О ДОСТУПНЫХ ЛОКАЦИЯХ СОТРУДНИКУ
   **/
   async getEmployee(locationId: string, userId: string) {
     const employee = await this.prismaService.userLocation.findFirst({
@@ -732,18 +734,18 @@ export class EmployeeService {
                 },
               },
             },
-            locations: {
-              take: 6,
-              select: {
-                location: {
-                  select: {
-                    id: true,
-                    name: true,
-                    avatar: true,
-                  },
-                },
-              },
-            },
+            // locations: {
+            //   take: 6,
+            //   select: {
+            //     location: {
+            //       select: {
+            //         id: true,
+            //         name: true,
+            //         avatar: true,
+            //       },
+            //     },
+            //   },
+            // },
             _count: {
               select: { services: true, locations: true },
             },
@@ -788,11 +790,11 @@ export class EmployeeService {
         avatar: buildFileUrl(s.service.avatar),
         name: s.service.name,
       })),
-      locations: employee.user.locations.map((l) => ({
-        id: l.location.id,
-        name: l.location.name,
-        avatar: buildFileUrl(l.location.avatar),
-      })),
+      // locations: employee.user.locations.map((l) => ({
+      //   id: l.location.id,
+      //   name: l.location.name,
+      //   avatar: buildFileUrl(l.location.avatar),
+      // })),
     };
   }
 

@@ -146,12 +146,19 @@ export class ServicesService {
         publicName: true,
         users: {
           select: {
-            user: { select: { id: true, firstName: true, lastName: true } },
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
           },
         },
         locations: {
           select: {
-            location: { select: { id: true, name: true } },
+            location: { select: { id: true, name: true, avatar: true } },
           },
         },
       },
@@ -192,10 +199,12 @@ export class ServicesService {
         : null,
       users: s.users.map((u) => ({
         id: u.user.id,
+        avatar: buildFileUrl(u.user.avatar),
         name: `${u.user.firstName} ${u.user.lastName}`,
       })),
       locations: s.locations.map((l) => ({
         id: l.location.id,
+        avatar: buildFileUrl(l.location.avatar),
         name: l.location.name,
       })),
     };
