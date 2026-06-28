@@ -155,9 +155,11 @@ export class OrdersService {
         status: true,
         subtotal: true,
         total: true,
+        tag: true,
         paymentMethod: true,
         paidAt: true,
         comment: true,
+        discount: true,
         bookings: {
           select: {
             id: true,
@@ -182,6 +184,14 @@ export class OrdersService {
                 id: true,
                 name: true,
                 category: true,
+                price: {
+                  select: {
+                    price: true,
+                    costPrice: true,
+                  },
+                },
+                mark: true,
+                type: true,
                 avatar: true,
               },
             },
@@ -219,11 +229,55 @@ export class OrdersService {
     return {
       id: order.id,
       status: order.status,
+      tag: order.tag,
       subtotal: order.subtotal,
       total: order.total,
       payment_method: order.paymentMethod,
-      is_payment: order.paidAt,
-      bookings: order.bookings,
+      is_payment: !!order.paidAt,
+      discount: order.discount,
+      // booking: order.bookings,
+      bookings: order.bookings.map((book) => ({
+        id: book.id,
+        status: book.status,
+        tag: book.tag,
+        date: book.date,
+        time: {
+          start: book.startTime,
+          end: book.endTime,
+        },
+        comment: book.comment,
+        employee: {
+          id: book.employee.id,
+          first_name: book.employee.firstName,
+          last_name: book.employee.lastName,
+          full_name: getFullName(book.employee.firstName, book.employee.lastName),
+          email: book.employee.email,
+          phone: book.employee.phone,
+          avatar: buildFileUrl(book.employee.avatar),
+        },
+        service: {
+          id: book.service.id,
+          name: book.service.name,
+          category: book.service.category,
+          mark: book.service.mark,
+          type: book.service.type,
+          price: {
+            price: book.service.price?.price,
+            cost_price: book.service.price?.costPrice,
+          },
+          avatar: buildFileUrl(book.service.avatar),
+        },
+        customer: {
+          id: book.customer.id,
+          profile_id: book.customer.account?.id,
+          first_name: book.customer.firstName,
+          last_name: book.customer.lastName,
+          full_name: getFullName(book.customer.firstName, book.customer.lastName),
+          email: book.customer.email,
+          phone: book.customer.phone,
+          avatar: buildFileUrl(book.customer.avatar),
+        },
+      })),
     }
   }
 
