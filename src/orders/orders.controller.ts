@@ -67,7 +67,7 @@ export class OrdersController {
     status: HttpStatus.NOT_FOUND,
     description: "not found",
   })
-  @Get("order/:order_id")
+  @Get("orders/:order_id")
   @UseGuards(AuthGuard, LoadUserGuard, ScopeGuard)
   @Scopes("booking-detail:read")
   @HttpCode(HttpStatus.OK)
