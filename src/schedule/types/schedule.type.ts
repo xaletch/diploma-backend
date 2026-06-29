@@ -2,7 +2,7 @@ import { IInterval } from "./intervals.type";
 
 export type ScheduleRes = {
   id: number;
-  date: string;
+  date: Date;
   intervals: IInterval[];
 };
 
@@ -18,7 +18,7 @@ export type ScheduleUser = {
 
 export type ISchedule = {
   id: number;
-  date: string;
+  date: Date;
   intervals: IInterval[];
   location_id: string;
   user: ScheduleUser;

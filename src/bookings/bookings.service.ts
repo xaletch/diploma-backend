@@ -160,14 +160,14 @@ export class BookingsService {
   }
 
   private async validateCustomerWorked(
-    date: string,
+    date: Date,
     userLocationId: string,
     start_time: string,
     end_time: string,
   ): Promise<boolean> {
     const isWorked = await this.prismaService.schedule.findFirst({
       where: {
-        date: date,
+        date: new Date(date),
         userLocationId,
         intervals: {
           some: {
@@ -194,7 +194,7 @@ export class BookingsService {
 
   private async validateOverlapping(
     employeeId: string,
-    date: string,
+    date: Date,
     end_time: string,
     start_time: string,
     booking_id: string = "",
@@ -202,7 +202,7 @@ export class BookingsService {
     const isOverlapping = await this.prismaService.booking.findFirst({
       where: {
         employeeId,
-        date,
+        date: new Date(date),
         id: { not: booking_id },
         startTime: { lt: end_time },
         endTime: { gt: start_time },
@@ -226,14 +226,14 @@ export class BookingsService {
 
   private async validateCustomerOverlapping(
     customerId: string,
-    date: string,
+    date: Date,
     start_time: string,
     end_time: string,
   ) {
     const overlap = await this.prismaService.booking.findFirst({
       where: {
         customerId,
-        date,
+        date: new Date(date),
         startTime: { lt: end_time },
         endTime: { gt: start_time },
       },
@@ -265,20 +265,20 @@ export class BookingsService {
       );
       await this.validateService(dto.service_id, company_id);
       await this.validateCustomerWorked(
-        dto.date,
+        new Date(dto.date),
         locationId,
         dto.start_time,
         dto.end_time,
       );
       await this.validateOverlapping(
         dto.employee_id,
-        dto.date,
+        new Date(dto.date),
         dto.end_time,
         dto.start_time,
       );
       await this.validateCustomerOverlapping(
         customerId,
-        dto.date,
+        new Date(dto.date),
         dto.start_time,
         dto.end_time,
       );
@@ -286,7 +286,7 @@ export class BookingsService {
       const booking = await t.booking.create({
         data: {
           tag: generateBookingTag(),
-          date: dto.date,
+          date: new Date(dto.date),
           startTime: dto.start_time,
           endTime: dto.end_time,
           comment: dto.comment ?? null,
@@ -385,8 +385,16 @@ export class BookingsService {
   }
 
   async getAll(userId: string, locationId: string, query: GetBookingsDto) {
-    const { customer, employee, service, status, tag, sort, ...pagination } =
-      query;
+    const {
+      customer,
+      employee,
+      service,
+      status,
+      tag,
+      date,
+      sort,
+      ...pagination
+    } = query;
     const { page, limit, skip } = getPaginationParams(pagination);
 
     const user = await this.prismaService.userLocation.findUnique({
@@ -411,6 +419,7 @@ export class BookingsService {
       locationId,
       ...(!isOwner && { employeeId: userId }),
       ...(status && { status }),
+      ...(date && { date: new Date(date) }),
       ...(tag && {
         tag: { contains: tag, mode: Prisma.QueryMode.insensitive },
       }),
@@ -613,14 +622,14 @@ export class BookingsService {
     const customerId = await this.validateCustomer(dto.customer_id, bookingId);
     await this.validateService(dto.service_id, company_id);
     await this.validateCustomerWorked(
-      dto.date,
+      new Date(dto.date),
       locationId,
       dto.start_time,
       dto.end_time,
     );
     await this.validateOverlapping(
       dto.employee_id,
-      dto.date,
+      new Date(dto.date),
       dto.end_time,
       dto.start_time,
       bookingId,

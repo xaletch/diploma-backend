@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PaymentType } from "@prisma/client";
-import { IsEnum, IsOptional, IsString, IsUUID, Matches } from "class-validator";
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+} from "class-validator";
 
 export class BookingBaseDto {
   // @ApiProperty({
@@ -35,13 +42,14 @@ export class BookingBaseDto {
 
   @ApiProperty({
     example: "24-11-2025",
-    description: "Дата в формате DD-MM-YYYY",
+    description: "Дата в формате YYYY-MM-DD",
     required: true,
-    pattern: "^\\d{2}-\\d{2}-\\d{4}$",
   })
-  @Matches(/^\d{2}-\d{2}-\d{4}$/, {
-    message: "Дата должна быть в формате DD-MM-YYYY",
-  })
+  // @Matches(/^\d{2}-\d{2}-\d{4}$/, {
+  //   message: "Дата должна быть в формате DD-MM-YYYY",
+  // })
+  // date!: string;
+  @IsDateString()
   date!: string;
 
   @ApiPropertyOptional({

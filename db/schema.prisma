@@ -594,7 +594,7 @@ model Booking {
 
   startTime     String        @map("start_time")
   endTime       String        @map("end_time")
-  date          String
+  date          DateTime      @db.Date
   comment       String?
   status        BookingStatus @default(confirmed)
   tag           String?       @unique
@@ -652,7 +652,8 @@ model Schedule {
   id            Int           @id               @default(autoincrement())
 
   // date          DateTime
-  date          String
+  // date          String
+  date          DateTime      @db.Date
 
   intervals     ScheduleInterval[]              @relation("schedule_intervals_model")
 
