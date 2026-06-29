@@ -79,7 +79,10 @@ export class DirectoriesService {
         schedules: {
           take: 31,
           where: {
-            date: { endsWith: `${month}-${year}` },
+            date: {
+              gte: new Date(Number(year), Number(month) - 1, 1),
+              lt: new Date(Number(year), Number(month), 1),
+            },
           },
           select: {
             date: true,

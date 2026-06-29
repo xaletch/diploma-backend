@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BookingStatus } from "@prisma/client";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
 import { GetQueryDto } from "src/shared/dto/query.dto";
 
 export enum BookingSortOrder {
@@ -40,6 +40,11 @@ export class GetBookingsDto extends GetQueryDto {
   @IsOptional()
   @IsString()
   tag?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDateString()
+  date?: string;
 
   @ApiProperty({ required: false, enum: BookingStatus })
   @IsOptional()

@@ -10,7 +10,7 @@ interface BookingWithRelations {
   tag: string | null;
   start_time: string;
   end_time: string;
-  date: string;
+  date: Date;
   comment: string | null;
   customer: {
     id: string;
@@ -50,8 +50,7 @@ export class MailService {
     private readonly configService: ConfigService,
   ) {}
 
-  private formatDate(dateStr: string): string {
-    const [year, month, day] = dateStr.split("-");
+  private formatDate(date: Date): string {
     const months = [
       "января",
       "февраля",
@@ -66,7 +65,7 @@ export class MailService {
       "ноября",
       "декабря",
     ];
-    return `${parseInt(day)} ${months[parseInt(month) - 1]} ${year}`;
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 
   private async send(

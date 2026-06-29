@@ -7,7 +7,7 @@ export type IBookings = {
   status: BookingStatus;
   start_time: string;
   end_time: string;
-  date: string;
+  date: Date;
   comment: string | null;
   customer: IBookingsCustomer;
   employee: IBookingsEmployee;
@@ -50,7 +50,7 @@ export type IBookingDetails = {
   status: BookingStatus;
   start_time: string;
   end_time: string;
-  date: string;
+  date: Date;
   comment: string | null;
   location: IBookingDetailsLocation;
   customer: IBookingDetailsCustomer;

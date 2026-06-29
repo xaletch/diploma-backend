@@ -14,9 +14,13 @@ export class DashboardService {
     return parseFloat((((curr - prev) / prev) * 100).toFixed(1));
   }
 
-  private isDateInRange(dateStr: string, start: Date, end: Date): boolean {
-    const [day, month, year] = dateStr.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
+  // private isDateInRange(dateStr: string, start: Date, end: Date): boolean {
+  //   const [day, month, year] = dateStr.split("-").map(Number);
+  //   const date = new Date(year, month - 1, day);
+  //   return date >= start && date <= end;
+  // }
+
+  private isDateInRange(date: Date, start: Date, end: Date): boolean {
     return date >= start && date <= end;
   }
 
