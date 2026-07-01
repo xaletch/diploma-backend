@@ -5,7 +5,7 @@ export class GetChartDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  location_id?: string;
+  locationId?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

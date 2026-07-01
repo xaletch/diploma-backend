@@ -215,7 +215,7 @@ export class DashboardService {
   }
 
   async getChart(companyId: string, query: GetChartDto) {
-    const { location_id: locationId, from, to } = query;
+    const { locationId, from, to } = query;
 
     if (from && to && new Date(to) < new Date(from)) {
       throw new HttpException(
