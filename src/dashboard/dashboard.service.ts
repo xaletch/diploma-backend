@@ -252,7 +252,7 @@ export class DashboardService {
     });
 
     return bookings.map((b) => ({
-      date: `${b.date} ${b.startTime}`,
+      date: `${b.date.getFullYear()}-${String(b.date.getMonth() + 1).padStart(2, "0")}-${String(b.date.getDate()).padStart(2, "0")} ${b.startTime}`,
       profit: b.order?.total ?? b.order?.subtotal,
     }));
   }
