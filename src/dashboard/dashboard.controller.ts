@@ -13,6 +13,7 @@ import { LoadUserGuard } from "src/user/guard/user.guard";
 import { CompanyGuard } from "src/access/guard/company.guard";
 import { ScopeGuard } from "src/access/guard/scope.guard";
 import { Scopes } from "src/access/decorator/scopes.decorator";
+import { GetChartDto } from "./dto/get-chart.dto";
 
 @Controller("dashboard")
 export class DashboardController {
@@ -31,13 +32,8 @@ export class DashboardController {
   @UseGuards(AuthGuard, LoadUserGuard, CompanyGuard, ScopeGuard)
   @Scopes("locations:read")
   @HttpCode(HttpStatus.OK)
-  getChart(
-    @Req() req,
-    @Query("locationId") locationId: string,
-    @Query("from") from: string,
-    @Query("to") to: string,
-  ) {
+  getChart(@Req() req, @Query() query: GetChartDto) {
     const companyId = req.user.companyId;
-    return this.dashboardService.getChart(companyId, locationId, from, to);
+    return this.dashboardService.getChart(companyId, query);
   }
 }

@@ -1,6 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { GetChartDto } from "./dto/get-chart.dto";
 
 @Injectable()
 export class DashboardService {
@@ -13,12 +14,6 @@ export class DashboardService {
     if (prev === 0) return curr > 0 ? 100 : 0;
     return parseFloat((((curr - prev) / prev) * 100).toFixed(1));
   }
-
-  // private isDateInRange(dateStr: string, start: Date, end: Date): boolean {
-  //   const [day, month, year] = dateStr.split("-").map(Number);
-  //   const date = new Date(year, month - 1, day);
-  //   return date >= start && date <= end;
-  // }
 
   private isDateInRange(date: Date, start: Date, end: Date): boolean {
     return date >= start && date <= end;
@@ -219,19 +214,31 @@ export class DashboardService {
     };
   }
 
-  async getChart(
-    companyId: string,
-    locationId: string | undefined,
-    from: string,
-    to: string,
-  ) {
+  async getChart(companyId: string, query: GetChartDto) {
+    const { location_id: locationId, from, to } = query;
+
+    if (from && to && new Date(to) < new Date(from)) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          title: "Некорректный диапазон дат",
+          detail: `Дата окончания (${to}) не может быть раньше даты начала (${from})`,
+          meta: { from, to },
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const bookings = await this.prismaService.booking.findMany({
       where: {
         companyId,
         ...(locationId ? { locationId } : {}),
         status: "completed",
         orderId: { not: null },
-        date: { gte: from, lte: to },
+        date: {
+          gte: from ? new Date(from) : undefined,
+          lte: to ? new Date(to) : undefined,
+        },
         order: {
           status: "paid",
         },
